@@ -1,0 +1,1 @@
+include 'coretools', 'coretools-model', 'coretools-data', 'coretools-graphics', 'coretools-scene', 'coretools-ui', 'coretools-misc', 'geology-base', 'geology-ui', 'dis-base', 'dis-ui', 'tools:scripting', 'tools:SchemeEditor', 'tools:PSICAT'

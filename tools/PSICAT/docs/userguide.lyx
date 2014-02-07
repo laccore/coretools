@@ -1,0 +1,1679 @@
+#LyX 1.6.4.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass book
+\use_default_options true
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+PSICAT User Guide
+\end_layout
+
+\begin_layout Author
+Josh Reed
+\end_layout
+
+\begin_layout Author
+\begin_inset CommandInset href
+LatexCommand href
+name "jareed@andrill.org"
+target "jareed@psicat.org"
+type "mailto:"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Date
+Version 0.7
+\end_layout
+
+\begin_layout Standard
+This is the User Guide for the Paleontological Stratigraphic Interval Constructi
+on and Analysis Tool (PSICAT).
+ This guide is divided into three main parts: Introduction, Using PSICAT,
+ and Advanced Topics.
+ Part I will assist you with installing PSICAT and creating your first project.
+ Part II will explain how to perform specific tasks.
+ Part III covers advanced topics such as adding new data types, column types,
+ and import/export formats.
+\end_layout
+
+\begin_layout Standard
+This user guide, like PSICAT itself, is under active development.
+ Some parts of PSICAT aren't documented as completely as they need to be.
+ Some of the content presented won't be entirely clear or will assume that
+ you know more about PSICAT than you do.
+ If you find content that is clear or missing, please 
+\begin_inset CommandInset href
+LatexCommand href
+name "submit a bug"
+target "http://bitbucket.org/joshareed/coretools/issues/?status=new&status=open"
+
+\end_inset
+
+ or 
+\begin_inset CommandInset href
+LatexCommand href
+name "email me"
+target "jareed@psicat.org"
+type "mailto:"
+
+\end_inset
+
+ your suggestions.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part
+Introduction
+\end_layout
+
+\begin_layout Standard
+PSICAT is drawing tool similar to Adobe Illustrator or CorelDRAW that is
+ customized to the task of drawing core description and stratigraphic column
+ diagrams.
+ One key difference between PSICAT and these other drawing tools is that
+ PSICAT works with data, not graphics.
+ The focus on data was borne out of the realization that stratigraphic columns
+ are great tools for conveying a large amount of data, but none of that
+ data is directly accessible for analysis or search.
+ When you draw an interval on your diagram, PSICAT analyzes what you've
+ drawn and extracts the relevant data, e.g.
+ top, base, grain size, lithology.
+ This data is stored in your project and PSICAT uses it to generate a visual
+ representation that closely matches what you've drawn.
+ 
+\end_layout
+
+\begin_layout Standard
+What does this mean for you, the user? PSICAT can help you draw your core
+ description or stratigraphic column diagram.
+ Hopefully the process will be simpler than drawing the diagram by hand
+ because PSICAT is working at the same semantic level as you---it knows
+ about intervals and lithologies.
+ If you're interested in more than just a pretty diagram, all of the data
+ PSICAT has captured is available for you to analyze.
+ PSICAT can also help you generate diagrams from data captured externally
+ in spreadsheets and databases.
+ The rest of this section is devoted to instructions on installing PSICAT
+ and an illustrated guide to creating your first project.
+\end_layout
+
+\begin_layout Chapter
+Installation
+\end_layout
+
+\begin_layout Standard
+Installing PSICAT is as simple as downloading the most recent version for
+ your specific platform from the right sidebar on the main 
+\begin_inset CommandInset href
+LatexCommand href
+name "PSICAT Development site"
+target "http://dev.psicat.org"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Windows
+\end_layout
+
+\begin_layout Standard
+The Windows version of PSICAT comes packaged as a zip file (.zip).
+ Double-click the downloaded file and choose ‘Extract all files’.
+ This will create a ‘PSICAT’ folder containing the application which you
+ can launch by double-clicking the ‘
+\begin_inset Graphics
+	filename /Users/jareed/Workspace/coretools/tools/PSICAT/griffon-app/resources/psicat-icon-16.png
+
+\end_inset
+
+PSICAT.exe’ file.
+\end_layout
+
+\begin_layout Section
+Mac
+\end_layout
+
+\begin_layout Standard
+The Mac version of PSICAT comes packaged as a disk image (.dmg).
+ Double-click the downloaded file to mount the disk image.
+ Drag the ‘PSICAT’ folder to your Applications directory or another convenient
+ location.
+ You can launch PSICAT by double-clicking on the ‘
+\begin_inset Graphics
+	filename /Users/jareed/Workspace/coretools/tools/PSICAT/griffon-app/resources/psicat-icon-16.png
+
+\end_inset
+
+PSICAT’ application in the PSICAT folder.
+ 
+\end_layout
+
+\begin_layout Section
+Linux
+\end_layout
+
+\begin_layout Standard
+The Linux version of PSICAT comes packaged as a tarball (.tar.gz).
+ Untar the tarball to a convenient location.
+ You can launch PSICAT by executing the ‘bin/PSICAT’ script in the PSICAT
+ folder.
+ 
+\end_layout
+
+\begin_layout Section
+Troubleshooting
+\end_layout
+
+\begin_layout Standard
+PSICAT requires Java 1.5/5 or higher.
+ If you are having trouble running PSICAT, you likely need a newer version
+ of Java.
+ You can find the most recent version for your platform at the 
+\begin_inset CommandInset href
+LatexCommand href
+name "Java website"
+target "http://jdl.sun.com/webapps/getjava/BrowserRedirect?locale=en&host=java.com"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Chapter
+Quickstart Guide
+\end_layout
+
+\begin_layout Standard
+In this chapter, we'll get our feet wet by drawing a simple core description
+ diagram in PSICAT.
+ Along the way, we'll will learn how to create a new project, create a new
+ section, draw and describe an interval, and ultimately export our diagram
+ as a PDF document.
+ This chapter focuses on describing a core from the top down, but is equally
+ applicable to describing an outcrop from the base up.
+\end_layout
+
+\begin_layout Section
+Launch PSICAT
+\end_layout
+
+\begin_layout Standard
+Launch PSICAT as described in Chapter 1.
+ You should see a screen similar to the one below:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Create a new project
+\end_layout
+
+\begin_layout Standard
+Before we can begin drawing, we must first create a project.
+ A project is a directory on your computer that holds your PSICAT data and
+ diagrams.
+ Use the 
+\emph on
+File > New Project...
+
+\emph default
+ menu option to launch the 
+\emph on
+New Project Wizard
+\emph default
+.
+ The wizard will prompt you for the name, type, and a location of the project
+ to create.
+ Once created, you will see the name you entered for the project appear
+ in the left sidebar.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.2_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.2_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.2_3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Create a new section
+\end_layout
+
+\begin_layout Standard
+Once we have a project, we must also create a section.
+ Sections hold the data e.g., intervals and units, from the diagram and allow
+ us to partition our project into logical units such as holes, cores, etc.
+ Use the 
+\emph on
+File > New Section...
+
+\emph default
+ menu option to launch the 
+\emph on
+New Section Wizard
+\emph default
+.
+ The wizard will prompt you for the name and optionally a depth/height range
+ and image for the section.
+ Once created, you will see the section appear in the left sidebar.
+ Double click the section to open a blank diagram.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.3_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.3_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.3_3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Draw an Interval
+\end_layout
+
+\begin_layout Standard
+Use your mouse to hover over the 'Lithology' column.
+ You should see a dark rectangle that tracks your mouse pointer.
+ Click the left mouse button to create a new interval.
+ You will see a black line appear under your mouse pointer and a set of
+ property fields appear at the bottom of the application window:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.4.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Edit the Interval properties
+\end_layout
+
+\begin_layout Standard
+Use the property fields to edit the Interval.
+ Try typing '1 ft' or '1 m' into the 'Top' field.
+ The diagram should update accordingly.
+ Also try typing 'Sand' or selecting a lithology from the Lithology drop
+ down list.
+ Your interval should update with a color and pattern:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.5.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Add a Symbol
+\end_layout
+
+\begin_layout Standard
+Use your mouse to hover in the 'Symbol' column.
+ You should see a dark rectangle that tracks your mouse pointer.
+ Click and release the left mouse button to create a new symbol at a specific
+ point, or click and drag to create a symbol over a range.
+ A newly created symbol initially appears as box with an 'X' in it.
+ Use the property fields to select a symbol from the drop down list.
+ The symbol box will update with the symbol you've chosen:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.6.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Provide a written description
+\end_layout
+
+\begin_layout Standard
+You can provide written descriptions for almost every object in a diagram.
+ Enter some text into the Description field and it will show up in the Descripti
+on column.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.7.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Export a PDF
+\end_layout
+
+\begin_layout Standard
+Once you are done drawing on your diagram, use the 
+\emph on
+File > Export > Diagram
+\emph default
+ menu option to export your diagram as a PDF.
+ When prompted, choose your export options.
+ You can either export the whole diagram as a single page or specify a particula
+r depth/height range and page size to export a multiple page PDF.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.8_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.8_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/2/2.8_3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Conclusion
+\end_layout
+
+\begin_layout Standard
+Hopefully this short introduction has piqued your interest.
+ The next part of this guide describes how to perform specific tasks in
+ PSICAT.
+\end_layout
+
+\begin_layout Part
+Using PSICAT
+\end_layout
+
+\begin_layout Standard
+This part of the user guide focuses on describing specific tasks you may
+ want to perform in the PSICAT software.
+\end_layout
+
+\begin_layout Chapter
+Editing Tasks
+\end_layout
+
+\begin_layout Standard
+This chapter describes tasks related to editing data and diagrams.
+\end_layout
+
+\begin_layout Section
+Create a new project
+\end_layout
+
+\begin_layout Standard
+Use the 
+\emph on
+File > New Project...
+
+\emph default
+ menu options to create a new project.
+ A project is simply a directory on your computer which holds all of your
+ data and diagrams.
+ PSICAT currently supports two types of projects: 
+\emph on
+Well
+\emph default
+ or 
+\emph on
+Outcrop
+\emph default
+.
+ A well project defines the origin at the top of the diagram with depths
+ increasing downwards.
+ An outcrop project defines the origin at the bottom of the diagram with
+ heights increasing upwards.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.1_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.1_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Create a new Section
+\end_layout
+
+\begin_layout Standard
+To begin drawing, you must first create a section.
+ Sections hold the data e.g., intervals and units, for diagrams and allow
+ us to partition our project into logical units such as holes, cores, etc.
+ Use the File > New Section...
+ menu option to create a new section.
+\end_layout
+
+\begin_layout Section
+Drawing
+\end_layout
+
+\begin_layout Standard
+Drawing in PSICAT is much like drawing in any graphics program, only slightly
+ more structured.
+ Below are a few common drawing interactions you are likely to encounter.
+\end_layout
+
+\begin_layout Subsection
+Continuous data types
+\end_layout
+
+\begin_layout Standard
+Some columns work with continuous types of data, such as intervals, which
+ stretch unbroken from the origin.
+ To draw these types, click beyond (either below for well projects or above
+ for outcrop projects) the last item in the column.
+ As you hover your mouse over the column, you will see a feedback rectangle:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.2.1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Discrete data types
+\end_layout
+
+\begin_layout Standard
+Some columns work with discrete types of data, such as symbols, which can
+ exist at a specific depth/height or over a depth/height range and may overlap.
+ To draw these types, either click and release or click and drag in the
+ column.
+ As you hover and/ or drag your mouse, you will see a feedback rectangle:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.2.2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Fine-tune captured data
+\end_layout
+
+\begin_layout Standard
+Drawing is not always precise when it comes to capturing data.
+ PSICAT mitigates this by rounding drawn values to increments half of the
+ smallest hash marks on the ruler.
+ So if the ruler has hash marks every 1 meter, PSICAT will round drawn values
+ to the nearest 0.5 meter.
+ If you need better resolution, you can either zoom in or enter an exact
+ value for a specific property on the drawn item.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Customize the lithologies and symbols
+\end_layout
+
+\begin_layout Standard
+Lithologies and symbols in PSICAT are organized into schemes of entries.
+ Each entry has a name, a code, an image or pattern, and optionally other
+ parameters.
+ By default, PSICAT ships with a lithology and symbol set that is based
+ on the USGS standards.
+ However, these schemes are easily customized with 
+\emph on
+SchemeEditor
+\emph default
+ tool in the 
+\emph on
+PSICAT/tools/
+\emph default
+ folder.
+ Launch the 
+\emph on
+SchemeEditor
+\emph default
+ application and you will be presented with a screen similar to the one
+ below:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.4_1.png
+	width 50col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Customize existing schemes
+\end_layout
+
+\begin_layout Standard
+You can customize the existing schemes by using the 
+\emph on
+File > Open...
+ 
+\emph default
+menu option to open the 
+\emph on
+PSICAT/resources/lithologies.jar
+\emph default
+ file or the 
+\emph on
+PSICAT/resources/symbols.jar
+\emph default
+ file.
+ Once opened, you will be able to select a specific entry in the 
+\emph on
+Entries
+\emph default
+ list.
+ From there you will be able to update the details of the entry.
+ If an entry is not needed, you can use the 
+\emph on
+Remove
+\emph default
+ button to remove it from the scheme.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.4_2.png
+	width 50col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Creating new schemes
+\end_layout
+
+\begin_layout Standard
+Instead of customizing the existing schemes, you may create your own scheme
+ from scratch using the 
+\emph on
+File > New
+\emph default
+ menu option.
+ Every scheme requires an id, name, type, and one or more entries.
+ New entries can be added with the 
+\emph on
+Add
+\emph default
+ button.
+ Each entry requires a name and a code.
+ The name is what is displayed to the user, and the code is something to
+ identify the entry, such as a unique id or a comma-separated list of keywords.
+ Each entry can also have an image and a color associated with it via the
+ 
+\emph on
+Set Image
+\emph default
+ and 
+\emph on
+Set Color
+\emph default
+ buttons:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.4_3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/3/3.4_4.png
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When you are done creating your scheme use the File > Save menu option to
+ save it to the 
+\emph on
+PSICAT/resources/
+\emph default
+ folder.
+ All scheme packs in this folder are automatically added to the lithology
+ and symbol lists.
+ If you wish to use your scheme exclusively, remove the existing 
+\emph on
+lithologies.jar
+\emph default
+ and 
+\emph on
+symbols.jar
+\emph default
+ files.
+\end_layout
+
+\begin_layout Section
+Customize diagrams
+\end_layout
+
+\begin_layout Standard
+Customizing the diagram, such as changing the changing the type and order
+ of columns, is possible but is currently a manual process.
+ There is currently an open issue for 
+\begin_inset CommandInset href
+LatexCommand href
+name "graphical diagram editor"
+target "http://bitbucket.org/joshareed/coretools/issue/13/"
+
+\end_inset
+
+.
+ This section will be updated when the issue is resolved.
+\end_layout
+
+\begin_layout Chapter
+Import/Export Tasks
+\end_layout
+
+\begin_layout Standard
+The chapter describes tasks related to importing and exporting data and
+ diagrams.
+\end_layout
+
+\begin_layout Section
+Import data from previous versions of PSICAT
+\end_layout
+
+\begin_layout Standard
+Importing data from previous versions of PSICAT is accomplished via the
+ 
+\emph on
+File > Import > Data > Legacy PSICAT Data
+\emph default
+ menu option.
+ Data may be imported into a new or an existing project.
+ The legacy import is somewhat limited, currently only supporting the import
+ of interval data, but there is an 
+\begin_inset CommandInset href
+LatexCommand href
+name "open issue to expand its capabilities"
+target "http://bitbucket.org/joshareed/coretools/issue/16/"
+
+\end_inset
+
+.
+ This section will be updated when the issue is resolved.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Note: this menu option is only enabled when a diagram is open.
+\end_layout
+
+\begin_layout Section
+Import data from Excel
+\end_layout
+
+\begin_layout Standard
+Importing data from Excel is accomplished via the 
+\emph on
+File > Import > Data > Excel
+\emph default
+ menu option.
+ This option requires an Excel workbook saved in the older 97/2000/XP file
+ format (.xls) rather than the new .xslx format.
+ Each sheet in the Excel workbook named after a specific data type with
+ the columns in each sheet corresponding a specific property of the data
+ type.
+ The first row of the sheet is expected to contain the data type property
+ names, and the second row should be left blank.
+ Each additional row is interpreted as data to import.
+ Data may be imported into a new or an existing project.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Note: this menu option is only enabled when a diagram is open.
+\end_layout
+
+\begin_layout Section
+Import Images
+\end_layout
+
+\begin_layout Standard
+Importing images into your diagram is not currently available but will be
+ supported in the next release (
+\begin_inset CommandInset href
+LatexCommand href
+name "issue"
+target "http://bitbucket.org/joshareed/coretools/issue/12/"
+
+\end_inset
+
+).
+ This section will be updated when the issue is resolved.
+\end_layout
+
+\begin_layout Section
+Other import formats
+\end_layout
+
+\begin_layout Standard
+Importing data from other formats should be easy to support.
+ Check out Chapter 8 for more details or
+\begin_inset CommandInset href
+LatexCommand href
+name "submit a bug"
+target "http://bitbucket.org/joshareed/coretools/issues/?status=new&status=open"
+
+\end_inset
+
+ with a description of the format and an example data file if possible.
+\end_layout
+
+\begin_layout Section
+Export diagrams to JPEG/PNG/BMP
+\end_layout
+
+\begin_layout Standard
+Exporting a diagram to JPEG, PNG, or BMP is accomplished via the File >
+ Export > Graphical > JPEG/PNG/BMP menu option.
+ When prompted, choose your export options.
+ You can either export the whole diagram as a single page or specify a particula
+r depth/height range and page size to export multiple pages.
+ Each page will be a separate image file.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.5_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.5_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Export diagrams to PDF
+\end_layout
+
+\begin_layout Standard
+Exporting a diagram to PDF is accomplished via the 
+\emph on
+File > Export > Graphical > PDF
+\emph default
+ menu option.
+ When prompted, choose your export options.
+ You can either export the whole diagram as a single page or specify a particula
+r depth/height range and page size to export a multiple page PDF.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.6_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.6_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Export diagrams to SVG
+\end_layout
+
+\begin_layout Standard
+Exporting a diagram to SVG is accomplished via the 
+\emph on
+File > Export > Graphical > SVG
+\emph default
+ menu option.
+ When prompted, choose your export options.
+ You can either export the whole diagram as a single page or specify a particula
+r depth/height range and page size to export multiple pages.
+ Each page will be a separate SVG file.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.7_1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.7_2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Export Blank Diagrams
+\end_layout
+
+\begin_layout Standard
+You can generate blank documents for logging by hand using the instructions
+ above.
+ Simply specify the depth/height and page size you expect to log, even if
+ they don't currently exist on your diagram, and PSICAT will generate blank
+ diagrams for you to print.
+\end_layout
+
+\begin_layout Section
+Export data to Excel
+\end_layout
+
+\begin_layout Standard
+Exporting data to Excel is accomplished via the 
+\emph on
+File > Export > Data > Excel
+\emph default
+ menu option.
+ Each type of data will be exported as a separate sheet in a 97/2000/XP
+ formatted Excel workbook (.xls).
+ The columns in each sheet correspond to the data type properties as described
+ in Chapter 6.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/4/4.9.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Other export formats
+\end_layout
+
+\begin_layout Standard
+Exporting data and diagrams to other formats should be easy to support.
+ Check out Chapter 8 for more details or
+\begin_inset CommandInset href
+LatexCommand href
+name "submit a bug"
+target "http://bitbucket.org/joshareed/coretools/issues/?status=new&status=open"
+
+\end_inset
+
+ with a description of the format and an example file if possible.
+\end_layout
+
+\begin_layout Chapter
+View Tasks
+\end_layout
+
+\begin_layout Standard
+This chapter describes tasks related to changing how PSICAT displays diagrams.
+\end_layout
+
+\begin_layout Section
+Change the diagram orientation
+\end_layout
+
+\begin_layout Standard
+Diagrams can be displayed either vertically or horizontally.
+ Use the 
+\emph on
+View > Horizontal/Vertical
+\emph default
+ menu option to change the orientation.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/5/5.1.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Note: this menu option is only enabled when a diagram is open.
+\end_layout
+
+\begin_layout Section
+Change the zoom level
+\end_layout
+
+\begin_layout Standard
+Diagrams can be displayed at arbitrary zoom levels to facilitate editing
+ and viewing at whatever level of detail makes sense to the user.
+ Use the 
+\emph on
+View > Zoom *
+\emph default
+ menu options to change the zoom level.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/5/5.2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Note: this menu option is only enabled when a diagram is open.
+\end_layout
+
+\begin_layout Section
+Change the display units
+\end_layout
+
+\begin_layout Standard
+Diagrams can be displayed using various length measurement units even if
+ the data was originally logged in a different unit.
+ Use the 
+\emph on
+View > Units
+\emph default
+ menu options to change the display units.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename figures/5/5.3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part
+Advanced Topics
+\end_layout
+
+\begin_layout Standard
+The final part of this guide covers advanced topics such as adding new data
+ and column types.
+\end_layout
+
+\begin_layout Chapter
+Data Types
+\end_layout
+
+\begin_layout Standard
+Data types are a core concept in PSICAT.
+ A data type defines what individual pieces of data are captured when you
+ draw an object on a diagram.
+ Below is the current list of data types in the main distribution of PSICAT:
+\end_layout
+
+\begin_layout Section
+Image
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+top
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The top of the image in terms of a value with units, e.g.
+ '1 m'
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+base
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The base of the image in terms of a value with units, e.g.
+ '2 m'
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+path
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The URL to the image file
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Interval
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+top
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The top of the interval in terms of a value with units, e.g.
+ '1 m'
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+base
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The base of the interval in terms of a value with units, e.g.
+ '2 m'
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+lithology
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A reference to an entry in a lithology Scheme
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+description
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A written description of the interval
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Occurrence
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+top
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The top of the interval in terms of a value with units, e.g.
+ '1 m'
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+base
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The base of the occurrence in terms of a value with units, e.g.
+ '2 m'
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+type
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The type of the occurrence
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+symbol
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A reference to an entry in an occurrence Scheme
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+description
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A written description of the occurrence
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Adding new data types
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+TBD
+\end_layout
+
+\begin_layout Chapter
+Column Types
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+TBD
+\end_layout
+
+\begin_layout Chapter
+New Import or Export Formats
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+TBD
+\end_layout
+
+\begin_layout Chapter
+Scripting or Embedding
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+TBD
+\end_layout
+
+\end_body
+\end_document

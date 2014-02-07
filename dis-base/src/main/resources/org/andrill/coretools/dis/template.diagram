@@ -1,0 +1,6 @@
+<scene class="org.andrill.coretools.scene.DefaultScene">
+	<track class="org.andrill.coretools.geology.ui.ImageTrack"/>
+	<track class="org.andrill.coretools.geology.ui.RulerTrack" constraints="72"/>
+	<track class="org.andrill.coretools.dis.ui.UnitTypeLithologyTrack" constraints="72"/>
+	<track class="org.andrill.coretools.geology.ui.AnnotationTrack" constraints="288"/>
+</scene>

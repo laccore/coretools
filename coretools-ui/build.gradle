@@ -1,0 +1,13 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'Core Tools Platform UI Components',
+    'Implementation-Version': version
+)
+
+dependencies {
+    compile project(":coretools")
+    compile project(":coretools-model")
+    compile project(":coretools-graphics")
+	compile project(":coretools-scene")
+	compile 'com.miglayout:miglayout:3.7'
+	compile 'net.java.dev.glazedlists:glazedlists_java15:1.7.0'
+}

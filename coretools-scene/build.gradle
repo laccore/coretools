@@ -1,0 +1,10 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'Core Tools Platform Scene API',
+    'Implementation-Version': version
+)
+
+dependencies {
+    compile project(":coretools")
+    compile project(":coretools-model")
+    compile project(":coretools-graphics")
+}

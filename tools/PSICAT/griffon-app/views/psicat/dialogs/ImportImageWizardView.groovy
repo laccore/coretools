@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) Josh Reed, 2009.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package psicat.dialogs
+
+import net.miginfocom.swing.MigLayout
+import psicat.util.*
+
+actions {
+	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
+}
+
+panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {	
+	// directory
+	label('Directory:', constraints: 'split')
+	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
+	button(text:'...', action: browseAction, constraints: 'wrap')
+	separator(constraints: 'growx, wrap')
+
+	// top
+	buttonGroup().with { group ->
+		radioButton(selected: bind { !model.parseTop }, text: 'Top:', buttonGroup: group, constraints:'split')
+		textField(columns:4, enabled: bind { !model.parseTop }, text: bind(source: model, sourceProperty:'top', mutual:true), 
+				inputVerifier: CustomVerifier.NUMBER, constraints: 'wrap')
+		radioButton(text: 'Parse top from filename', selected: bind(source: model, sourceProperty:'parseTop', mutual:true), buttonGroup: group, constraints: 'wrap')
+	}
+	separator(constraints: 'growx, wrap')
+
+	// base
+	buttonGroup().with { group ->
+		radioButton(selected: bind { !model.parseBase }, text:'DPI:', buttonGroup: group, constraints:'split')
+		textField(columns:4, enabled: bind { !model.parseBase }, text: bind(source: model, sourceProperty:'dpi', mutual:true), 
+					inputVerifier: CustomVerifier.NUMBER, constraints: 'wrap')
+		radioButton(text: 'Parse base from filename', selected: bind(source: model, sourceProperty:'parseBase', mutual:true), buttonGroup: group, constraints: 'wrap')
+	}
+	separator(constraints: 'growx, wrap')
+
+	// group
+	label('Group:', constraints: 'split')
+	textField(columns:4, text: bind(source: model, sourceProperty:'group', mutual:true), constraints: 'growx')
+	label("(Optional, e.g. 'split')", constraints: 'wrap')
+}
+
+panel(id: 'tablePanel', layout: new MigLayout('fill')) {
+	scrollPane(constraints: 'grow, wrap') { table(id: 'table') }
+	buttonGroup().with { group ->
+		radioButton(selected: bind { !model.createSections }, text: 'Add to:', buttonGroup: group, constraints:'split')
+		comboBox(id:'section', editable: true, enabled: bind { !model.createSections }, items: model.project.containers, constraints:'growx, wrap')
+		radioButton(text: 'Create a new section for each image', selected: bind(source: model, sourceProperty:'createSections', mutual:true), buttonGroup: group)
+	}
+}

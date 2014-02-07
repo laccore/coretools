@@ -1,0 +1,316 @@
+/*
+ * Copyright (c) Josh Reed, 2009.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import groovy.lang.GroovyClassLoader
+import java.awt.Image
+import java.io.File;
+import java.util.zip.ZipFile
+import javax.swing.ImageIcon
+import javax.swing.JColorChooser
+import javax.swing.JFileChooser
+import javax.swing.JOptionPane
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
+import javax.swing.filechooser.FileFilter
+
+/**
+ * The SchemeEditor controller.
+ */
+class SchemeEditorController implements ListSelectionListener {
+    def model
+    def view
+    
+    private SchemeHelper helper
+    private File currentDir = new File(".")
+
+    void mvcGroupInit(Map args) {
+    	helper = new SchemeHelper(new GroovyClassLoader(Thread?.currentThread()?.getContextClassLoader()))
+    	
+		// load our standard images
+    	["rsrc:/org/psicat/resources/lithologies/scheme.xml", "rsrc:/org/psicat/resources/symbols/scheme.xml"].each { path ->
+    		def url = helper.resolve(path)
+    		if (url) {
+    			url.withInputStream { stream ->
+    				model.standardImages.addAll(helper.read(stream).entries)
+    			}
+    		}
+    	}
+    	
+    	// create our icons
+    	doOutside {
+    		model.standardImages.each() { m ->
+    			m.icon = helper.iconify(m?.image)
+    		}
+    	}
+    }
+    
+    /**
+     * Exit the application
+     */
+    def exit = { evt = null ->
+    	app.shutdown()
+    }
+    
+    /**
+     * Create a new scheme file
+     */
+    def newScheme = { evt = null -> 
+    	model.schemeFile = null
+    	setScheme(null)
+    }
+
+    /**
+     * Open an existing scheme file.
+     */
+    def open = { evt = null ->
+	    def fc = new JFileChooser(currentDir)
+	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
+	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
+	    if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
+	       currentDir = fc.currentDirectory
+	       model.schemeFile = fc.selectedFile
+	       
+	       // parse our file
+	       doOutside {
+	    	   def jar = new ZipFile(model.schemeFile)
+	    	   def schemeEntry = jar.entries().find() { it.name.endsWith("scheme.xml") }
+	    	   if (schemeEntry) {
+	    		   helper.add(fc.selectedFile.toURL())
+	    		   def stream = jar.getInputStream(schemeEntry)
+	    		   def scheme = helper.read(stream)
+	    		   stream.close()
+	    		   setScheme(scheme)
+	    	   } else {
+	    		   JOptionPane.showMessageDialog(app.appFrames[0], "Not a valid Scheme Pack file", 
+	    				   "Invalid Scheme Pack", JOptionPane.ERROR_MESSAGE)
+	    	   }
+	       }
+	    }
+    }
+    
+    /**
+     * Called when the scheme id, name, type, and entries are changed.
+     */
+    def schemeChanged = { evt = null -> 
+		model.schemeValid = (view.schemeId.text && view.schemeName.text && view.schemeType.selectedItem)
+    }
+    
+    /**
+     * Set the selected scheme
+     */
+    def setScheme(scheme) {
+    	doLater {
+	    	if (scheme) {
+	    		view.schemeId.text = scheme.id
+	    		view.schemeName.text = scheme.name
+	    		view.schemeType.selectedItem = scheme.type
+	    		view.schemeEntries.clearSelection()
+	    		model.schemeEntries.clear()
+	    		model.schemeEntries.addAll(scheme.entries)
+	    	} else {
+	    		view.schemeId.text = ""
+	    		view.schemeName.text = ""
+	    		view.schemeType.selectedItem = null
+	    		view.schemeEntries.clearSelection()
+	    		model.schemeEntries.clear()
+	    	}
+    	}
+    }
+    
+    /**
+     * Save the scheme.
+     */
+    def save = { evt = null ->
+	    if (model.schemeFile == null) {
+	    	saveAs(evt)
+	    } else {
+		    helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
+		                        entries:model.schemeEntries], model.schemeFile)
+		    JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
+	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+	    }
+    }
+    
+    /**
+     * Save the scheme, prompting the user for a filename.
+     */
+    def saveAs = { evt = null ->
+	    def fc = new JFileChooser(currentDir)
+	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
+	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
+	    if (fc.showDialog(app.appFrames[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
+	       currentDir = fc.currentDirectory
+	       model.schemeFile = fc.selectedFile
+	       helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
+	                           entries:model.schemeEntries], model.schemeFile)
+	       JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
+	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+	    }
+    }
+    
+    def entryChanged = { evt = null ->
+    	if (!model.ignoreEvents) {
+    		model.entryDirty = true
+    		model.entryValid = (view.entryName.text && view.entryCode.text)
+    	}
+    }
+    
+    def addEntry = { evt = null ->
+    	def e = [name:'New Entry']
+    	model.schemeEntries << e
+    	setEntry(e)
+    }
+    
+    def saveEntry = { evt = null ->
+    	model.ignoreEvents = true
+    	model.entry.name = view.entryName.text
+    	model.entry.code = view.entryCode.text
+    	model.entry.group = view.entryGroup.text
+    	model.entry.color = model.entryColor
+    	model.entry.image = model.entryImage
+    	view.schemeEntries.repaint()
+    	model.entryDirty = false
+    	model.entryValid = (view.entryName.text && view.entryCode.text)
+    	model.ignoreEvents = false;
+    }
+    
+    def revertEntry = { evt = null ->
+    	setEntry(model?.entry)
+    }
+    
+    def removeEntry = { evt = null ->
+    	if (model?.entry) {
+    		model.schemeEntries.remove(model?.entry)
+    		setEntry(null)
+    	}
+    }
+    
+    def setEntry(entry) {
+    	model.ignoreEvents = true
+    	if (entry) {
+	    	model.entry = entry
+	    	view.entryName.text = entry?.name
+	    	view.entryCode.text = entry?.code
+	    	view.entryGroup.text = entry?.group
+	    	model.entryColor = entry?.color
+	    	model.entryImage = entry?.image
+	    	if (view.schemeEntries.selectedValue != entry) {
+	    		view.schemeEntries.setSelectedValue(entry, true)
+	    	}
+	    } else {
+	    	model.entry = null
+	    	view.entryName.text = ""
+	    	view.entryCode.text = ""
+	    	view.entryGroup.text = ""
+	    	model.entryColor = null
+	    	model.entryImage = null
+	    }
+    	updatePreview()
+    	model.entryDirty = false
+        model.entryValid = (view.entryName.text && view.entryCode.text)
+        model.ignoreEvents = false
+    }
+    
+    def updateColor = { evt = null ->
+    	def color = JColorChooser.showDialog(app.appFrames[0], "Choose Color", view.preview.color)
+    	if (color) {
+    		model.entryColor = "${color.red},${color.green},${color.blue}"
+    	} else {
+    		model.entryColor = null
+    	}
+    	entryChanged()
+    	updatePreview()
+    }
+    
+    def updateImage = { evt = null ->
+    	final int option = JOptionPane.showConfirmDialog(app.appFrames[0], [ view.imageChooser ].toArray(), 
+    			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+		if (option == JOptionPane.OK_OPTION) {
+			model.entryImage = view.standardImages.selectedValue?.image
+		} else {
+			model.entryImage = null
+		}
+    	view.imageFilter.text = ""
+    	entryChanged()
+    	updatePreview()
+    }
+    
+    def updatePreview = { evt = null ->
+    	// handle our color
+    	def color = null
+    	if (model?.entryColor) { color = helper.parseColor(model.entryColor) }
+    	view.preview.color = color
+    	
+    	// handle our image
+    	view.preview.tileImage = (view.schemeType.selectedItem == "lithology")
+    	if (model?.entryImage) {
+    		doOutside {
+    			def image = helper.parseImage(model.entryImage)
+    			doLater {
+    				view.preview.image = image
+    				view.preview.repaint()
+    			}
+    		}
+    	} else {
+    		view.preview.image = null
+    	}
+    	view.preview.repaint()
+    }
+    
+    def customImage = { evt = null ->
+	    def fc = new JFileChooser(currentDir)
+	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
+	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff'], description: 'Images'))
+	    if ( fc.showDialog(app.appFrames[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
+	    	currentDir = fc.currentDirectory
+	    	def f = fc.selectedFile
+	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm())]
+	    	model.standardImages << m
+	    	doLater {
+	    		view.standardImages.setSelectedValue(m, true)
+	    	}
+	    }
+    }
+    
+	public void valueChanged(ListSelectionEvent e) {
+    	setEntry(view.schemeEntries.selectedValue)
+	}
+    
+    /**
+	 * Resolve a string into a URL, with special support for rsrc:/ paths.
+	 */
+    private URL resolve(path) {
+    	if (path) {
+    		if (path.startsWith("rsrc:/")) {
+				return getClass()?.getResource(path.substring(5)) ?: classloader?.getResource(path.substring(6))
+    		} else if (path.contains(":/")) {
+    			return new URL(path)
+    		} else {
+    			return new File(path).toURL()
+    		}
+    	} else {
+    		return null
+    	}
+    }
+}
+
+private class CustomFileFilter extends FileFilter {
+	List extensions = []
+	String description
+	
+	boolean accept(File file) {
+		file.isDirectory() || extensions.any { file.name.toLowerCase().endsWith(it) }
+	}
+}

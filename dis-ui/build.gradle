@@ -1,0 +1,14 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'DIS-specific UI',
+    'Implementation-Version': version
+)
+
+dependencies {
+	compile project(":dis-base")
+    compile project(":geology-base")
+    compile project(":geology-ui")
+	compile project(":coretools")
+	compile project(":coretools-model")
+	compile project(":coretools-graphics")
+    compile project(":coretools-scene")
+}

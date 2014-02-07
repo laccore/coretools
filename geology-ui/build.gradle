@@ -1,0 +1,13 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'Geology UI',
+    'Implementation-Version': version
+)
+
+dependencies {
+    compile project(":geology-base")
+	compile project(":coretools")
+	compile project(":coretools-model")
+	compile project(":coretools-data")
+	compile project(":coretools-graphics")
+    compile project(":coretools-scene")
+}

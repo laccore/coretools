@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<models>
+    <model id="id79453469ffbd0526203" parentId="and1-1b" type="psicat.core.interval.Interval">
+        <property name="depth.top">0.0</property>
+        <property name="depth.base">1.0</property>
+        <property name="grainsize.base">2.65</property>
+        <property name="grainsize.top">2.65</property>
+        <property name="contact.type">sharp</property>
+        <property name="description">Volcanic fine sandstone.</property>
+    </model>
+    <model id="id79453469ffbd0526205" parentId="id79453469ffbd0526203" type="psicat.core.interval.Lithology">
+        <property name="keywords">massive,sand,sandstone,volcanic</property>
+        <property name="ratio">1.00</property>
+    </model>
+</models>

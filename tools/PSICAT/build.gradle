@@ -1,0 +1,102 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'PSICAT',
+    'Implementation-Version': version
+)
+
+// standard configuration
+getLogging().captureStandardOutput()
+configurations { 
+	compile 
+}
+
+// add additional repositories here if you need them
+repositories {
+	//mavenCentral()
+}
+
+// add any dependencies you want downloaded as part of the bootstrap process
+dependencies {
+	compile 'com.lowagie:itext:2.1.7'
+	compile 'org.apache.xmlgraphics:batik-awt-util:1.7'
+	compile 'org.apache.xmlgraphics:batik-util:1.7'
+	compile 'org.apache.xmlgraphics:batik-svggen:1.7'
+	compile 'net.sourceforge.jexcelapi:jxl:2.6.3'
+	compile 'com.miglayout:miglayout:3.7'
+	compile 'net.java.dev.glazedlists:glazedlists_java15:1.7.0'
+	compile 'org.slf4j:slf4j-log4j12:1.5.8'
+	compile 'log4j:log4j:1.2.15'
+	compile project(":coretools")
+    compile project(":coretools-model")
+    compile project(":coretools-graphics")
+	compile project(":coretools-scene")
+	compile project(":coretools-ui")
+	compile project(":coretools-misc")
+	compile project(":geology-base")
+	compile project(":geology-ui")
+	compile project(":dis-base")
+	compile project(":dis-ui")
+}
+
+// copies in the dependencies
+task 'init' << {
+	mkdir('lib')
+	
+	// download any dependencies and put them in lib/
+	project.configurations?.compile?.each { dep ->
+		if (!dep.name.startsWith('groovy-all')) {
+			println "Copying ${dep.name} to PSICAT"
+			ant.zip(destfile: new File('lib', dep.name)) {
+				zipfileset(src: dep, excludes: "log4j*")
+			}
+		}
+	}
+}
+
+// overwrite the tasks provided by the Groovy/Java plugin
+task clean(overwrite: true)		<< { /* griffon 'clean' */ }
+task assemble(overwrite: true)	<< { /* griffon 'compile' */ }
+task check(overwrite: true)		<< { /* griffon 'test-app' */ }
+task build(overwrite: true)		<< { /* griffon 'test-app' */ }
+
+// additional run-related tasks
+task 'run-app'(dependsOn: init)			<< { 
+	// copy our resources into staging
+	mkdir('staging')
+	def sep = File.separatorChar
+	copy {
+		from "..${sep}.."
+		into 'staging'
+		include "resources${sep}**"
+	}
+	
+	griffon 'run-app' 
+}
+task 'debug-app'(dependsOn: init)		<< { griffon 'run-app -debug' }
+task 'run-webstart'(dependsOn: init)	<< { griffon 'run-webstart' }
+task 'run-applet'(dependsOn: init)		<< { griffon 'run-applet' }
+task 'test-app'(dependsOn: init)		<< { griffon 'test-app' }
+
+// packaging tasks
+task 'package'(dependsOn: [clean, init])	<< { griffon 'create-all-launchers' }
+
+// call out to the griffon command
+def griffon(target) {
+	if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+		println "PSICAT: griffon.bat $target"
+		ant.exec(executable: 'griffon.bat', dir: projectDir, failonerror: true) {
+			arg(value: target)
+		}	
+	} else {
+		println "PSICAT: griffon $target"
+		ant.exec(executable: 'griffon', dir: projectDir, failonerror: true) {
+			arg(value: target)
+		}
+	}
+}
+
+// if you want to use the gradle wrapper
+/*
+task wrapper(type: Wrapper) << {
+	gradleVersion = '0.8' 
+}
+*/

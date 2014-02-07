@@ -1,0 +1,4 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'Core Tools Platform',
+    'Implementation-Version': version
+)

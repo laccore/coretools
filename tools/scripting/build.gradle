@@ -1,0 +1,33 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'Core Tools Platform Scripting Tools',
+    'Implementation-Version': version
+)
+
+dependencies {
+	compile 'net.sf.jopt-simple:jopt-simple:3.1'
+	compile project(":coretools")
+	compile project(":coretools-model")
+	compile project(":coretools-graphics")
+    compile project(":coretools-scene")
+	compile project(":coretools-misc")
+	compile project(":geology-base")
+	compile project(":geology-ui")
+}
+
+task 'package'(dependsOn: build) << {
+	File classes = mkdir(buildDir, 'classes/main')
+	project.configurations?.runtime?.each { dep ->
+		ant.unzip(src: dep, dest: classes) {
+			patternset {
+				exclude(name: "log4j*")
+			}
+		}
+	}
+	ant.jar(basedir: classes, destfile: new File(buildDir, "scripting-${version}.jar")) {
+		manifest {
+			attribute(name: 'Implementation-Title', value: 'Core Tools Platform Scripting Tools')
+			attribute(name: 'Implementation-Version', value: version)
+			attribute(name: 'Main-Class', value: 'org.andrill.coretools.scripting.ScriptLauncher')
+		}
+	}
+}

@@ -1,0 +1,17 @@
+manifest.mainAttributes(
+    'Implementation-Title': 'Core Tools Platform Misc Components',
+    'Implementation-Version': version
+)
+
+dependencies {
+	compile group: 'net.sourceforge.jexcelapi', name: 'jxl', version: '2.6.3'
+    compile project(":coretools")
+    compile project(":coretools-model")
+    compile project(":coretools-graphics")
+	compile project(":coretools-scene")
+	compile project(":coretools-ui")
+	compile project(":geology-base")
+	compile project(":geology-ui")
+	compile project(":dis-base")
+	compile project(":dis-ui")
+}

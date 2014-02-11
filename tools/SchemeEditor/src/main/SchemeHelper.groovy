@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import java.awt.Color
-import java.awt.Imageimport java.util.zip.ZipEntry
+import java.awt.Image
+import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.imageio.ImageIOimport javax.swing.Icon
 import javax.swing.ImageIcon
@@ -149,7 +150,17 @@ public class SchemeHelper {
 				zip.closeEntry()
 				zip.close()
 			}
-			tmp.renameTo(file)
+
+			// all's gone well, dump contents of tmp into destination file - File.renameTo()
+			// is notoriously unreliable and isn't working on Win7.
+			def inStream = new FileInputStream(tmp)
+			def outStream = new FileOutputStream(file)
+			byte[] buf = new byte[1024]
+			int len = 0
+			while ((len = inStream.read(buf)) > 0) { outStream.write(buf, 0, len) }
+			inStream.close()
+			outStream.close()
+			tmp.delete()
 		} catch (e) {
 			e.printStackTrace()
 		}

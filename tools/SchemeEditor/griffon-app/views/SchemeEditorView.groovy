@@ -33,8 +33,12 @@ import net.miginfocom.swing.MigLayout
 // build our actions
 build(SchemeEditorActions)
 
-// build our main application
+// force PreviewPanel borders to redraw correctly by pretending panel is non-opaque,
+// otherwise artifacts appear in borders around preview image on Win
 def preview = new PreviewPanel()
+preview.setOpaque(false)
+
+// build our main application
 application(title:'Scheme Editor', pack:true, locationByPlatform:true, layout: new MigLayout('fill')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {

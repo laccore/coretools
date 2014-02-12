@@ -1,10 +1,10 @@
-dependsOnChildren() 
-
 allprojects {
 	apply plugin: 'groovy'
 	
 	repositories {
-		mavenRepo(urls:'http://download.java.net/maven/2/')
+        maven { url "http://download.java.net/maven/1/" }
+        maven { url "http://download.java.net/maven/2/" }
+        maven { url "https://repository.jboss.org/nexus/content/groups/public" }
 		mavenCentral()
 	}
 	
@@ -28,9 +28,9 @@ allprojects {
 	version = '0.8'
 }
 
-
 task 'assemble-jars'(dependsOn: build) << {
-	File distDir = mkdir(buildDir, 'libs')
+	File distDir = new File(buildDir, 'libs')
+    distDir.mkdirs()
     subprojects.findAll { it.name != 'examples' && it.name != 'scripting' }.each { project ->
 		project.configurations?.compile?.files { dep -> dep.group != 'unspecified' }.each { dep ->
 			ant.zip(destfile: new File(distDir, dep.name)) {
@@ -52,10 +52,14 @@ task 'package-psicat'(dependsOn: [':tools:SchemeEditor:package', ':tools:PSICAT:
 	def schemeEditor = new File('tools/SchemeEditor')
 	
 	// create our packages directory structure
-	def linux = mkdir(buildDir, 'packages/linux')
-	def mac = mkdir(buildDir, 'packages/mac')
-	def windows = mkdir(buildDir, 'packages/windows')
-	def jar = mkdir(buildDir, 'packages/jar')
+	def linux = new File(buildDir, 'packages/linux')
+	def mac = new File(buildDir, 'packages/mac')
+	def windows = new File(buildDir, 'packages/windows')
+	def jar = new File(buildDir, 'packages/jar')
+    linux.mkdirs()
+    mac.mkdirs()
+    windows.mkdirs()
+    jar.mkdirs()
 	
 	// copy our resources
 	ant.copy(toDir: new File(linux, 'PSICAT/resources')) {

@@ -19,10 +19,19 @@ import javax.swing.JComponent
 import javax.swing.InputVerifier
 
 class CustomVerifier extends InputVerifier {
-	static final CustomVerifier NUMBER_REQ = new CustomVerifier(closure: { it.text.isNumber() })
-	static final CustomVerifier NUMBER = new CustomVerifier(required: false, closure: { it.text.isNumber() })
+	static final CustomVerifier NUMBER_REQ = new CustomVerifier(closure: { it.isNumber() })
+	static final CustomVerifier NUMBER = new CustomVerifier(required: false, closure: { it.isNumber() })
 	
 	def closure
 	boolean required = true
-	boolean verify(JComponent input) { (!required && input.text == '') || closure(input) }
+	boolean verify(JComponent input) { return _verify(input.text) }
+	
+	public boolean _verify(final String str) {
+		if (str != '')
+			return closure(str)
+		else
+			return !required
+	}
+	
+	public boolean _oldverify(final String str) { (!required && str != '') || closure(str) }
 }

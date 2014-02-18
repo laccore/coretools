@@ -120,6 +120,10 @@ public class DefaultProject extends AbstractProject {
 		}
 		return extension;
 	}
+	
+	protected String removeExtension(final File f) {
+		return f.getName().replaceFirst("[.][^.]+$", "");
+	}
 
 	@Override
 	public String getName() {
@@ -207,7 +211,7 @@ public class DefaultProject extends AbstractProject {
 		if (dataDir.exists() && dataDir.isDirectory()) {
 			for (File file : dataDir.listFiles()) {
 				if (formats.getReader(getExtension(file)) != null) {
-					files.put(getName(), file);
+					files.put(removeExtension(file), file);
 				}
 			}
 		}

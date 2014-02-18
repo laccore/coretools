@@ -61,8 +61,9 @@ class OccurrenceTrack extends GeologyTrack {
 	}
 
 	def layout(Model m) {
-		if (cache[m]) { return cache[m].bounds }
-		
+		// need to re-layout if scalingFactor has changed, otherwise use cached values
+		if (cache[m] && scene.scalingFactor == cache[m].scalingFactor) { return cache[m].bounds }
+
 		// base model bounds
 		int ss = symbolSize
 		def r = mrect(m, 0, ss)
@@ -81,7 +82,7 @@ class OccurrenceTrack extends GeologyTrack {
 
 		// cache the results
 		def entry = getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code)
-		cache[m] = new CachedOccurrence(bounds: r, image: entry == null ? null : entry.imageURL)
+		cache[m] = new CachedOccurrence(bounds: r, image: entry == null ? null : entry.imageURL, scalingFactor: scene.scalingFactor)
 		return r
 	}
 		
@@ -141,7 +142,7 @@ class OccurrenceTrack extends GeologyTrack {
 	}
 	
 	Rectangle2D getModelBounds(Model m) {
-		def r = cache.containsKey(m) ? cache[m].bounds : layout(m)
+		def r = layout(m)
 		rect2d(r.x + bounds.x, r.y, r.width, r.height)
 	}
 
@@ -170,4 +171,5 @@ class OccurrenceTrack extends GeologyTrack {
 class CachedOccurrence {
 	Rectangle bounds
 	URL image
+	def scalingFactor
 }

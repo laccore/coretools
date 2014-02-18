@@ -112,7 +112,7 @@ class PSICATController {
 	void setZoom(pageSize) {
 		prefs.putDouble("diagram.scaling", pageSize)
 		model.activeDiagram.controller.zoom = pageSize
-		model.status = "Set zoom to $pageSize $units/page"
+		model.status = "Set zoom to $pageSize ${model.activeDiagram.model.units}/page"
 	}
 
 	// our action implementations

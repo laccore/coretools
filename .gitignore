@@ -1,0 +1,9 @@
+# ignored files
+*.class
+
+# ignored directories
+build/
+**/build/
+
+tools/PSICAT/installer/jar/classes/
+tools/SchemeEditor/installer/jar/classes

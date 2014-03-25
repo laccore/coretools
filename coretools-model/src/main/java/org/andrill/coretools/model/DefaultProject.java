@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -207,20 +208,24 @@ public class DefaultProject extends AbstractProject {
 		}
 
 		// parse our containers
+		ArrayList<String> sortedContainers = new ArrayList<String>();
 		File dataDir = getDataDir();
 		if (dataDir.exists() && dataDir.isDirectory()) {
 			for (File file : dataDir.listFiles()) {
 				if (formats.getReader(getExtension(file)) != null) {
 					files.put(removeExtension(file), file);
+					sortedContainers.add(removeExtension(file));
 				}
 			}
 		}
-		return new ArrayList<String>(files.keySet());
+		Collections.sort(sortedContainers);
+		return sortedContainers;
 	}
-
+	
 	@Override
 	protected ModelContainer open(final String name) {
 		ModelContainer container = Platform.getService(ModelContainer.class);
+		container.setProject(this);
 		File file = files.get(name);
 		if (file.exists()) {
 			// get our reader

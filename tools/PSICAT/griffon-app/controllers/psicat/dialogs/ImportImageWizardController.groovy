@@ -109,7 +109,7 @@ class ImportImageWizardController {
 						// create an image object
 						def image = [:]
 						image.path = file.toURI().toURL()
-						image.file = file.name
+						image.file = file
 						image.group = model.group
 						image.name = file.name.contains('.') ? file.name[0..<file.name.lastIndexOf('.')] : file.name
 						
@@ -142,14 +142,26 @@ class ImportImageWizardController {
 			throw new IllegalStateException('No directory specified')
 		}
 	}
+	
+	private File copyImageFile(image, container) {
+		def ant = new AntBuilder()
+		def projDir = new File(model.project.path.toURI())
+		def destDir = new File(projDir, "images")
+		if (!destDir.exists())
+			destDir.mkdirs()
+			def destFile = new File(destDir, image.file.name)
+		ant.copy(file:"$image.file.canonicalPath", tofile:"$destFile.canonicalPath")
+		
+		return destFile
+	}
 
     private void addImage(image, container) {
     	boolean isTopOrigin = (model.project.configuration['origin'] ?: 'top') == 'top'
     	def min = Math.min(image.top as Double, image.base as Double)
     	def max = Math.max(image.top as Double, image.base as Double)
     	
-    	Image model = new Image()
-    	model.path = image.path
+		Image model = new Image()
+    	model.path = copyImageFile(image, container).toURI().toURL()
     	model.top =  isTopOrigin ? "$min m" : "$max m" 
     	model.base = isTopOrigin ? "$max m" : "$min m" 
     	model.group = image.group

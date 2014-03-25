@@ -39,7 +39,7 @@ build(PSICATActions)
 def propertiesPanel = new PropertiesPanel()
 
 // build our application
-application(title:'PSICAT', size:[800,600], locationByPlatform: true, layout: new MigLayout('fill'), 
+application(title:"PSICAT ${app.applicationProperties['app.version']}", size:[800,600], locationByPlatform: true, layout: new MigLayout('fill'), 
 			defaultCloseOperation: 0, windowClosing: { evt -> if (controller.canClose(evt)) app.shutdown() },
 			iconImage: imageIcon('/psicat-icon-64.png').image, iconImages: [imageIcon('/psicat-icon-64.png').image,
 			imageIcon('/psicat-icon-32.png').image, imageIcon('/psicat-icon-16.png').image]) {

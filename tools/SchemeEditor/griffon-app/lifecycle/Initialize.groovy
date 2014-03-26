@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import griffon.util.GriffonPlatformHelper
 import groovy.swing.SwingBuilder
 
 /*
@@ -35,5 +34,4 @@ import groovy.swing.SwingBuilder
  * - SwingUtilities.invokeLater { // your code }
  */
 
-GriffonPlatformHelper.tweakForNativePlatform(app)
 SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])

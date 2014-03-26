@@ -78,7 +78,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    def fc = new JFileChooser(currentDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
-	    if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
+	    if (fc.showOpenDialog(app.windowManager.windows[0]) == JFileChooser.APPROVE_OPTION) {
 	       currentDir = fc.currentDirectory
 	       model.schemeFile = fc.selectedFile
 	       
@@ -93,7 +93,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    		   stream.close()
 	    		   setScheme(scheme)
 	    	   } else {
-	    		   JOptionPane.showMessageDialog(app.appFrames[0], "Not a valid Scheme Pack file", 
+	    		   JOptionPane.showMessageDialog(app.windowManager.windows[0], "Not a valid Scheme Pack file", 
 	    				   "Invalid Scheme Pack", JOptionPane.ERROR_MESSAGE)
 	    	   }
 	       }
@@ -138,7 +138,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    } else {
 		    helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
 		                        entries:model.schemeEntries], model.schemeFile)
-		    JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
+		    JOptionPane.showMessageDialog(app.windowManager.windows[0], "${view.schemeName.text} saved!", 
 	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
 	    }
     }
@@ -150,12 +150,12 @@ class SchemeEditorController implements ListSelectionListener {
 	    def fc = new JFileChooser(currentDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
-	    if (fc.showDialog(app.appFrames[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
+	    if (fc.showDialog(app.windowManager.windows[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
 	       currentDir = fc.currentDirectory
 	       model.schemeFile = fc.selectedFile
 	       helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
 	                           entries:model.schemeEntries], model.schemeFile)
-	       JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
+	       JOptionPane.showMessageDialog(app.windowManager.windows[0], "${view.schemeName.text} saved!", 
 	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
 	    }
     }
@@ -224,7 +224,7 @@ class SchemeEditorController implements ListSelectionListener {
     }
     
     def updateColor = { evt = null ->
-    	def color = JColorChooser.showDialog(app.appFrames[0], "Choose Color", view.preview.color)
+    	def color = JColorChooser.showDialog(app.windowManager.windows[0], "Choose Color", view.preview.color)
     	if (color) {
     		model.entryColor = "${color.red},${color.green},${color.blue}"
     	} else {
@@ -235,7 +235,7 @@ class SchemeEditorController implements ListSelectionListener {
     }
     
     def updateImage = { evt = null ->
-    	final int option = JOptionPane.showConfirmDialog(app.appFrames[0], [ view.imageChooser ].toArray(), 
+    	final int option = JOptionPane.showConfirmDialog(app.windowManager.windows[0], [ view.imageChooser ].toArray(), 
     			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 		if (option == JOptionPane.OK_OPTION) {
 			model.entryImage = view.standardImages.selectedValue?.image
@@ -273,7 +273,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    def fc = new JFileChooser(currentDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff'], description: 'Images'))
-	    if ( fc.showDialog(app.appFrames[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
+	    if ( fc.showDialog(app.windowManager.windows[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
 	    	currentDir = fc.currentDirectory
 	    	def f = fc.selectedFile
 	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm())]
@@ -306,7 +306,7 @@ class SchemeEditorController implements ListSelectionListener {
     }
 }
 
-private class CustomFileFilter extends FileFilter {
+class CustomFileFilter extends FileFilter {
 	List extensions = []
 	String description
 	

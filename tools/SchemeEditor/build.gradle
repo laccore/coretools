@@ -15,6 +15,9 @@ repositories {
 // add any dependencies you want downloaded as part of the bootstrap process
 dependencies {
 	//compile 'com.google.collections:google-collections:1.0-rc2'
+	//compile 'org.slf4j:slf4j-api:1.6.6'
+	//runtime 'org.slf4j:slf4j-simple:1.6.6'
+    compile 'org.slf4j:slf4j-api:1.7.6'
 }
 
 // copies in the dependencies

@@ -18,7 +18,4 @@ root {
         controller = ['Threading']
         view = '*'
     }
-    'griffon.app.ApplicationBuilder' {
-        view = '*'
-    }
 }

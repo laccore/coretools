@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE jnlp SYSTEM "http://java.sun.com/dtd/JNLP-1.5.dtd">
 <jnlp
-		version="@griffonAppVersion@"
+		version="0.8"
 		href="@jnlpFileName@" codebase="@griffonAppCodebase@"
 		>
 	<information>
-		<title>@griffonAppName@</title>
+		<title>SchemeEditor</title>
 		<vendor>PSICAT</vendor>
 		<homepage href="http://psicat.org"/>
 
 		<!--fallback description-->
-		<description>@griffonAppName@</description>
+		<description>SchemeEditor</description>
 		<description kind="one-line">Editor for PSICAT lithology and symbol schemes</description>
 		<description kind="short">Editor for PSICAT lithology and symbol schemes</description>
-		<description kind="tooltip">@griffonAppName@</description>
+		<description kind="tooltip">SchemeEditor</description>
 		<!-- fallback icon -->
 		<icon href="griffon-icon-48x48.png" kind="default" width="48" height="48"/>
 		<!-- icon used for splash screen -->
@@ -25,7 +25,7 @@
 		<!-- to create shortcuts, uncomment this
 		  <shortcut online="true">
 			  <desktop/>
-			  <menu submenu="@griffonAppName@"/>
+			  <menu submenu="SchemeEditor"/>
 		  </shortcut>
 		  <offline-allowed/>
   		-->

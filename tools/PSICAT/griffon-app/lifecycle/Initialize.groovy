@@ -16,7 +16,6 @@
 import java.util.prefs.Preferences
 
 import groovy.swing.SwingBuilder
-import griffon.util.GriffonPlatformHelper
 
 import org.andrill.coretools.Platform
 import org.andrill.coretools.ResourceLoader
@@ -25,7 +24,6 @@ import psicat.PSICATController
 import psicat.util.Dialogs
 
 // set our look and feel
-GriffonPlatformHelper.tweakForNativePlatform(app)
 SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
 
 // initialize the coretools platform

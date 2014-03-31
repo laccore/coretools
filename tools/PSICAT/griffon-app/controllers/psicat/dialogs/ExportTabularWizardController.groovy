@@ -33,13 +33,13 @@ class ExportTabularWizardController {
 			switch (view.format.selectedItem) {
 				case 'XLS':  filter = new CustomFileFilter(extensions:['.xls'], description:'Excel Workbook (*.xls)'); break
 			}
-			def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], app.appFrames[0])
+			def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], app.windowManager.windows[0])
 			if (file) { model.filePath = file.absolutePath }
 		}
 	]
 	
 	def show() {
-		if (Dialogs.showCustomDialog(model.title, view.root, app.appFrames[0])) {
+		if (Dialogs.showCustomDialog(model.title, view.root, app.windowManager.windows[0])) {
 			return exportTabular(app.controllers['exportTabularSections'].containers, view.format.selectedItem)
 		} else {
 			return ''

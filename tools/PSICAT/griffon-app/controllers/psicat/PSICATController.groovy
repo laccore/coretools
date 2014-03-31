@@ -18,6 +18,8 @@ package psicat
 import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 
+import griffon.util.Metadata
+
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.edit.DeleteCommand
@@ -78,6 +80,8 @@ class PSICATController {
 			int index = model.openDiagrams.indexOf(diagram)
 			model.openDiagrams.remove(index)
 			view.diagrams.removeTabAt(index)
+			// 3/31/2014 brg: Call as workaround to avoid MVC group name collision
+			//destroyMVCGroup(diagram.model.id)
 			model.status = "Closed section '${diagram.model.name}'"
 			return true
 		} else {
@@ -136,7 +140,7 @@ class PSICATController {
 			}
 		},
 		'openProject': { evt = null ->
-			def file = Dialogs.showOpenDirectoryDialog("Open Project", null, app.appFrames[0])
+			def file = Dialogs.showOpenDirectoryDialog("Open Project", null, app.windowManager.windows[0])
 			if (file && canClose(evt)) { openProject(new DefaultProject(file)) }
 		},
 		'openSection': { evt = null ->
@@ -145,11 +149,18 @@ class PSICATController {
 			def sections = project.sections.selectedValues as List
 			def id = sections.join('|')
 			
+			println "openSection: id = $id"
+
+			println "instantiated MVC Groups:"
+			app.mvcGroupManager.groups.values().each() { println it.mvcId }
+						
 			// check to make sure the diagram isn't open already
 			def open = model.openDiagrams.find { it.model.id == id }
 			if (open) {
+				println "diagram is open, reopening"
 				view.diagrams.selectedIndex = model.openDiagrams.indexOf(open)
 			} else {
+				print "diagram not open, trying to open..."
 				def diagram = buildMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
 				if (diagram.controller.open()) {
 					model.openDiagrams << diagram
@@ -157,8 +168,10 @@ class PSICATController {
 					view.diagrams.selectedIndex = model.openDiagrams.size() - 1
 					diagram.model.scene.scalingFactor = (view.diagrams.size.height / diagram.model.scene.contentSize.height) * 4
 					model.status = "Opened section '${diagram.model.name}'"
+					println "success"
 				} else {
 					destroyMVCGroup(id)
+					println "failed, destroying MVC group"
 				}
 			}
 		},
@@ -192,7 +205,7 @@ class PSICATController {
 		'zoom3':	{ evt = null -> setZoom(10) },
 		'zoom4':	{ evt = null -> setZoom(100) },
 		'zoomOther':{ evt = null ->
-			def other = Dialogs.showInputDialog('Zoom Level', 'Per page:', app.appFrames[0])
+			def other = Dialogs.showInputDialog('Zoom Level', 'Per page:', app.windowManager.windows[0])
 			if (other) {
 				try { setZoom(other as Double) } catch (e) { /* ignore */ }
 			}
@@ -206,16 +219,24 @@ class PSICATController {
 			model.status = 'Diagram rotated'
 		},
 		'about': { evt = null ->
-			Dialogs.showMessageDialog('About', """Welcome to PSICAT [${app.applicationProperties['app.version']}]
+			def meta = Metadata.current
+			Dialogs.showMessageDialog('About', """Welcome to PSICAT [${meta['app.version']}]
 
 PSICAT is a graphical tool for creating and editing core description and stratigraphic column diagrams.
-		""".toString(), app.appFrames[0])
+		""".toString(), app.windowManager.windows[0])
 		},
 		'documentation': { evt = null ->
 			LauncherUtils.openURL('http://dev.psicat.org/documentation/')
 		},
 		'feedback': { evt = null ->
 			LauncherUtils.openURL('http://bitbucket.org/joshareed/coretools/issues/new/')
+		},
+		// brg 3/24/2014: zipped-up export is easy!  
+		'exportProject': { evt = null ->
+			def ant = new AntBuilder()
+			def basedir = new File(model.project.path.toURI())
+			def zipout = new File("/Users/bgrivna/Desktop/zippo.zip")
+			ant.zip(basedir: basedir, destfile: zipout)
 		},
 		'exportDiagram': { evt = null -> ping('exportDiagram')
 			withMVC('ExportDiagramWizard', project: model.project) { mvc ->
@@ -252,7 +273,7 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 		'ftUnits': { evt = null -> setUnits('ft') },
 		'inUnits': { evt = null -> setUnits('in') },
 		'openDIS': { evt = null ->
-			def file = Dialogs.showOpenDialog("Open DIS Project", new CustomFileFilter(extensions: ['_dis.xml'], description: 'DIS files'), app.appFrames[0])
+			def file = Dialogs.showOpenDialog("Open DIS Project", new CustomFileFilter(extensions: ['_dis.xml'], description: 'DIS files'), app.windowManager.windows[0])
 			if (file && canClose(evt)) { openProject(new DISProject(file)) }
 		}
 	]

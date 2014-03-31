@@ -39,6 +39,7 @@ menuBar(id: 'menuBar') {
 			menuItem(exportTabularAction)
 			menuItem(exportDiagramAction)
 		}
+		//menuItem(exportProjectAction)
 		if (!isMacOSX) {
 			separator()
 			menuItem(exitAction)

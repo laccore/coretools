@@ -28,7 +28,7 @@ class PSICATModel {
 	@Bindable Project project = null
 
 	List openDiagrams = []
-    @Bindable Map activeDiagram = null
+    @Bindable def activeDiagram = null
     DiagramState diagramState = new DiagramState()
 	@Bindable boolean anyDirty = false
     

@@ -133,7 +133,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     boolean close() {
     	if (model.dirty) {
-    		switch (JOptionPane.showConfirmDialog( app.appFrames[0], "Save changes to '${model.name}'?", "PSICAT", JOptionPane.YES_NO_CANCEL_OPTION)){
+    		switch (JOptionPane.showConfirmDialog( app.windowManager.windows[0], "Save changes to '${model.name}'?", "PSICAT", JOptionPane.YES_NO_CANCEL_OPTION)){
     			case JOptionPane.YES_OPTION: return save()
     			case JOptionPane.NO_OPTION: return true
     			default: return false

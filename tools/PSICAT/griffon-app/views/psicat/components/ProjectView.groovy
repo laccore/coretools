@@ -35,7 +35,10 @@ scrollPane(id:'root', columnHeaderView: label(id:'name', horizontalAlignment: CE
 			}
 		}, 
 		border: compoundBorder(matteBorder(0, 0, 1, 0, color: Color.lightGray), emptyBorder(5)))) {
-	list(id:'sections', model: new EventListModel(model.sections), mouseClicked: { evt -> controller.handleClick(evt) })
+	
+	// brg 3/31/2014: Binding enable property to model.sections so list GUI updates properly on project load.
+	// A little kludgy but jives with modern (0.9.4+) Griffon convention better than edt block in controller. 
+	list(id:'sections', model: new EventListModel(model.sections), enable: bind { model.sections }, mouseClicked: { evt -> controller.handleClick(evt) })
 }
 
 //handle enter on the section list

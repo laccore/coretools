@@ -81,6 +81,13 @@ actions {
 		shortDescription: 'Save all diagrams'
 	)
 	action(
+		id: 'exportProjectAction',
+		name: 'Export Project',
+		enabled: bind { model.project != null },
+		closure: controller.actions['exportProject'],
+		shortDescription: 'Export current project in a shareable format'
+	)
+	action(
 		id: 'deleteAction',
 		name: 'Delete',
 		enabled: bind { model.diagramState.selection != null },

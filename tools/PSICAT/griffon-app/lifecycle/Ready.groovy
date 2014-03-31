@@ -17,6 +17,8 @@ import java.util.prefs.Preferences
 import javax.swing.JOptionPane
 import javax.swing.JCheckBox
 
+import griffon.util.Metadata
+
 import com.appspot.usageping.UsagePinger
 
 import org.andrill.coretools.model.DefaultProject
@@ -24,7 +26,8 @@ import org.andrill.coretools.model.DefaultProject
 import psicat.PSICATController
 
 // setup our pinger
-UsagePinger usage = new UsagePinger("psicat", app.applicationProperties['app.version'])
+def meta = Metadata.current
+UsagePinger usage = new UsagePinger("psicat", meta['app.version'])
 usage.ping()
 app.config.usage = usage
 
@@ -35,7 +38,7 @@ if (prefs.getBoolean('psicat.promptReopenLastProject', true)) {
 	String path = prefs.get('psicat.lastProjectPath', null)
 	if (name && path && new File(path).exists()) {
 		JCheckBox prompt = new JCheckBox('Never prompt to re-open projects');
-		if (JOptionPane.showOptionDialog(app.appFrames[0], ["Re-open last project: '$name'\n\n", prompt] as Object[], "Re-open '$name'", 
+		if (JOptionPane.showOptionDialog(app.windowManager.windows[0], ["Re-open last project: '$name'\n\n", prompt] as Object[], "Re-open '$name'", 
 				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null) == JOptionPane.YES_OPTION) {
 			app.controllers.PSICAT.openProject(new DefaultProject(new File(path)))	
 		}

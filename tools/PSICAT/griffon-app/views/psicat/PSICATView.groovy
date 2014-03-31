@@ -17,6 +17,7 @@ package psicat
 
 import static javax.swing.SwingConstants.*
 import static griffon.util.GriffonApplicationUtils.*
+import griffon.util.Metadata
 
 import java.awt.Color
 import java.awt.Font
@@ -37,15 +38,16 @@ build(PSICATActions)
 
 // build our properties panel
 def propertiesPanel = new PropertiesPanel()
+def meta = Metadata.current
 
 // build our application
-application(title:"PSICAT ${app.applicationProperties['app.version']}", size:[800,600], locationByPlatform: true, layout: new MigLayout('fill'), 
+application(title:"PSICAT ${meta['app.version']}", size:[800,600], locationByPlatform: true, layout: new MigLayout('fill'), 
 			defaultCloseOperation: 0, windowClosing: { evt -> if (controller.canClose(evt)) app.shutdown() },
 			iconImage: imageIcon('/psicat-icon-64.png').image, iconImages: [imageIcon('/psicat-icon-64.png').image,
 			imageIcon('/psicat-icon-32.png').image, imageIcon('/psicat-icon-16.png').image]) {
 
 	// menu			
-	menuBar(build(PSICATMenuBar))
+	widget(build(PSICATMenuBar))
 	
 	// content area
 	splitPane(orientation: JSplitPane.HORIZONTAL_SPLIT, dividerLocation: 200, resizeWeight: 0.0, border: emptyBorder(5), constraints:'grow') {

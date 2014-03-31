@@ -30,13 +30,13 @@ class ImportLegacyWizardController {
 
     def actions = [
 	    browse: { evt = null ->
-	    	def file = Dialogs.showOpenDialog("Image Directory", null, app.appFrames[0])
+	    	def file = Dialogs.showOpenDialog("Image Directory", null, app.windowManager.windows[0])
 	    	if (file) { model.filePath = file.absolutePath }
     	}
     ]
 
     def show() {
-    	if (Dialogs.showCustomDialog("Import Legacy", view.root, app.appFrames[0])) {
+    	if (Dialogs.showCustomDialog("Import Legacy", view.root, app.windowManager.windows[0])) {
 			return importLegacy(view.section.selectedItem)
     	}
     }

@@ -152,8 +152,8 @@ abstract class GeologyModel implements Model {
 		}
 	}
 
-	public double getIndexMin() { (double) Math.min(top?.to("m")?.value ?: 0, base?.to("m")?.value ?: 0) }
-	public double getIndexMax() { (double) Math.max(top?.to("m")?.value ?: 0, base?.to("m")?.value ?: 0) }
+	public double getIndexMin() { (double) Math.min(top?.to("m")?.value.doubleValue() ?: 0, base?.to("m")?.value.doubleValue() ?: 0) }
+	public double getIndexMax() { (double) Math.max(top?.to("m")?.value.doubleValue() ?: 0, base?.to("m")?.value.doubleValue() ?: 0) }
 	
 	protected format(value) {
 		def formatter = NumberFormat.getInstance()

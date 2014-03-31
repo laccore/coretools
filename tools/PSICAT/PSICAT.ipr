@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project relativePaths="false" version="4">
+  <component name="ProjectFileVersion" converted="true" />
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/PSICAT.iml" filepath="$PROJECT_DIR$/PSICAT.iml" />
+    </modules>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="1.6" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+  <component name="libraryTable">
+    <library name="Griffon 0.2">
+      <CLASSES>
+        <root url="jar:///Applications/griffon-0.2/lib/ant-junit.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/ant-launcher.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/ant-nodeps.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/ant-trax.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/ant.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/asm-2.2.3.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/commons-cli-1.0.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/commons-lang-2.1.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/commons-logging-1.1.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/groovy-all-1.6.4.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/jline-0.9.94.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/junit-3.8.2.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/log4j-1.2.15.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/MultipleGradientPaint.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/spring-2.5.6.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/svnkit-1.2.0.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/swing-worker.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/swingx-0.9.3.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/swingxbuilder-0.1.6-SNAPSHOT.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/lib/xercesImpl-2.7.1.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/dist/griffon-cli-0.2.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/dist/griffon-resources-0.2.jar!/" />
+
+<root url="jar:///Applications/griffon-0.2/dist/griffon-rt-0.2.jar!/" />
+
+
+      </CLASSES>
+    </library>
+  </component>
+</project>

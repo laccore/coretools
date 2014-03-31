@@ -39,13 +39,13 @@ class ImportImageWizardController {
 
     def actions = [
 	    browse: { evt = null ->
-	    	def file = Dialogs.showOpenDirectoryDialog("Image Directory", null, app.appFrames[0])
+	    	def file = Dialogs.showOpenDirectoryDialog("Image Directory", null, app.windowManager.windows[0])
 	    	if (file) { model.filePath = file.absolutePath }
     	}
     ]
 
     def show() {
-    	if (Dialogs.showCustomDialog("Import Images", view.root, app.appFrames[0])) {
+    	if (Dialogs.showCustomDialog("Import Images", view.root, app.windowManager.windows[0])) {
 			// find our images
 			def images = findImages()
 			if (images.size() == 0) {
@@ -61,7 +61,7 @@ class ImportImageWizardController {
                     isEditable:		{ object, index -> index != 0 },
                     setColumnValue: { object, value, index -> object."${columns[index].toLowerCase()}" = value; return object }
                 ] as WritableTableFormat)
-			if (Dialogs.showCustomDialog("Imported Images", view.tablePanel, app.appFrames[0])) {
+			if (Dialogs.showCustomDialog("Imported Images", view.tablePanel, app.windowManager.windows[0])) {
 				return model.createSections ? createSections(images) : createImages(images, view.section.selectedItem)
 			}
 		}

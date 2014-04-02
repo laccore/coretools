@@ -59,7 +59,9 @@ class NewSectionWizardController {
 				// create an image
 				def top = model.top as BigDecimal
 				def base = model.base as BigDecimal
-				def url = model.file.toURI().toURL()
+				
+				// copy image into project
+				def url = FileSystem.copyImageFile(model.file, project.path).toURI().toURL()
 				container.add(new Image(top: new Length(top, "m"), base: new Length(base, "m"), path: url))
 			} 
 			project.saveContainer(container)

@@ -29,6 +29,7 @@ import org.andrill.coretools.graphics.util.ImageInfo
 
 import psicat.util.Dialogs
 import psicat.util.CustomFileFilter
+import psicat.util.FileSystem
 
 class ImportImageWizardController {
 	def model
@@ -143,15 +144,8 @@ class ImportImageWizardController {
 		}
 	}
 	
-	private File copyImageFile(image, container) {
-		def ant = new AntBuilder()
-		def projDir = new File(model.project.path.toURI())
-		def destDir = new File(projDir, "images")
-		if (!destDir.exists())
-			destDir.mkdirs()
-			def destFile = new File(destDir, image.file.name)
-		ant.copy(file:"$image.file.canonicalPath", tofile:"$destFile.canonicalPath")
-		
+	private File copyImageFile(image) {
+		def destFile = FileSystem.copyImageFile(image.file, model.project.path)
 		return destFile
 	}
 
@@ -161,7 +155,7 @@ class ImportImageWizardController {
     	def max = Math.max(image.top as Double, image.base as Double)
     	
 		Image model = new Image()
-    	model.path = copyImageFile(image, container).toURI().toURL()
+    	model.path = copyImageFile(image).toURI().toURL()
     	model.top =  isTopOrigin ? "$min m" : "$max m" 
     	model.base = isTopOrigin ? "$max m" : "$min m" 
     	model.group = image.group

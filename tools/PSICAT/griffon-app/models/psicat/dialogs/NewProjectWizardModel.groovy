@@ -24,6 +24,7 @@ import psicat.util.Dialogs
 	String filePath
 	boolean originTop = true
 	boolean importSections = false
+	boolean useCustomSchemes = false
 
 	File getFile() {
 		if (!filePath) return null

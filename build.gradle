@@ -25,7 +25,7 @@ allprojects {
 	
 	sourceCompatibility = 1.5
 	targetCompatibility = 1.5 
-	version = '0.8.1'
+	version = '0.8.2'
 }
 
 task 'assemble-jars'(dependsOn: build) << {
@@ -115,6 +115,18 @@ task 'package-psicat'(dependsOn: [':tools:SchemeEditor:package', ':tools:PSICAT:
 	}
 	ant.chmod(perm: "+x", file: new File(mac, 'PSICAT/PSICAT.app/Contents/MacOS/PSICAT'))
 	ant.chmod(perm: "+x", file: new File(mac, 'PSICAT/tools/SchemeEditor/SchemeEditor.app/Contents/MacOS/SchemeEditor'))
+
+	// create a semi-valid code signature so users don't see the "[app] is damaged and
+	// can't be opened. You should move it to the Trash." message from GateKeeper,
+	// introduced in OS X 10.7.5. To create a truly legit signature, one must pony up $99
+	// to join Apple's Developer Program, awesome!
+	ant.exec(executable:"codesign") { 
+		arg(line:"-s - --force ${mac}/PSICAT/PSICAT.app")
+	}
+	ant.exec(executable:"codesign") {
+		arg(line: "-s - --force ${mac}/PSICAT/tools/SchemeEditor/SchemeEditor.app")
+	}
+
 	if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
 		ant.exec(executable: "hdiutil") {
 			arg(line:"create -srcfolder ${mac} -volname PSICAT ${mac}/PSICAT-mac-${version}.dmg" )

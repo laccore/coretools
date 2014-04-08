@@ -37,9 +37,17 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	// directory
 	label('Directory:')
 	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
+	//label(text: bind { model.filePath }, constraints: 'width min(200px), growx')
 	button(action: browseAction, constraints: 'wrap')
-	separator(constraints: 'growx, span, wrap')
 
+	// schemes
+	label('Schemes:')
+	buttonGroup().with {
+		add radioButton(text: 'Default', selected: bind { !model.useCustomSchemes }, constraints:'split')
+		add radioButton(text: 'Custom', selected: bind(source: model, sourceProperty: 'useCustomSchemes', mutual:true), constraints:'wrap')
+	}
+	separator(constraints: 'growx, span, wrap')
+	
 	// import sections
 	checkBox(text: 'Open Import Sections wizard', selected: bind(source: model, sourceProperty: 'importSections', mutual:true), constraints: 'span')
 }

@@ -29,7 +29,7 @@ import org.andrill.coretools.graphics.util.ImageInfo
 
 import psicat.util.Dialogs
 import psicat.util.CustomFileFilter
-import psicat.util.FileSystem
+import psicat.util.ProjectLocal
 
 class ImportImageWizardController {
 	def model
@@ -145,7 +145,7 @@ class ImportImageWizardController {
 	}
 	
 	private File copyImageFile(image) {
-		def destFile = FileSystem.copyImageFile(image.file, model.project.path)
+		def destFile = ProjectLocal.copyImageFile(image.file, model.project.path)
 		return destFile
 	}
 

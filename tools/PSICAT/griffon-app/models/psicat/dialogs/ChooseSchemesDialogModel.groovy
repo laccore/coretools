@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Brian Grivna, 2014
+ * Copyright (c) Josh Reed, 2009.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package psicat.dialogs
 
-package psicat.util
+import groovy.beans.Bindable
 
-class FileSystem {
-	static void copy(src, dest) {
-		def ant = new AntBuilder()
-		ant.copy(file:"$src.canonicalPath", tofile:"$dest.canonicalPath")
-	}
-	
-	static File copyImageFile(imageFile, projUrl) {
-		def destDir = new File(new File(projUrl.toURI()), "images")
-		if (!destDir.exists())
-			destDir.mkdirs()
-		def destFile = new File(destDir, imageFile.name)
-		FileSystem.copy(imageFile, destFile)
-		
-		return destFile
-	}
+import psicat.util.Dialogs
+
+import ca.odell.glazedlists.BasicEventList
+
+@Bindable class ChooseSchemesDialogModel {
+	def project
+	def addedSchemes = []
+	def deletedSchemes = []
+	List schemes = new BasicEventList()
 }

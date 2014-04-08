@@ -35,7 +35,7 @@ class NewSectionWizardController {
         	def file = Dialogs.showOpenDialog('Select Image File', CustomFileFilter.IMAGES, app.appFrames[0])
         	if (file) { 
         		model.filePath = file.absolutePath
-        		if (!model.name) { model.name = file.name }
+        		if (!model.name) { model.name = file.name } // brgtodo 4/2/2014: strip extension here or fix loading issue in DefaultProject
         	}
     	}
     ]
@@ -61,7 +61,7 @@ class NewSectionWizardController {
 				def base = model.base as BigDecimal
 				
 				// copy image into project
-				def url = FileSystem.copyImageFile(model.file, project.path).toURI().toURL()
+				def url = ProjectLocal.copyImageFile(model.file, project.path).toURI().toURL()
 				container.add(new Image(top: new Length(top, "m"), base: new Length(base, "m"), path: url))
 			} 
 			project.saveContainer(container)

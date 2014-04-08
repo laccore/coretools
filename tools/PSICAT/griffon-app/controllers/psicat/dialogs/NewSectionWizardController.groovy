@@ -35,7 +35,9 @@ class NewSectionWizardController {
         	def file = Dialogs.showOpenDialog('Select Image File', CustomFileFilter.IMAGES, app.appFrames[0])
         	if (file) { 
         		model.filePath = file.absolutePath
-        		if (!model.name) { model.name = file.name } // brgtodo 4/2/2014: strip extension here or fix loading issue in DefaultProject
+        		if (!model.name) {
+					model.name = FileUtils.removeExtension(file)
+				}
         	}
     	}
     ]

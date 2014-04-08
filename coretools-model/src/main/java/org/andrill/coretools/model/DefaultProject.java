@@ -115,7 +115,7 @@ public class DefaultProject extends AbstractProject {
 
 	protected String getExtension(final File f) {
 		String extension = f.getName();
-		int i = extension.indexOf('.');
+		int i = extension.lastIndexOf('.');
 		if (i != -1) {
 			extension = extension.substring(i + 1);
 		}

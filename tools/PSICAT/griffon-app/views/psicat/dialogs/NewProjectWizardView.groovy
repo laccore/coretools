@@ -23,6 +23,11 @@ actions {
 }
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {	
+	// directory
+	label('Directory:')
+	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
+	button(action: browseAction, constraints: 'wrap')
+
 	// project name
 	label('Name:')
 	textField(text: bind(source: model, sourceProperty:'name', mutual:true), constraints: 'growx, span, wrap')
@@ -33,12 +38,6 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 		add radioButton(text: 'Well', selected: bind(source: model, sourceProperty: 'originTop', mutual:true), constraints:'split')
 		add radioButton(text: 'Outcrop', selected: bind { !model.originTop }, constraints: 'wrap')	
 	}
-	
-	// directory
-	label('Directory:')
-	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
-	//label(text: bind { model.filePath }, constraints: 'width min(200px), growx')
-	button(action: browseAction, constraints: 'wrap')
 
 	// schemes
 	label('Schemes:')

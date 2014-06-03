@@ -30,6 +30,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 
 import org.andrill.coretools.Platform;
+import org.andrill.coretools.AlphanumComparator;
 import org.andrill.coretools.model.io.ModelFormatManager;
 import org.andrill.coretools.model.io.ModelReader;
 import org.andrill.coretools.model.io.ModelWriter;
@@ -218,7 +219,7 @@ public class DefaultProject extends AbstractProject {
 				}
 			}
 		}
-		Collections.sort(sortedContainers);
+		Collections.sort(sortedContainers, new AlphanumComparator.StringAlphanumComparator());
 		return sortedContainers;
 	}
 	

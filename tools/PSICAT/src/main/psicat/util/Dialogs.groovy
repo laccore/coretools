@@ -73,6 +73,20 @@ class Dialogs {
 		}
 	}
 	
+	static File[] showOpenMultipleDialog(title, filter = null, parent = null) {
+		def fc = new JFileChooser(currentDir)
+		fc.fileSelectionMode = JFileChooser.FILES_ONLY
+		fc.multiSelectionEnabled = true
+		if (title) { fc.dialogTitle = title }
+		if (filter) { fc.addChoosableFileFilter(filter) }
+		if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+			currentDir = fc.currentDirectory
+			return fc.selectedFiles
+		} else {
+			return null
+		}
+	}
+	
 	static File showOpenDirectoryDialog(title, filter = null, parent = null) {
 		def fc = new JFileChooser(currentDir)
 		fc.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY

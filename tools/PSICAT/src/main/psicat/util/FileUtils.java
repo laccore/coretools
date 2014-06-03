@@ -24,10 +24,15 @@ import java.io.File;
  */
 public class FileUtils {
 	static String getExtension(final File f) {
+		return getExtension(f, false);
+	}
+	
+	static String getExtension(final File f, final boolean includeDot) {
 		String extension = f.getName();
 		int i = extension.lastIndexOf('.');
 		if (i != -1) {
-			extension = extension.substring(i + 1);
+			int startIndex = includeDot ? i : i + 1;
+			extension = extension.substring(startIndex);
 		}
 		return extension;
 	}

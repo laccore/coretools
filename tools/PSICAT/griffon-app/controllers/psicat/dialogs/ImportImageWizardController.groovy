@@ -16,39 +16,60 @@
 package psicat.dialogs;
 
 import java.util.Map
+import javax.swing.ToolTipManager
 
 import ca.odell.glazedlists.BasicEventList
 import ca.odell.glazedlists.SortedList
 import ca.odell.glazedlists.gui.WritableTableFormat
 import ca.odell.glazedlists.swing.EventTableModel
 
+import org.andrill.coretools.AlphanumComparator;
 import org.andrill.coretools.geology.models.Image
 import org.andrill.coretools.geology.models.Section;
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.graphics.util.ImageInfo
 
-import psicat.util.Dialogs
 import psicat.util.CustomFileFilter
+import psicat.util.Dialogs
+import psicat.util.FileUtils
 import psicat.util.ProjectLocal
 
 class ImportImageWizardController {
 	def model
     def view
     def builder
-
+	def defaultDismissTimeout = -1
+	
     void mvcGroupInit(Map args) {}
 
     def actions = [
-	    browse: { evt = null ->
-	    	def file = Dialogs.showOpenDirectoryDialog("Image Directory", null, app.appFrames[0])
-	    	if (file) { model.filePath = file.absolutePath }
-    	}
+		browse: { evt = null ->
+			def selectedFiles = Dialogs.showOpenMultipleDialog("Select Image(s) to Import", CustomFileFilter.IMAGES, app.appFrames[0])
+			if (selectedFiles) {
+				def comparator = new AlphanumComparator.StringAlphanumComparator()
+				def sortedFiles = new SortedList(new BasicEventList(), {a, b -> comparator.compare(a.name, b.name)} as Comparator)
+				selectedFiles.each { sortedFiles << it }
+				model.imageFiles = sortedFiles.toArray()
+				
+				// update UI
+				view.fileCountLabel.text = "${model.imageFiles.length} images selected (mouse over for list)"
+				def fileStr = "<html>"
+				model.imageFiles.each { fileStr += it.name + "<br/>" }
+				view.fileCountLabel.toolTipText = fileStr + "</html>"
+			}
+		}
     ]
 
     def show() {
+		// can't access view.fileCountLabel in mvcGroupInit(), so set long tooltip display time here
+		if (defaultDismissTimeout == -1) {
+			defaultDismissTimeout = ToolTipManager.sharedInstance().getDismissDelay() 
+			view.fileCountLabel.mouseEntered = { ToolTipManager.sharedInstance().setDismissDelay(60000) }
+			view.fileCountLabel.mouseExited = { ToolTipManager.sharedInstance().setDismissDelay(defaultDismissTimeout) }
+		}
+
     	if (Dialogs.showCustomDialog("Import Images", view.root, app.appFrames[0])) {
-			// find our images
-			def images = findImages()
+			def images = compileImages()
 			if (images.size() == 0) {
 				throw new RuntimeException('No images found')
 			}
@@ -94,15 +115,14 @@ class ImportImageWizardController {
 		return "Imported ${images.size()} images as new sections"
 	}
 	
-	private def findImages() {
-		if (model.file) {
+	private def compileImages() {
+		if (model.imageFiles) {
 			double depth = model.parseTop ? -1.0 : model.top as Double
 			int dpi = model.parseBase ? -1 : model.dpi as Integer
 			
-			// find all images
-			def images = new SortedList(new BasicEventList(), {a, b -> a?.top <=> b?.top} as Comparator)
+			def images = new BasicEventList()
 			def regex = ~/([0-9]*\.[0-9]+)/
-			model.file.eachFileMatch({it[it.lastIndexOf('.')..-1].toLowerCase() in CustomFileFilter.IMAGES.extensions}) { file ->
+			model.imageFiles.each { file ->
 				file.withInputStream { stream -> 
 					ImageInfo ii = new ImageInfo()
 					ii.setInput(stream)

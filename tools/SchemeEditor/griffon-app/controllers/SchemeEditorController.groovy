@@ -33,7 +33,7 @@ class SchemeEditorController implements ListSelectionListener {
     def view
     
     private SchemeHelper helper
-    private File currentDir = new File(".")
+    static File currentDir = new File(System.getProperty("user.home"))
 
     void mvcGroupInit(Map args) {
     	helper = new SchemeHelper(new GroovyClassLoader(Thread?.currentThread()?.getContextClassLoader()))

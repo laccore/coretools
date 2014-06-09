@@ -20,3 +20,4 @@ def prefs = Preferences.userNodeForPackage(SchemeEditorController)
 def mainViewDims = app.views.SchemeEditor.mainView.size
 prefs.putDouble('schemeEditor.mainViewWidth', mainViewDims.width)
 prefs.putDouble('schemeEditor.mainViewHeight', mainViewDims.height)
+prefs.put('schemeEditor.lastDir', app.controllers.SchemeEditor.currentDir.absolutePath)

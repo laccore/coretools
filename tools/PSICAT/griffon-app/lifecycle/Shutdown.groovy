@@ -22,6 +22,11 @@ import psicat.util.Dialogs
 def prefs = Preferences.userNodeForPackage(PSICATController)
 prefs.put('psicat.lastDir', Dialogs.currentDir.absolutePath)
 
+// save PSICAT window dimensions
+def mainViewDims = app.views.PSICAT.mainView.size
+prefs.putDouble('psicat.mainViewWidth', mainViewDims.width)
+prefs.putDouble('psicat.mainViewHeight', mainViewDims.height)
+
 // save open project
 def project = app.models.PSICAT.project
 if (project) {

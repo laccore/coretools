@@ -171,6 +171,7 @@ class SchemeEditorController implements ListSelectionListener {
     	def e = [name:'New Entry']
     	model.schemeEntries << e
     	setEntry(e)
+		view.entryName.requestFocus()
     }
     
     def saveEntry = { evt = null ->
@@ -180,7 +181,16 @@ class SchemeEditorController implements ListSelectionListener {
     	model.entry.group = view.entryGroup.text
     	model.entry.color = model.entryColor
     	model.entry.image = model.entryImage
+		
+		// brg 6/10/2014: SortedList doesn't resort when elements already present in the list are
+		// updated. Must explicitly get old entry and reset it to force resort.
+		def idx = view.schemeEntries.selectedIndex
+		def newEntry = model.schemeEntries.get(idx)
+		model.schemeEntries.set(idx, newEntry)
+		view.schemeEntries.selectedIndex = model.schemeEntries.indexOf(newEntry)
+		view.schemeEntries.ensureIndexIsVisible(view.schemeEntries.selectedIndex)		
     	view.schemeEntries.repaint()
+		
     	model.entryDirty = false
     	model.entryValid = (view.entryName.text && view.entryCode.text)
     	model.ignoreEvents = false;

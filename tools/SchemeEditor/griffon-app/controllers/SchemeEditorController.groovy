@@ -172,6 +172,7 @@ class SchemeEditorController implements ListSelectionListener {
     	model.schemeEntries << e
     	setEntry(e)
 		view.entryName.requestFocus()
+		view.entryName.selectAll() // Windows: must explicitly select text
     }
     
     def saveEntry = { evt = null ->

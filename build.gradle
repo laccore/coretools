@@ -2,10 +2,7 @@ allprojects {
 	apply plugin: 'groovy'
 	
 	repositories {
-        maven { url "http://download.java.net/maven/1/" }
-        maven { url "http://download.java.net/maven/2/" }
-        maven { url "https://repository.jboss.org/nexus/content/groups/public" }
-		mavenCentral()
+       	mavenCentral()
 	}
 	
 	configurations {
@@ -19,6 +16,7 @@ allprojects {
 		compile 'com.google.inject.extensions:guice-multibindings:2.0'
 		compile 'aopalliance:aopalliance:1.0'
 		compile 'org.slf4j:slf4j-api:1.5.8'
+		compile 'xerces:xerces:2.3.0' // brg 2/19/2014: needed on Windows, not on OSX for some reason?
 		testCompile 'junit:junit:4.4'
 		runtime 'org.slf4j:slf4j-simple:1.5.8'
 	}

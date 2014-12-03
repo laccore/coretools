@@ -52,7 +52,10 @@ class ProjectController implements PropertyChangeListener {
 		def schemeDir = new File(new File(model.project.path.toURI()), "schemes")
 		if (schemeDir.exists() && schemeDir.isDirectory()) {
 			def schemeFiles = []
-			schemeDir.eachFile { schemeFiles.add(it) }
+			schemeDir.eachFile { 
+				if (it.isFile() && it.name.endsWith(".jar"))
+					schemeFiles.add(it)
+			}
 			ProjectLocal.loadSchemes(schemeFiles)
 		}
 	}

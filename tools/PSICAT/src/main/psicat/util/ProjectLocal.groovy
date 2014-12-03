@@ -49,7 +49,6 @@ class ProjectLocal {
 	// embrace the ugliness...
 	static Scheme addScheme(schemeFile) {
 		def loader = Platform.getService(ResourceLoader.class)
-		// todo: copy scheme to project
 		loader.addResource(schemeFile.toURI().toURL())
 		
 		// so gross. find matching filename...only way to identify Scheme we just loaded
@@ -58,7 +57,7 @@ class ProjectLocal {
 		fact.getSchemes().find {
 			if (it.getInput().name.equals(schemeFile.name)) {
 				scheme = it
-				return true
+				return scheme
 			}
 		}
 		return scheme
@@ -102,7 +101,8 @@ class ProjectLocal {
 			def prefix = project.name.replace(" ", "") 
 			def schemeFiles = []
 			res.eachFile {
-				schemeFiles.add(copySchemeToProject(it, project.path, prefix))
+				if (it.isFile() && it.name.endsWith(".jar"))
+					schemeFiles.add(copySchemeToProject(it, project.path, prefix))
 			}
 			loadSchemes(schemeFiles)
 		}

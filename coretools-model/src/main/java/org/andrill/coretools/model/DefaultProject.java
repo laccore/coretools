@@ -23,12 +23,14 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 
 import org.andrill.coretools.Platform;
+import org.andrill.coretools.AlphanumComparator;
 import org.andrill.coretools.model.io.ModelFormatManager;
 import org.andrill.coretools.model.io.ModelReader;
 import org.andrill.coretools.model.io.ModelWriter;
@@ -114,7 +116,7 @@ public class DefaultProject extends AbstractProject {
 
 	protected String getExtension(final File f) {
 		String extension = f.getName();
-		int i = extension.indexOf('.');
+		int i = extension.lastIndexOf('.');
 		if (i != -1) {
 			extension = extension.substring(i + 1);
 		}
@@ -207,20 +209,24 @@ public class DefaultProject extends AbstractProject {
 		}
 
 		// parse our containers
+		ArrayList<String> sortedContainers = new ArrayList<String>();
 		File dataDir = getDataDir();
 		if (dataDir.exists() && dataDir.isDirectory()) {
 			for (File file : dataDir.listFiles()) {
 				if (formats.getReader(getExtension(file)) != null) {
 					files.put(removeExtension(file), file);
+					sortedContainers.add(removeExtension(file));
 				}
 			}
 		}
-		return new ArrayList<String>(files.keySet());
+		Collections.sort(sortedContainers, new AlphanumComparator.StringAlphanumComparator());
+		return sortedContainers;
 	}
-
+	
 	@Override
 	protected ModelContainer open(final String name) {
 		ModelContainer container = Platform.getService(ModelContainer.class);
+		container.setProject(this);
 		File file = files.get(name);
 		if (file.exists()) {
 			// get our reader

@@ -31,3 +31,10 @@
  * - SwingBuilder.edt { // your code }
  * - SwingUtilities.invokeLater { // your code }
  */
+
+import java.util.prefs.Preferences
+  
+def lastDir = new File(Preferences.userNodeForPackage(SchemeEditorController).get('schemeEditor.lastDir', System.getProperty("user.home")))
+if (lastDir.exists() && lastDir.isDirectory()) {
+    app.controllers.SchemeEditor.currentDir = lastDir
+}

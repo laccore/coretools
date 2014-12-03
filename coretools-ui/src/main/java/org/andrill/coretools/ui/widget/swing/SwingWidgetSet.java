@@ -30,10 +30,14 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class SwingWidgetSet implements WidgetSet {
-	private final SchemeManager schemes;
+	private SchemeManager schemes;
 	
 	@Inject
 	SwingWidgetSet(SchemeManager schemes) {
+		this.schemes = schemes;
+	}
+	
+	public void updateSchemes(SchemeManager schemes) {
 		this.schemes = schemes;
 	}
 

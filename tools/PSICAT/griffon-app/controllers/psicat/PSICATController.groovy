@@ -123,6 +123,11 @@ class PSICATController {
 				def project = mvc.controller.show()
 				if (project && canClose(evt)) { 
 					openProject(project)
+					if (mvc.model.useCustomSchemes) {
+						actions.chooseSchemes()
+					} else {
+						ProjectLocal.copyDefaultSchemes(project)
+					}					
 					if (mvc.model.importSections) {
 						actions.importImage()
 					}
@@ -245,6 +250,12 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 		'importTabular': { evt = null -> ping('importTabular')
 			withMVC('ImportTabularWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
+			}
+		},
+		'chooseSchemes': { evt = null ->
+			withMVC('ChooseSchemesDialog', project: model.project) { mvc ->
+				if (mvc.controller.show())
+					getMVC('project').controller.loadSchemes()
 			}
 		},
 		'mUnits':  { evt = null -> setUnits('m') },

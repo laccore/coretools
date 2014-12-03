@@ -79,4 +79,9 @@ mvcGroups {
 		controller="psicat.dialogs.ImportLegacyWizardController"
 		view="psicat.dialogs.ImportLegacyWizardView"
 	}
+	ChooseSchemesDialog {
+		model="psicat.dialogs.ChooseSchemesDialogModel"
+		controller="psicat.dialogs.ChooseSchemesDialogController"
+		view="psicat.dialogs.ChooseSchemesDialogView"
+	}
 }

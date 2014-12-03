@@ -88,6 +88,13 @@ actions {
 		accelerator: javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, 0)
 	)
 	action(
+		id: 'chooseSchemesAction',
+		name: 'Choose Schemes...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['chooseSchemes'],
+		shortDescription: 'Add/remove schemes used in the current project'
+	)
+	action(
 		id: 'undoAction',
 		name: 'Undo',
 		enabled: bind { model.diagramState.canUndo },

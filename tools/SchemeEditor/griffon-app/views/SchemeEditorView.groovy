@@ -28,10 +28,17 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.event.DocumentListener
 
+import java.util.prefs.Preferences
+
 import net.miginfocom.swing.MigLayout
 
 // build our actions
 build(SchemeEditorActions)
+
+// restore previous dimensions of main window
+def prefs = Preferences.userNodeForPackage(SchemeEditorController)
+def mainWidth = prefs.getDouble('schemeEditor.mainViewWidth', 300.0) as Integer
+def mainHeight = prefs.getDouble('schemeEditor.mainViewHeight', 600.0) as Integer
 
 // force PreviewPanel borders to redraw correctly by pretending panel is non-opaque,
 // otherwise artifacts appear in borders around preview image on Win
@@ -39,7 +46,7 @@ def preview = new PreviewPanel()
 preview.setOpaque(false)
 
 // build our main application
-application(title:'Scheme Editor', pack:true, locationByPlatform:true, layout: new MigLayout('fill')) {
+application(title:'Scheme Editor', id:'mainView', size:[mainWidth, mainHeight], locationByPlatform:true, layout: new MigLayout('fill')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {
 			menuItem(newAction)

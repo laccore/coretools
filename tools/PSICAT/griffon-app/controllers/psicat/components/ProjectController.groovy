@@ -18,6 +18,8 @@ package psicat.components
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 
+import psicat.util.ProjectLocal
+
 class ProjectController implements PropertyChangeListener {
     def model
     def view
@@ -32,16 +34,29 @@ class ProjectController implements PropertyChangeListener {
     }
 
     void setProject(project) {
-    	if (model.project) { model.project.removePropertyChangeListener(this) }
+    	if (model.project) {
+			model.project.removePropertyChangeListener(this)
+			ProjectLocal.unloadAllSchemes()
+		}
     	model.project = project
     	model.name = project ? project.name : "< No Project >"
     	model.sections.clear()
     	if (project) {
     		model.project.addPropertyChangeListener(this)
-    		model.sections.addAll(project.containers) 
+    		model.sections.addAll(project.containers)
+			loadSchemes()
     	}
     }
 
+	void loadSchemes() {
+		def schemeDir = new File(new File(model.project.path.toURI()), "schemes")
+		if (schemeDir.exists() && schemeDir.isDirectory()) {
+			def schemeFiles = []
+			schemeDir.eachFile { schemeFiles.add(it) }
+			ProjectLocal.loadSchemes(schemeFiles)
+		}
+	}
+	
     void handleClick(evt = null) {
 		if (!model.project) return
     	if (clickHandler) {

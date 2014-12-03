@@ -26,6 +26,8 @@ import javax.swing.JSplitPane
 import javax.swing.KeyStroke
 import javax.swing.event.ChangeListener
 
+import java.util.prefs.Preferences
+
 import ca.odell.glazedlists.swing.EventListModel
 
 import net.miginfocom.swing.MigLayout
@@ -38,8 +40,14 @@ build(PSICATActions)
 // build our properties panel
 def propertiesPanel = new PropertiesPanel()
 
+// restore previous session's PSICAT window dimensions
+def prefs = Preferences.userNodeForPackage(PSICATController)
+def mainWidth = prefs.getDouble('psicat.mainViewWidth', 800.0) as Integer
+def mainHeight = prefs.getDouble('psicat.mainViewHeight', 600.0) as Integer
+
 // build our application
-application(title:'PSICAT', size:[800,600], locationByPlatform: true, layout: new MigLayout('fill'), 
+application(title:"PSICAT ${app.applicationProperties['app.version']}", id:'mainView', size:[mainWidth,mainHeight],
+            locationByPlatform: true, layout: new MigLayout('fill'), 
 			defaultCloseOperation: 0, windowClosing: { evt -> if (controller.canClose(evt)) app.shutdown() },
 			iconImage: imageIcon('/psicat-icon-64.png').image, iconImages: [imageIcon('/psicat-icon-64.png').image,
 			imageIcon('/psicat-icon-32.png').image, imageIcon('/psicat-icon-16.png').image]) {

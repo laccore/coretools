@@ -136,6 +136,17 @@ public class XMLScheme implements Scheme {
 		}
 		entryList.each { it.scheme = this }
 	}
+	
+	public File getInput() {
+		// parse filename from input URL string, assumed to be a jar path e.g. jar:file:/foo/.../bar.jar!/scheme.xml"
+		def bangIdx = input.indexOf('!')
+		def schemeUrl = new URL(input.substring(4, bangIdx))
+		return new File(schemeUrl.toURI())
+	}
+	
+	private String getInputFilename() {
+		return getInput().name
+	}
 
-	String toString() { "Scheme: '$name' [id:$id, type:$type, size:${entryList.size()}]" }
+	String toString() { "${getInputFilename()}: '$name' [id:$id, type:$type, size:${entryList.size()}]" }
 }

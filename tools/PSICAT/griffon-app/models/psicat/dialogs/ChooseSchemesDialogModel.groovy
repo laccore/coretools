@@ -19,15 +19,11 @@ import groovy.beans.Bindable
 
 import psicat.util.Dialogs
 
-@Bindable class NewProjectWizardModel {
-	String name
-	String filePath
-	boolean originTop = true
-	boolean importSections = false
-	boolean useCustomSchemes = false
+import ca.odell.glazedlists.BasicEventList
 
-	File getFile() {
-		if (!filePath) return null
-		filePath.contains(File.separator) ? new File(filePath) : new File(Dialogs.currentDir, filePath)
-	}
+@Bindable class ChooseSchemesDialogModel {
+	def project
+	def addedSchemes = []
+	def deletedSchemes = []
+	List schemes = new BasicEventList()
 }

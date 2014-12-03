@@ -22,7 +22,9 @@ menuBar(id: 'menuBar') {
 		menuItem(newProjectAction)
 		menuItem(newSectionAction)
 		menuItem(openProjectAction)
-		menuItem(openDISAction)
+		// brg 4/6/2014: Changes to scheme handling likely mean DIS projects are going to misbehave,
+		// don't allow them for now.
+		//menuItem(openDISAction)
 		separator()
 		menuItem(closeAction)
 		menuItem(closeAllAction)
@@ -46,6 +48,8 @@ menuBar(id: 'menuBar') {
 	}
 
 	menu(text: 'Edit', mnemonic: 'E') {
+		menuItem(chooseSchemesAction)
+		separator()
 		menuItem(deleteAction)
 		menuItem(undoAction)
 		menuItem(redoAction)

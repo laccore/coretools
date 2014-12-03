@@ -50,7 +50,7 @@ class ProjectLocal {
 	static Scheme addScheme(schemeFile) {
 		def loader = Platform.getService(ResourceLoader.class)
 		// todo: copy scheme to project
-		loader.addResource(schemeFile.toURL())
+		loader.addResource(schemeFile.toURI().toURL())
 		
 		// so gross. find matching filename...only way to identify Scheme we just loaded
 		def fact = Platform.getService(XMLSchemeFactory.class)
@@ -66,7 +66,7 @@ class ProjectLocal {
 	
 	static void loadSchemes(schemeFiles) {
 		def loader = Platform.getService(ResourceLoader.class)
-		schemeFiles.each { loader.addResource(it.toURL()) }
+		schemeFiles.each { loader.addResource(it.toURI().toURL()) }
 		updateSchemeManager(schemeFiles)
 	}
 	

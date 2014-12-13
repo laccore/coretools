@@ -29,6 +29,7 @@ import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.misc.util.RenderUtils
+import org.andrill.coretools.ui.ScenePanel
 import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.misc.util.LauncherUtils
 
@@ -39,7 +40,7 @@ class PSICATController {
 	def view
 
 	private def prefs = Preferences.userNodeForPackage(PSICATController)
-
+	
 	void mvcGroupInit(Map args) {}
 
 	// for working with MVC groups
@@ -63,6 +64,33 @@ class PSICATController {
 
 	boolean canClose(evt) {
 		return model.openDiagrams.inject(true) { flag, cur -> flag &= cur.controller.close() }
+	}
+	
+	// 12/12/2014 brg: retain name to ensure we enable the panel that was actually disabled
+	// (user could click on a different diagram's tab to activate window, so
+	// we can't rely on currently active diagram's name)
+	def disabledPanelName = "" 
+
+	void enableMouse(evt) {
+		// 12/12/2014 brg: fixes an obnoxious bug where clicking to activate window
+		// created a new interval/symbol/unit if you happened to click in a track. 
+		// Wait briefly to enable ScenePanel mouse handling so activate click is ignored. 
+		doOutside {
+			Thread.sleep(200);
+			ScenePanel panel = getMVC(disabledPanelName)?.view?.contents
+			if (panel) {
+				panel.enableMouseHandling()
+				disabledPanelName = ""
+			}
+		}
+	}
+	
+	void disableMouse(evt) {
+		ScenePanel panel = getMVC(model.diagramState.name)?.view?.contents
+		if (panel) { 
+			panel.disableMouseHandling()
+			disabledPanelName = model.diagramState.name
+		}
 	}
 	
 	void openProject(project) {

@@ -103,6 +103,8 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	protected AtomicBoolean repainting = new AtomicBoolean(false);
 	protected SelectionProvider selectionProvider = DEFAULT_PROVIDER;
 	protected int scrollUnits = 20;
+	
+	protected boolean handleMouse = true; // handle/ignore mouse clicks - see brg 12/12/2014 in PSICATController.groovy 
 
 	/**
 	 * Create a new ScenePanel.
@@ -147,6 +149,9 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 		addKeyListener(this);
 	}
 
+	public void disableMouseHandling() { handleMouse = false; }
+	public void enableMouseHandling() { handleMouse = true; }
+	
 	public void adjustmentValueChanged(final AdjustmentEvent e) {
 		if (!repainting.getAndSet(true)) {
 			SwingUtilities.invokeLater(new Runnable() {
@@ -368,7 +373,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 
 	public void mouseClicked(final MouseEvent e) {
 		requestFocusInWindow();
-		if (isFocusOwner() && isEditable()) {
+		if (isFocusOwner() && isEditable() && handleMouse) {
 			SceneMouseEvent sme;
 			if ((handler != null) && ((sme = mouseEvent(e)) != null)) {
 				updateFeedback(handler.mouseClicked(sme));
@@ -376,7 +381,6 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 				updateFeedback(null);
 			}
 		}
-
 	}
 
 	public void mouseDragged(final MouseEvent e) {
@@ -435,7 +439,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 
 	public void mousePressed(final MouseEvent e) {
 		requestFocusInWindow();
-		if (isFocusOwner()) {
+		if (isFocusOwner() && handleMouse) {
 			SceneMouseEvent sme = mouseEvent(e);
 			if (sme != null) {
 				Selection selection = selectionProvider.getSelection(scene, sme);
@@ -455,7 +459,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 
 	public void mouseReleased(final MouseEvent e) {
 		requestFocusInWindow();
-		if (isFocusOwner() && isEditable()) {
+		if (isFocusOwner() && isEditable() && handleMouse) {
 			SceneMouseEvent sme;
 			if ((handler != null) && ((sme = mouseEvent(e)) != null)) {
 				updateFeedback(handler.mouseReleased(sme));

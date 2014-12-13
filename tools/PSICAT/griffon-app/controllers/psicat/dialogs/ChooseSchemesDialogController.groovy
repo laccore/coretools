@@ -45,6 +45,7 @@ class ChooseSchemesDialogController {
 				}
 			}
     	},
+		// todo: warn user if project contains entries that are part of the scheme to be deleted
 		'delete': { evt = null ->
 			def idx = view.schemeList.selectedIndex
 			if (idx != -1) {
@@ -68,7 +69,6 @@ class ChooseSchemesDialogController {
 				ProjectLocal.copySchemeToProject(it.getInput(), model.project.path)
 			}
 			
-			// todo: warn user if project contains entries that are part of the scheme to be deleted
 			// remove deleted schemes
 			model.deletedSchemes.each { ProjectLocal.unloadScheme(it) }
 			

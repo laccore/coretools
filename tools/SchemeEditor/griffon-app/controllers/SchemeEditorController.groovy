@@ -151,21 +151,30 @@ class SchemeEditorController implements ListSelectionListener {
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
 	    if (fc.showDialog(app.appFrames[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
-	       currentDir = fc.currentDirectory
-	       model.schemeFile = fc.selectedFile
-	       helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
-	                           entries:model.schemeEntries], model.schemeFile)
-	       JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
-	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+			currentDir = fc.currentDirectory
+			model.schemeFile = fc.selectedFile
+			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
+				entries:model.schemeEntries], model.schemeFile)
+			JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
+				"Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
 	    }
     }
     
+	// If empty, populate Code field based on Name. Don't force user to devise and type a code!
+	def fillCode = { evt = null ->
+   		if (view.entryCode.text.length() == 0) {
+			def code = view.entryName.text.toLowerCase()
+			code = code.replace(" ", ",")
+			view.entryCode.text = code
+   		}
+	}
+	
     def entryChanged = { evt = null ->
-    	if (!model.ignoreEvents) {
-    		model.entryDirty = true
+		if (!model.ignoreEvents) {
+			model.entryDirty = true
     		model.entryValid = (view.entryName.text && view.entryCode.text)
-    	}
-    }
+		}
+	}
     
     def addEntry = { evt = null ->
     	def e = [name:'New Entry']
@@ -196,6 +205,11 @@ class SchemeEditorController implements ListSelectionListener {
     	model.entryValid = (view.entryName.text && view.entryCode.text)
     	model.ignoreEvents = false;
     }
+	
+	def saveAndAddEntry = { evt = null ->
+		saveEntry()
+		addEntry()
+	}
     
     def revertEntry = { evt = null ->
     	setEntry(model?.entry)

@@ -154,7 +154,14 @@ public class SchemeHelper {
 			// all's gone well, dump contents of tmp into destination file - File.renameTo()
 			// is notoriously unreliable and isn't working on Win7.
 			def inStream = new FileInputStream(tmp)
-			def outStream = new FileOutputStream(file)
+			
+			// add .jar extension if necessary
+			def outFile = file
+			if (!file.name.endsWith(".jar")) {
+				outFile = new File(file.parentFile, file.name + ".jar")
+			}
+			
+			def outStream = new FileOutputStream(outFile)
 			byte[] buf = new byte[1024]
 			int len = 0
 			while ((len = inStream.read(buf)) > 0) { outStream.write(buf, 0, len) }

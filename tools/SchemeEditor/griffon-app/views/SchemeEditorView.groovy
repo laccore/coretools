@@ -80,13 +80,15 @@ application(title:'Scheme Editor', id:'mainView', size:[mainWidth, mainHeight], 
 	    label('Name:', constraints: 'sg 2, split, right')
 	    textField(id:'entryName', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
 	    label('Code:', constraints: 'sg 2, split, right')
-	    textField(id:'entryCode', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
+	    textField(id:'entryCode', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction,
+			focusGained: { evt = null -> controller.fillCode() } )
 	    label('Group:', constraints: 'sg 2, split, right')
 	    textField(id:'entryGroup', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
 	    button(text: 'Set Image', constraints: 'split, growx', action:updateImageAction)
 	    button(text: 'Set Color', constraints: 'growx, wrap', action:updateColorAction)
 	    widget(preview, id:'preview', constraints:'span 2, grow, h 200px, wrap', border: titledBorder('Preview'))
-		button(action: saveEntryAction, constraints: 'split, right')
+		button(action: saveAndAddEntryAction, constraints: 'split, right')
+		button(action: saveEntryAction, constraints: 'right')
 		button(action: revertEntryAction, constraints: 'right')
 	}
 }

@@ -66,6 +66,11 @@ actions {
 		enabled: bind { model.entry != null },
 		closure: controller.removeEntry
 	)
+	action( id:'saveAndAddEntryAction',
+		name:'Update and Add',
+		enabled: bind { model.entry != null && model.entryDirty && model.entryValid },
+		closure: controller.saveAndAddEntry
+	)
 	action( id:'saveEntryAction',
 		name:'Update',
 		enabled: bind { model.entry != null && model.entryDirty && model.entryValid },

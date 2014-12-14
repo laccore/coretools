@@ -217,8 +217,16 @@ class SchemeEditorController implements ListSelectionListener {
     
     def removeEntry = { evt = null ->
     	if (model?.entry) {
-    		model.schemeEntries.remove(model?.entry)
-    		setEntry(null)
+			def index = model.schemeEntries.indexOf(model?.entry)
+			model.schemeEntries.remove(index)
+
+			// select next entry
+			def selectEntry = null
+			if (model.schemeEntries.size() > 0) {
+				def newIndex = (index < model.schemeEntries.size()) ? index : index - 1
+				selectEntry = model.schemeEntries.get(newIndex)
+			}
+    		setEntry(selectEntry)
     	}
     }
     

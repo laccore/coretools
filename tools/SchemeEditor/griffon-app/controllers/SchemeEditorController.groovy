@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import groovy.lang.GroovyClassLoader
+
 import java.awt.Image
 import java.io.File;
 import java.util.zip.ZipFile
@@ -36,7 +36,7 @@ class SchemeEditorController implements ListSelectionListener {
     static File currentDir = new File(System.getProperty("user.home"))
 
     void mvcGroupInit(Map args) {
-    	helper = new SchemeHelper(new GroovyClassLoader(Thread?.currentThread()?.getContextClassLoader()))
+    	helper = new SchemeHelper()
     	
 		// load our standard images
     	["rsrc:/org/psicat/resources/lithologies/scheme.xml", "rsrc:/org/psicat/resources/symbols/scheme.xml"].each { path ->
@@ -60,17 +60,17 @@ class SchemeEditorController implements ListSelectionListener {
      * Exit the application
      */
     def exit = { evt = null ->
-    	app.shutdown()
+		app.shutdown()
     }
-    
+
     /**
      * Create a new scheme file
      */
     def newScheme = { evt = null -> 
-    	model.schemeFile = null
+    	updateSchemeFile(null)
     	setScheme(null)
     }
-
+	
     /**
      * Open an existing scheme file.
      */
@@ -80,7 +80,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
 	    if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
 	       currentDir = fc.currentDirectory
-	       model.schemeFile = fc.selectedFile
+	       updateSchemeFile(fc.selectedFile)
 	       
 	       // parse our file
 	       doOutside {
@@ -129,6 +129,16 @@ class SchemeEditorController implements ListSelectionListener {
     	}
     }
     
+	/**
+	 * Update model.schemeFile reference and mainView's title bar
+	 */
+	def updateSchemeFile(file) {
+		model.schemeFile = file
+		def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}"
+		def fileName = file
+		view.mainView.title = baseTitle + (fileName ? " - [$fileName]" : "") 
+	}
+	
     /**
      * Save the scheme.
      */
@@ -152,7 +162,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
 	    if (fc.showDialog(app.appFrames[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
 			currentDir = fc.currentDirectory
-			model.schemeFile = fc.selectedFile
+			updateSchemeFile(fc.selectedFile)
 			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
 				entries:model.schemeEntries], model.schemeFile)
 			JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
@@ -305,7 +315,7 @@ class SchemeEditorController implements ListSelectionListener {
     def customImage = { evt = null ->
 	    def fc = new JFileChooser(currentDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
-	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff'], description: 'Images'))
+	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: helper.IMAGE_EXTENSIONS, description: 'Images'))
 	    if ( fc.showDialog(app.appFrames[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
 	    	currentDir = fc.currentDirectory
 	    	def f = fc.selectedFile
@@ -320,23 +330,6 @@ class SchemeEditorController implements ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
     	setEntry(view.schemeEntries.selectedValue)
 	}
-    
-    /**
-	 * Resolve a string into a URL, with special support for rsrc:/ paths.
-	 */
-    private URL resolve(path) {
-    	if (path) {
-    		if (path.startsWith("rsrc:/")) {
-				return getClass()?.getResource(path.substring(5)) ?: classloader?.getResource(path.substring(6))
-    		} else if (path.contains(":/")) {
-    			return new URL(path)
-    		} else {
-    			return new File(path).toURL()
-    		}
-    	} else {
-    		return null
-    	}
-    }
 }
 
 private class CustomFileFilter extends FileFilter {

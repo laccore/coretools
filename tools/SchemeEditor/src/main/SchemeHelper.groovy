@@ -15,14 +15,17 @@
  */
 import java.awt.Color
 import java.awt.Image
+import java.util.jar.JarFile
+import java.util.zip.ZipFile
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.imageio.ImageIOimport javax.swing.Icon
 import javax.swing.ImageIcon
-import groovy.lang.GroovyClassLoaderimport groovy.xml.MarkupBuilder
+import groovy.xml.MarkupBuilder
 
 public class SchemeHelper {
-	private GroovyClassLoader classloader		/**	 * Create a new SchemeHelper	 */	public SchemeHelper(classloader) {		this.classloader = classloader	}
+	public IMAGE_EXTENSIONS = ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff']
+		/**	 * Create a new SchemeHelper	 */	public SchemeHelper() { }
 
 	/**
 	 * Parse a color from a RGB tuple, e.g. '100,100,100'.
@@ -63,21 +66,85 @@ public class SchemeHelper {
 	 * Resolve a string into a URL, with special support for rsrc:/ paths.
 	 */
     URL resolve(path) {
+		def url = null
 		if (path) {
     		if (path.startsWith("rsrc:/")) {
-    			return getClass()?.getResource(path.substring(5)) ?: classloader?.getResource(path.substring(6))
+				url =  getClass()?.getResource(path.substring(5))
+				if (url == null) {
+					File cacheFile = new File(cacheDir, path.substring(path.lastIndexOf('/') + 1))
+					if (cacheFile.exists()) {
+						url = cacheFile.toURL()
+					}
+				}
     		} else if (path.contains(":/")) {
-    			return new URL(path)
+				url =  new URL(path)
     		} else {
-    			return new File(path).toURL()
+				url = new File(path).toURL()
     		}
-    	} else {
-    		return null
     	}
-    }		/**	 * Adds a file to the search path	 */	def add(url) {		classloader.addURL(url)	}
+		return url
+    }
+
+	// 12/17/2014 brg: Abandoning use of adding scheme files to classloader as a 
+	// means of caching images. Saving a scheme already in the classloader caused two
+	// problems: 1) certain images suddenly stopped loading and 2) (sometimes) crashes
+	// on OSX. We now cache images as files in a temp directory, which has proven more
+	// reliable so far (despite my crude implementation).
+    private cacheDir = null
 	
 	/**
-	 * Read a scheme a stream.
+	 * Adds a file to the cache
+	 */
+	def add(url) {		initCacheDir()
+		ZipFile jar = new ZipFile(url.getPath())
+		jar.entries().each {
+			def ext = it.name.substring(it.name.lastIndexOf(".")).toLowerCase()
+			if (IMAGE_EXTENSIONS.contains(ext)) {
+				def fname = it.name.substring(it.name.lastIndexOf("/") + 1)
+				File outFile = new File(cacheDir, fname)
+				InputStream fis = jar.getInputStream(jar.getEntry(it.name))
+				FileOutputStream fos = new FileOutputStream(outFile)
+				while (fis.available() > 0) { fos.write(fis.read()); }
+				fis.close()
+				fos.close()
+			}
+		}
+	}
+	
+	/**
+	 *  Adds a file stream to the cache
+	 */
+	def addToCache(instream, name) {
+		initCacheDir()
+		File outFile = new File(cacheDir, name)
+		if (outFile.exists()) return
+		FileOutputStream fos = new FileOutputStream(outFile)
+		while (instream.available() > 0) { fos.write(instream.read()) }
+		instream.close()
+		fos.close()
+	}
+	
+	def isCached(name) {
+		initCacheDir()
+		File f = new File(cacheDir, name)
+		return f.exists()
+	}
+	
+	def initCacheDir() {
+		if (!cacheDir) {
+			try {
+				def baseDir = new File(System.getProperty("java.io.tmpdir"))
+				String baseName = "schemeEditor-" + System.currentTimeMillis()
+				cacheDir = new File(baseDir, baseName)
+				cacheDir.mkdir()
+			} catch (IllegalStateException e) {
+				System.out.println("failed to create temp directory")
+			}
+		}
+	}
+	
+	/**
+	 * Read a scheme from a stream.
 	 */
 	def read(stream) {
 		def scheme = [ id:"", name:"", type:"", entries:[] ]
@@ -124,6 +191,10 @@ public class SchemeHelper {
 							url.withInputStream { stream ->
 								zip << stream
 							}
+							
+							if (!isCached(f))
+								url.withInputStream { stream -> addToCache(stream, f) }
+							
 							zip.closeEntry()
 							images << f
 						}
@@ -150,7 +221,7 @@ public class SchemeHelper {
 				zip.closeEntry()
 				zip.close()
 			}
-
+			
 			// all's gone well, dump contents of tmp into destination file - File.renameTo()
 			// is notoriously unreliable and isn't working on Win7.
 			def inStream = new FileInputStream(tmp)

@@ -46,7 +46,7 @@ def preview = new PreviewPanel()
 preview.setOpaque(false)
 
 // build our main application
-application(title:'Scheme Editor', id:'mainView', size:[mainWidth, mainHeight], locationByPlatform:true, layout: new MigLayout('fill')) {
+application(title: "Scheme Editor ${app.applicationProperties['app.version']}", id:'mainView', size:[mainWidth, mainHeight], locationByPlatform:true, layout: new MigLayout('fill')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {
 			menuItem(newAction)

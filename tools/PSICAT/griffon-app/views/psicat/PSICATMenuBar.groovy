@@ -53,6 +53,8 @@ menuBar(id: 'menuBar') {
 		menuItem(deleteAction)
 		menuItem(undoAction)
 		menuItem(redoAction)
+		separator()
+		menuItem(findAndReplaceAction)
 	}
 
 

@@ -111,6 +111,13 @@ actions {
 		shortDescription: 'Redo'
 	)
 	action(
+		id: 'findAndReplaceAction',
+		name: 'Find and Replace...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['findAndReplace'],
+		shortDescription: 'Find and replace lithologies and symbols'
+	)
+	action(
 		id: 'aboutAction',
 		name: 'About',
 		closure: controller.actions['about'],

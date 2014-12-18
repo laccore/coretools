@@ -84,4 +84,9 @@ mvcGroups {
 		controller="psicat.dialogs.ChooseSchemesDialogController"
 		view="psicat.dialogs.ChooseSchemesDialogView"
 	}
+	FindReplace {
+		model="psicat.dialogs.FindReplaceModel"
+		controller="psicat.dialogs.FindReplaceController"
+		view="psicat.dialogs.FindReplaceView"
+	}
 }

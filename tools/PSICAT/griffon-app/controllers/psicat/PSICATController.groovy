@@ -18,6 +18,7 @@ package psicat
 import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 
+import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.edit.DeleteCommand
@@ -31,6 +32,8 @@ import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.ui.ScenePanel
 import org.andrill.coretools.ui.ScenePanel.Orientation
+import org.andrill.coretools.ui.widget.Widget
+import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
 import org.andrill.coretools.misc.util.LauncherUtils
 
 import psicat.util.*
@@ -285,6 +288,15 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 				if (mvc.controller.show())
 					getMVC('project').controller.loadSchemes()
 			}
+		},
+		'findAndReplace': { evt = null ->
+			 def mockProp = new MockProp()
+			 def sws = Platform.getService(SwingWidgetSet.class)
+			 withMVC('FindReplace', project: model.project,
+				 findWidget: sws.getWidget(mockProp, false),
+				 replaceWidget: sws.getWidget(mockProp, false)) { mvc ->
+				 mvc.controller.show()
+			 }
 		},
 		'mUnits':  { evt = null -> setUnits('m') },
 		'cmUnits': { evt = null -> setUnits('cm') },

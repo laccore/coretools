@@ -102,6 +102,14 @@ class PSICATController {
 		getMVC('project').controller.project = project
 		if (project) { model.status = "Opened project '${project.name}'" }
 	}
+	
+	void closeProject() {
+		actions.closeAll()
+		def name = model.project.name
+		model.project = null
+		getMVC('project').controller.project = null
+		model.status = "Closed project $name"
+	}
 
 	boolean closeDiagram(diagram) {
 		if (diagram && diagram.controller.close()) {
@@ -172,8 +180,11 @@ class PSICATController {
 			}
 		},
 		'openProject': { evt = null ->
-			def file = Dialogs.showOpenDirectoryDialog("Open Project", null, app.appFrames[0])
+			def file = Dialogs.showOpenDirectoryDialog("Select Project Directory/Folder", null, app.appFrames[0])
 			if (file && canClose(evt)) { openProject(new DefaultProject(file)) }
+		},
+		'closeProject': { evt = null ->
+			if (canClose(evt)) closeProject()
 		},
 		'openSection': { evt = null ->
 			// figure out our name and id

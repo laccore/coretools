@@ -44,6 +44,13 @@ actions {
 		shortDescription: 'Open a project'
 	)
 	action(
+		id: 'closeProjectAction',
+		name: 'Close Project',
+		closure: controller.actions['closeProject'],
+		enabled: bind { model.project != null },
+		shortDescription: 'Close the current project'
+	)
+	action(
 		id: 'openSectionAction',
 		name: 'Open Section',
 		closure: controller.actions['openSection']

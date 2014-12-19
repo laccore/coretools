@@ -22,6 +22,7 @@ menuBar(id: 'menuBar') {
 		menuItem(newProjectAction)
 		menuItem(newSectionAction)
 		menuItem(openProjectAction)
+		menuItem(closeProjectAction)
 		// brg 4/6/2014: Changes to scheme handling likely mean DIS projects are going to misbehave,
 		// don't allow them for now.
 		//menuItem(openDISAction)

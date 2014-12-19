@@ -92,7 +92,7 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 							//println "fixed-up URL = ${localURL}"
 							property(name: k, localURL)
 						} else {
-							property(name: k, fixedValue)
+							property(name: k, v)
 						}
 					}
 				}

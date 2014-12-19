@@ -92,12 +92,6 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 							//println "fixed-up URL = ${localURL}"
 							property(name: k, localURL)
 						} else {
-							def fixedValue = v
-							if (k.equals("description")) {
-								// http://stackoverflow.com/questions/7171377/separating-unicode-ligature-characters  
-								// replace ligatures and other combined characters with decomposed characters for compatibility
-								fixedValue = Normalizer.normalize(v, Form.NFKC)
-							}
 							property(name: k, fixedValue)
 						}
 					}

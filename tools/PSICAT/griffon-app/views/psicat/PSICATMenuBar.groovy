@@ -33,6 +33,8 @@ menuBar(id: 'menuBar') {
 		menuItem(saveAction)
 		menuItem(saveAllAction)
 		separator()
+		menuItem(deleteSectionAction)
+		separator()
 		menu(text: 'Import', enabled: bind { model.project != null }) {
 			menuItem(importImageAction)
 			menuItem(importTabularAction)

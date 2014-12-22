@@ -96,6 +96,18 @@ public class DefaultProject extends AbstractProject {
 		files.put(name, new File(dataDir, name + "." + getDataFormat()));
 		return Platform.getService(ModelContainer.class);
 	}
+	
+	@Override
+	protected void delete(final String name) {
+		File dataDir = getDataDir();
+		files.remove(name);
+		File fileToDelete = new File(dataDir, name + '.' + getDataFormat());
+		try {
+			fileToDelete.delete();
+		} catch (SecurityException e) {
+			LOGGER.error(e.getMessage());
+		}
+	}
 
 	protected String fileName(final File f) {
 		String name = f.getName();

@@ -88,6 +88,13 @@ actions {
 		shortDescription: 'Save all diagrams'
 	)
 	action(
+		id: 'deleteSectionAction',
+		name: 'Delete Section(s)...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['deleteSection'],
+		shortDescription: 'Delete selected section(s)'
+	)
+	action(
 		id: 'deleteAction',
 		name: 'Delete',
 		enabled: bind { model.diagramState.selection != null },

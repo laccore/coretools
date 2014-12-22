@@ -18,6 +18,8 @@ package psicat
 import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 
+import javax.swing.JOptionPane
+
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
@@ -153,6 +155,16 @@ class PSICATController {
 		model.activeDiagram.controller.zoom = pageSize
 		model.status = "Set zoom to $pageSize ${model.activeDiagram.model.units}/page"
 	}
+	
+	void deleteSection(section) {
+		model.project.deleteContainer(section)
+		model.status = "Deleted section $section"
+	}
+	
+	List getSelectedSections() {
+		def project = getMVC('project').view
+		return project.sections.selectedValues as List
+	}
 
 	// our action implementations
 	def actions = [
@@ -188,8 +200,7 @@ class PSICATController {
 		},
 		'openSection': { evt = null ->
 			// figure out our name and id
-			def project = getMVC('project').view
-			def sections = project.sections.selectedValues as List
+			def sections = getSelectedSections()
 			def id = sections.join('|')
 			
 			// check to make sure the diagram isn't open already
@@ -221,6 +232,19 @@ class PSICATController {
 		'saveAll': 	{ evt = null -> 
 			model.anyDirty = model.openDiagrams.inject(true) { dirty, diagram -> dirty &= diagram.controller.save() }
 			model.status = "Saved all sections"
+		},
+		'deleteSection': { evt = null ->
+			def sections = getSelectedSections()
+			def ret = JOptionPane.showConfirmDialog(app.appFrames[0], "Delete selected section(s) ${sections}?",
+					"PSICAT", JOptionPane.YES_NO_OPTION)
+			if (ret == JOptionPane.YES_OPTION) {
+				sections.each { sectionName ->
+					def indexToClose = model.openDiagrams.findIndexOf { it.model.id == sectionName }
+					if (indexToClose != -1)
+						closeDiagram(model.openDiagrams[indexToClose])
+					deleteSection(sectionName)
+				}
+			}
 		},
 		'delete': 	{ evt = null ->
 			def active = model.activeDiagram.model

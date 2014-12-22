@@ -52,6 +52,14 @@ public interface Project {
 	 * @return the new model container.
 	 */
 	ModelContainer createContainer(String name);
+	
+	/**
+	 * Deletes the specified model container.
+	 *
+	 * @param name
+	 * 			name of the section to be deleted.
+	 */
+	void deleteContainer(String name);
 
 	/**
 	 * Gets the configuration of this project.

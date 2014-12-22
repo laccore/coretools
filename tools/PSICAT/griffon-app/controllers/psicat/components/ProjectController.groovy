@@ -76,6 +76,9 @@ class ProjectController implements PropertyChangeListener {
     }
 
     void propertyChange(PropertyChangeEvent event) {
-    	model.sections.add(event.newValue)
+    	if (event.newValue != null)
+			model.sections.add(event.newValue)
+		else // delete section
+			model.sections.remove(event.oldValue)
     }
 }

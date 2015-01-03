@@ -15,6 +15,7 @@
  */
 package org.andrill.coretools.scene;
 
+import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class PageableScene implements Scene {
 	protected double perPage = 1;
 	protected final boolean renderHeader;
 	protected final boolean renderFooter;
+	protected final int sectionNameHeight = 20;
 
 	/**
 	 * Create a new PageableScene.
@@ -145,11 +147,12 @@ public class PageableScene implements Scene {
 	public Rectangle2D getContentSize() {
 		return scene.getContentSize();
 	}
-
+	
 	public Rectangle2D getContentSize(final int page) {
 		Rectangle2D content = scene.getContentSize();
-		return new Rectangle2D.Double(content.getX(), (page - 1) * perPage * scene.getScalingFactor(), content
-		        .getWidth(), perPage * scene.getScalingFactor());
+		final double y = (page - 1) * perPage * scene.getScalingFactor();// - sectionNameHeight;
+		final double height = perPage * scene.getScalingFactor();// - sectionNameHeight;
+		return new Rectangle2D.Double(content.getX(), y, content.getWidth(), height);
 	}
 
 	/**
@@ -321,9 +324,7 @@ public class PageableScene implements Scene {
 	 */
 	public void renderContents(final int page, final GraphicsContext graphics) {
 		scene.setRenderHint("page", "" + page);
-		Rectangle2D contents = scene.getContentSize();
-		renderContents(graphics, new Rectangle2D.Double(contents.getX(), (start + (page - 1) * perPage)
-		        * scene.getScalingFactor(), contents.getWidth(), perPage * scene.getScalingFactor()));
+		renderContents(graphics, getContentSize(page));
 		scene.setRenderHint("page", null);
 	}
 
@@ -368,6 +369,14 @@ public class PageableScene implements Scene {
 		renderHeader(graphics);
 		scene.setRenderHint("page", null);
 	}
+	
+	public void renderSectionName(final String sectionName, final int page, final GraphicsContext graphics) {
+		scene.setRenderHint("page", "" + page);
+		graphics.drawString(0, 0, new Font("SanSerif", Font.PLAIN, 12), sectionName);
+		scene.setRenderHint("page", null);
+	}
+	
+	public int getSectionNameHeight() { return sectionNameHeight; }
 
 	/**
 	 * {@inheritDoc}
@@ -398,7 +407,7 @@ public class PageableScene implements Scene {
 	 */
 	public void setPerPage(final double perPage) {
 		this.perPage = perPage;
-		double content = paper.getPrintableHeight();
+		double content = paper.getPrintableHeight() - getSectionNameHeight();
 		if (renderHeader) {
 			content -= scene.getHeaderSize().getHeight();
 		}

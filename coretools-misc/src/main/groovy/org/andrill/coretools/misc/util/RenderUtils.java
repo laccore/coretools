@@ -54,7 +54,8 @@ public class RenderUtils {
 	 *            the file.
 	 */
 	public static void renderPDF(final Scene scene, final Paper paper, final double start, final double end,
-	        final double pageSize, final boolean renderHeader, final boolean renderFooter, final File file) {
+	        final double pageSize, final boolean renderHeader, final boolean renderFooter, final String sectionName,
+	        final File file) {
 		// wrap the scene to make it pageable
 		PageableScene pageable = new PageableScene(scene, paper, start, pageSize, renderHeader, renderFooter);
 		pageable.validate();
@@ -64,21 +65,7 @@ public class RenderUtils {
 		int pages = (int) Math.max(Math.ceil((end - start) / pageSize), 1);
 		for (int i = 1; i <= pages; i++) {
 			GraphicsContext page = pdf.newPage();
-
-			// render header
-			if (renderHeader) {
-				pageable.renderHeader(i, page);
-				page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getHeaderSize().getHeight() - 1));
-			}
-
-			// render contents
-			pageable.renderContents(i, page);
-			page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getContentSize(i).getHeight() - 1));
-
-			// render footer
-			if (renderFooter) {
-				pageable.renderFooter(i, page);
-			}
+			renderPage(pageable, page, i, renderHeader, renderFooter, sectionName);
 		}
 		pdf.write();
 	}
@@ -104,7 +91,8 @@ public class RenderUtils {
 	 *            the file.
 	 */
 	public static void renderRaster(final Scene scene, final Paper paper, final double start, final double end,
-	        final double pageSize, final boolean renderHeader, final boolean renderFooter, final File file)
+	        final double pageSize, final boolean renderHeader, final boolean renderFooter, final String sectionName,
+	        final File file)
 	        throws IOException {
 		// wrap the scene to make it pageable
 		PageableScene pageable = new PageableScene(scene, paper, start, pageSize, renderHeader, renderFooter);
@@ -115,22 +103,7 @@ public class RenderUtils {
 		int pages = (int) Math.max(Math.ceil((end - start) / pageSize), 1);
 		for (int i = 1; i <= pages; i++) {
 			RasterGraphics page = new RasterGraphics(paper.getPrintableWidth() + 1, paper.getPrintableHeight() - 1, true);
-
-			// render header
-			if (renderHeader) {
-				pageable.renderHeader(i, page);
-				page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getHeaderSize().getHeight() - 1));
-			}
-
-			// render contents
-			pageable.renderContents(i, page);
-			page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getContentSize(i).getHeight() - 1));
-
-			// render footer
-			if (renderFooter) {
-				pageable.renderFooter(i, page);
-			}
-
+			renderPage(pageable, page, i, renderHeader, renderFooter, sectionName);
 			page.write(new File(file.getParentFile(), file.getName().replace(extension, "-" + i + extension)));
 		}
 	}
@@ -156,7 +129,8 @@ public class RenderUtils {
 	 *            the file.
 	 */
 	public static void renderSVG(final Scene scene, final Paper paper, final double start, final double end,
-	        final double pageSize, final boolean renderHeader, final boolean renderFooter, final File file)
+	        final double pageSize, final boolean renderHeader, final boolean renderFooter, final String sectionName,
+	        final File file)
 	        throws IOException {
 		PageableScene pageable = new PageableScene(scene, paper, start, pageSize, renderHeader, renderFooter);
 		pageable.validate();
@@ -165,26 +139,31 @@ public class RenderUtils {
 		int pages = (int) Math.max(Math.ceil((end - start) / pageSize), 1);
 		for (int i = 1; i <= pages; i++) {
 			SVGGraphics page = new SVGGraphics();
-
-			// render header
-			if (renderHeader) {
-				pageable.renderHeader(i, page);
-				page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getHeaderSize().getHeight() - 1));
-			}
-
-			// render contents
-			pageable.renderContents(i, page);
-			page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getContentSize(i).getHeight() - 1));
-
-			// render footer
-			if (renderFooter) {
-				pageable.renderFooter(i, page);
-			}
-
+			renderPage(pageable, page, i, renderHeader, renderFooter, sectionName);
 			page.write(new File(file.getParentFile(), file.getName().replace(".svg", "-" + i + ".svg")));
 		}
 	}
 
+	public static void renderPage(PageableScene pageable, GraphicsContext page, final int pageNum,
+			final boolean renderHeader, final boolean renderFooter, final String sectionName) {
+		if (sectionName.length() > 0) {
+			pageable.renderSectionName(sectionName, pageNum, page);
+			page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getSectionNameHeight() - 1));
+		}
+		
+		if (renderHeader) {
+			pageable.renderHeader(pageNum, page);
+			page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getHeaderSize().getHeight() - 1));
+		}
+
+		pageable.renderContents(pageNum, page);
+		page.pushTransform(AffineTransform.getTranslateInstance(0, pageable.getContentSize(pageNum).getHeight() - 1));
+
+		if (renderFooter) {
+			pageable.renderFooter(pageNum, page);
+		}
+	}
+	
 	private RenderUtils() {
 		// not to be instantiated
 	}

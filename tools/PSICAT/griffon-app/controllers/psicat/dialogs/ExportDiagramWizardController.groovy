@@ -69,7 +69,7 @@ class ExportDiagramWizardController {
     			// validate our scene
     			scene.models = v
     			scene.validate()
-
+				
     			// figure out the extents
     			def start = model.exportAll ? scene.contentSize.minY / scene.scalingFactor : model.start as Double
     			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
@@ -85,14 +85,19 @@ class ExportDiagramWizardController {
     				name = name[0..<i] + (appendName ? "_$k" : '') + name[i..-1]
     			}
 
-    			// render
+				// find section name
+				def section = v.getModels().find { it.getModelType().equals("Section") }
+				final String sectionName = section?.name 
+				
+				// render
     			def format
     			switch (view.format.selectedItem) {
     				case 'PDF': format = 'PDF'; break
     				case 'SVG': format = 'SVG'; break
     				default: format = 'Raster'
     			}
-    			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter, new File(Dialogs.currentDir, name))
+    			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
+					sectionName, new File(Dialogs.currentDir, name))
     		}
     		return "Exported " + (containers.size() == 1 ? (containers.keySet() as List)[0] : 'each section')
     	} else {

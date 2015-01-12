@@ -74,11 +74,15 @@ class FindReplaceController {
 	
     def actions = [
 		'replace': { evt = null ->
-			final String findCode = findWidget.getWidgetValue()
-			final String replaceCode = replaceWidget.getWidgetValue()
-			SchemeEntry findEntry = findWidget.getEntry(findCode)
-			SchemeEntry replaceEntry = replaceWidget.getEntry(replaceCode)
-			findAndReplace(findEntry, replaceEntry)
+			def proceed = Dialogs.showCustomDialog("Confirm Find and Replace",
+				"This operation will modify all matching items in the project and cannot be undone. Are you sure you want to proceed?");
+			if (proceed) {
+				final String findCode = findWidget.getWidgetValue()
+				final String replaceCode = replaceWidget.getWidgetValue()
+				SchemeEntry findEntry = findWidget.getEntry(findCode)
+				SchemeEntry replaceEntry = replaceWidget.getEntry(replaceCode)
+				findAndReplace(findEntry, replaceEntry)
+			}
 		}
     ]	
 

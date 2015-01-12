@@ -52,13 +52,15 @@ menuBar(id: 'menuBar') {
 	}
 
 	menu(text: 'Edit', mnemonic: 'E') {
-		menuItem(chooseSchemesAction)
-		separator()
-		menuItem(deleteAction)
 		menuItem(undoAction)
 		menuItem(redoAction)
+		menuItem(deleteAction)
+		menuItem(splitAction)
 		separator()
 		menuItem(findAndReplaceAction)
+		separator()
+		menuItem(chooseSchemesAction)
+
 	}
 
 

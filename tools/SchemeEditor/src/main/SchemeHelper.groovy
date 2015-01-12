@@ -98,15 +98,18 @@ public class SchemeHelper {
 	def add(url) {		initCacheDir()
 		ZipFile jar = new ZipFile(url.getPath())
 		jar.entries().each {
-			def ext = it.name.substring(it.name.lastIndexOf(".")).toLowerCase()
-			if (IMAGE_EXTENSIONS.contains(ext)) {
-				def fname = it.name.substring(it.name.lastIndexOf("/") + 1)
-				File outFile = new File(cacheDir, fname)
-				InputStream fis = jar.getInputStream(jar.getEntry(it.name))
-				FileOutputStream fos = new FileOutputStream(outFile)
-				while (fis.available() > 0) { fos.write(fis.read()); }
-				fis.close()
-				fos.close()
+			def dotIndex = it.name.lastIndexOf('.')
+			if (dotIndex != -1) {
+				def ext = it.name.substring(dotIndex).toLowerCase()
+				if (IMAGE_EXTENSIONS.contains(ext)) {
+					def fname = it.name.substring(it.name.lastIndexOf("/") + 1)
+					File outFile = new File(cacheDir, fname)
+					InputStream fis = jar.getInputStream(jar.getEntry(it.name))
+					FileOutputStream fos = new FileOutputStream(outFile)
+					while (fis.available() > 0) { fos.write(fis.read()); }
+					fis.close()
+					fos.close()
+				}
 			}
 		}
 	}

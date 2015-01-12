@@ -28,7 +28,10 @@ import org.andrill.coretools.dis.DISProject
 import org.andrill.coretools.misc.io.ExcelReaderWriter
 import org.andrill.coretools.misc.io.LegacyReader
 import org.andrill.coretools.model.Project
+import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.DeleteIntervalCommand
+import org.andrill.coretools.geology.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.misc.util.RenderUtils
@@ -249,8 +252,19 @@ class PSICATController {
 		'delete': 	{ evt = null ->
 			def active = model.activeDiagram.model
 			active.scene.selection.selectedObjects.findAll { it instanceof Model }.each { m ->
-				active.commandStack.execute(new DeleteCommand(m, active.scene.models))
+				if (m instanceof Interval) {
+					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models))	
+				} else {
+					active.commandStack.execute(new DeleteCommand(m, active.scene.models))
+				}
 				model.status = "Deleted $m"
+			}
+		},
+		'splitInterval': { evt = null ->
+			def active = model.activeDiagram.model
+			def interval = active.scene.selection.selectedObjects.find { it instanceof Interval }
+			if (interval) {
+				active.commandStack.execute(new SplitIntervalCommand(interval, active.scene.models))
 			}
 		},
 		'undo':		{ evt = null -> model.diagramState.commandStack.undo() },

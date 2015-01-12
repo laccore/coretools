@@ -15,6 +15,8 @@
  */
 package psicat
 
+import org.andrill.coretools.geology.models.Interval
+
 actions {
 	action(
 		id: 'exitAction',
@@ -100,6 +102,12 @@ actions {
 		enabled: bind { model.diagramState.selection != null },
 		closure: controller.actions['delete'],
 		accelerator: javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, 0)
+	)
+	action(
+		id: 'splitAction',
+		name: 'Split Interval',
+		enabled: bind { model.diagramState?.selection instanceof Interval },
+		closure: controller.actions['splitInterval']
 	)
 	action(
 		id: 'chooseSchemesAction',

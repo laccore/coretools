@@ -293,6 +293,11 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 				model.status = mvc.controller.show()
 			}
 		},
+		'exportStratColumn': { evt = null ->
+			withMVC('ExportStratColumnWizard', project: model.project) { mvc ->
+				model.status = mvc.controller.show()
+			}
+		},
 		'exportTabular': { evt = null -> ping('exportTabular')
 			withMVC('ExportTabularWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()

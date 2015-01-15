@@ -129,7 +129,13 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 								// add the component w/ split
 								JComponent component = (JComponent) current.getUI();
 								components.put(current, component);
-								add(component, "split");
+								
+								if (current.getUnitLabel() != null) {
+									add(component, "split");
+									add(new JLabel(current.getUnitLabel()), "split");
+								} else {
+									add(component, "split");
+								}
 								
 								// get the next one
 								i++;
@@ -150,7 +156,13 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 							// add the component w/ wrap
 							JComponent component = (JComponent) current.getUI();
 							components.put(current, component);
-							add(component, "wrap");
+							
+							if (current.getUnitLabel() != null) {
+								add(component, "split");
+								add(new JLabel(current.getUnitLabel()), "wrap");
+							} else {
+								add(component, "wrap");
+							}
 						}
 					}
 				}

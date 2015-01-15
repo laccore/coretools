@@ -82,8 +82,8 @@ class IntervalTrack extends GeologyTrack {
 	def getOutline(m) {
 		def outline = []
 		outline << pt(bounds.minX, pts(m.top.to(units).value, bounds))
-        outline << gs(m?.grainSizeTop?.value ?: 0, m.top.to(units).value)
-        outline << gs(m?.grainSizeBase?.value ?: 0, m.base.to(units).value)
+        outline << gs(m?.grainSizeTop ?: 0, m.top.to(units).value)
+        outline << gs(m?.grainSizeBase ?: 0, m.base.to(units).value)
         outline << pt(bounds.minX, pts(m.base.to(units).value, bounds))
         return outline
 	}

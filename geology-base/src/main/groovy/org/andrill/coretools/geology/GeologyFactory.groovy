@@ -35,21 +35,38 @@ class GeologyFactory implements Factory {
 			case 'Annotation':	return init(new Annotation(), data)
 			case 'Occurrence':	return init(new Occurrence(), data)
 			case 'Unit': 		return init(new Unit(), data)
-			case 'Interval':	return init(new Interval(), data)
+			case 'Interval':	return initInterval(new Interval(), data)
 			case 'Image':		return init(new Image(), data)
 			case 'Section':		return init(new Section(), data)
 			default:			return null
 		}
 	}
 	 
-	 private def init(obj, data) {
-		 data.each { k,v ->
-		 	if (obj.properties.containsKey(k)) {
-		 		obj."$k" = v
-		 	}
-		 }
-		 return obj
-	 }
+	private def init(obj, data) {
+		data.each { k,v ->
+			if (obj.properties.containsKey(k)) { obj."$k" = v }
+		}
+		return obj
+	}
+	 
+	// 1/13/2015 brg: Convert old Length-based grain sizes to BigDecimals, grain size is always mm
+	private def initInterval(obj, data) {
+		data.each { k,v ->
+			if (obj.properties.containsKey(k) && ['grainSizeTop', 'grainSizeBase'].contains(k)) {
+				def bdValue = null
+				try { // v is a String that may be a BigDecimal or Length...try parsing as BigDecimal and treat as Length if it fails
+					bdValue = new BigDecimal(v)
+					obj."$k" = v
+				} catch (NumberFormatException nfe) {
+					def len = new Length(v)	
+					obj."$k" = len.value
+				}
+			} else {
+				obj."$k" = v
+			}
+		}
+		return obj
+	}
 		
 	/**
 	 * {@inheritDoc}

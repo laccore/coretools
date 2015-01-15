@@ -124,6 +124,7 @@ abstract class GeologyModel implements Model {
 		} else if (v instanceof Length) {
 			String units = container?.project?.configuration?.units ?: 'm'
 			NumberFormat format = NumberFormat.getInstance(Locale.ENGLISH)
+			format.applyPattern('0.00#####')
 			return "${format.format(v.to(units).value)} ${units}"
 		} else {
 			return v?.toString()
@@ -157,7 +158,7 @@ abstract class GeologyModel implements Model {
 	
 	protected format(value) {
 		def formatter = NumberFormat.getInstance()
-		formatter.applyPattern('0.00##')
+		formatter.applyPattern('0.00#####')
 		switch(value.class) {
 			case Length: return "${formatter.format(value.value)} ${value.unit}"
 			case Number: return "${formatter.format(value)}"

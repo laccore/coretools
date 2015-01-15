@@ -43,6 +43,7 @@ menuBar(id: 'menuBar') {
 		menu(text: 'Export', enabled: bind { model.project != null }) {
 			menuItem(exportTabularAction)
 			menuItem(exportDiagramAction)
+			menuItem(exportStratColumnAction)
 		}
 		if (!isMacOSX) {
 			separator()

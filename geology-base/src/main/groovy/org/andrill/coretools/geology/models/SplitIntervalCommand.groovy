@@ -35,15 +35,16 @@ public class SplitIntervalCommand extends AbstractCommand {
 	@Override
 	protected void executeCommand() {
 		if (model instanceof Interval) {
-			def splitLength = (model.base - model.top).divide(2.0)
+			def splitDepth = model.top + (model.base - model.top).divide(2.0)
 			newInterval = (Interval.class).newInstance()
 			newInterval.top = model.top
-			newInterval.base = splitLength
-			model.top = splitLength
+			newInterval.base = splitDepth
+			newInterval.description = model.description
 			newInterval.grainSizeTop = model.grainSizeTop
 			newInterval.grainSizeBase = model.grainSizeBase
 			newInterval.lithology = model.lithology
-			
+			model.top = splitDepth
+
 			container.add(newInterval)
 			container.update(model)
 		}

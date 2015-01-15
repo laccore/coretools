@@ -254,17 +254,24 @@ actions {
 	)
 	action(
 		id: 'exportDiagramAction',
-		name: 'Diagram',
+		name: 'Diagram...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['exportDiagram'],
 		shortDescription: 'Export diagrams to PDF or other image formats'
 	)
 	action(
 		id: 'exportTabularAction',
-		name: 'Tabular Data',
+		name: 'Tabular Data...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['exportTabular'],
 		shortDescription: 'Export data to Excel'
+	)
+	action(
+		id: 'exportStratColumnAction',
+		name: 'Strat Column...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['exportStratColumn'],
+		shortDescription: 'Export strat column as PDF'
 	)
 	action(
 		id: 'importImageAction',

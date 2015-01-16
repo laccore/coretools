@@ -15,6 +15,9 @@
  */
 package psicat.components
 
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
+
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import java.util.prefs.Preferences
@@ -35,7 +38,7 @@ import org.andrill.coretools.misc.util.SceneUtils
 import psicat.PSICATController
 import psicat.util.*
 
-class DiagramController implements ModelContainer.Listener, Scene.SelectionListener, PropertyChangeListener {
+class DiagramController implements ModelContainer.Listener, Scene.SelectionListener, PropertyChangeListener, ComponentListener {
     def model
     def view
     private def prefs = Preferences.userNodeForPackage(PSICATController)
@@ -117,6 +120,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	scene.commandStack = model.commandStack
     	scene.addSelectionListener(this)
     	scene.models.addListener(this)
+		view.contents.addComponentListener(this)
     			
     	// setup the viewer
     	model.scene = scene
@@ -237,7 +241,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
             tabs.setTitleAt(index, title)
         }
     }
-
+	
     // ModelContainer.Listener
 	void modelAdded(Model m)	{ markDirty() }
 	void modelRemoved(Model m)	{ markDirty() }
@@ -253,4 +257,12 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 			case "redo": setState('canRedo', evt.newValue); break
 		}
 	}
+	
+	// ComponentListener - only interested in resize
+	void componentResized(ComponentEvent e) {
+		model.scene.preferredWidth = e.component.width
+	}
+	void componentHidden(ComponentEvent e) { }
+	void componentMoved(ComponentEvent e) { }
+	void componentShown(ComponentEvent e) { }
 }

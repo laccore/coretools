@@ -49,27 +49,23 @@ class NewSectionWizardController {
     }
 	
 	private def createSection() {
-		if (model.name) {
+		if (model.name && model.top && model.base) {
 			def container = project.createContainer(model.name)
-			if (model.top || model.base) {
-				// create a section
-				def top = model.top ? model.top as BigDecimal : model.base as BigDecimal
-				def base = model.base ? model.base as BigDecimal : model.top as BigDecimal
-				container.add(new Section(top: new Length(top, "m"), base: new Length(base, "m"), name: model.name))
-			}
-			if (model.top && model.base && model.file) {
-				// create an image
-				def top = model.top as BigDecimal
-				def base = model.base as BigDecimal
-				
-				// copy image into project
+
+			// create a section
+			def top = model.top ? model.top as BigDecimal : model.base as BigDecimal
+			def base = model.base ? model.base as BigDecimal : model.top as BigDecimal
+			container.add(new Section(top: new Length(top, "m"), base: new Length(base, "m"), name: model.name))
+
+			if (model.file) { // add image to section
 				def url = ProjectLocal.copyImageFile(model.file, project.path).toURI().toURL()
 				container.add(new Image(top: new Length(top, "m"), base: new Length(base, "m"), path: url))
-			} 
+			}
+
 			project.saveContainer(container)
 			return model.name	
 		} else {
-			throw new IllegalStateException('A name is required to create a new section')
+			throw new IllegalStateException('Section name, top and base depths are required to create a new section')
 		}
 	}
 }

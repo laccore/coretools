@@ -160,7 +160,7 @@ abstract class GeologyModel implements Model {
 	
 	protected format(value) {
 		def formatter = NumberFormat.getInstance()
-		formatter.applyPattern('0.00#####')
+		formatter.applyPattern('0.0##')
 		switch(value.class) {
 			case Length: return "${formatter.format(value.value)} ${value.unit}"
 			case Number: return "${formatter.format(value)}"

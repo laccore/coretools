@@ -55,7 +55,7 @@ class AnnotationTrack extends GeologyTrack {
 		onpage.eachWithIndex { m, i ->
 			text[m] = wrap(m, graphics, font, boldFont, bounds.width - 2*PADDING)
 			def r = mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
-			r.setSize((int) r.width, (int) ((text[m].size() + 1) * letterHeight))
+			r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
 			rects[m] = r
 			if (i > 0) {
 				def prev = rects[onpage[i-1]]

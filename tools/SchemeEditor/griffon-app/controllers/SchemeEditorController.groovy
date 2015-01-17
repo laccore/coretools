@@ -169,6 +169,13 @@ class SchemeEditorController implements ListSelectionListener {
 				"Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
 	    }
     }
+	
+	/**
+	 * Export the current scheme's entries as a PDF "catalog" 
+	 */
+	def exportCatalog = { evt = null ->
+		helper.exportCatalog(model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
+	}
     
 	// If empty, populate Code field based on Name. Don't force user to devise and type a code!
 	def fillCode = { evt = null ->

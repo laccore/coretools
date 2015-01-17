@@ -54,6 +54,8 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}", 
 			separator()
 			menuItem(saveAction)
 			menuItem(saveAsAction)
+			separator()
+			menuItem(exportCatalogAction)
 			if (!isMacOSX) {
 				separator()
 				menuItem(exitAction)

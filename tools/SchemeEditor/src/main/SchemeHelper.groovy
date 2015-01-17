@@ -14,14 +14,26 @@
  * limitations under the License.
  */
 import java.awt.Color
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image
+import java.awt.image.BufferedImage;
+import java.awt.TexturePaint;
 import java.util.jar.JarFile
-import java.util.zip.ZipFile
-import java.util.zip.ZipEntry
+import java.util.zip.ZipFileimport java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import javax.imageio.ImageIOimport javax.swing.Icon
+import javax.imageio.ImageIO
+import javax.swing.Icon
 import javax.swing.ImageIcon
-import groovy.xml.MarkupBuilder
+
+import groovy.xml.MarkupBuilder
+
+import com.lowagie.text.Document
+import com.lowagie.text.DocumentException
+import com.lowagie.text.Rectangle
+import com.lowagie.text.pdf.PdfContentByte
+import com.lowagie.text.pdf.PdfWriter
 
 public class SchemeHelper {
 	public IMAGE_EXTENSIONS = ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff']
@@ -245,5 +257,91 @@ public class SchemeHelper {
 		} catch (e) {
 			e.printStackTrace()
 		}
+	}
+	
+	def wrap(text, fontMetrics, maxWidth) {
+		def lines = []
+		def width = 0
+		def curLine = ""
+		text.split(" ").each { word ->
+			def wordWidth = fontMetrics.stringWidth(word + " ") 
+			if (width + wordWidth > maxWidth) {
+				lines << curLine
+				curLine = word + " "
+				width = wordWidth
+			} else {
+				curLine += (word + " ")
+				width += wordWidth
+			}
+		}
+		lines << curLine
+	}
+	
+	def exportCatalog(schemeEntries, schemeType, schemeName, schemeId) {
+		def isLithology = (schemeType == "lithology") // else "symbol"
+		
+		final int TITLE_HEIGHT = 30
+		final int MARGIN = 36 // 1/2"
+		final int entriesPerRow = 4
+		final int entryWidth = 130
+		final int entryTextHeight = 30 // leave space for text
+		final int entryPadding = 5
+		final int width = 612 // 8.5" wide
+    	final int height = (schemeEntries.size() / entriesPerRow + 1) * (entryWidth + entryTextHeight) + TITLE_HEIGHT
+    	
+        Document document = new Document(new Rectangle(width, height))
+        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("catalog.pdf")) // brgtodo
+        document.open();
+        PdfContentByte cb = writer.getDirectContent();
+        Graphics2D g2 = cb.createGraphics(width, height);
+
+		// draw title
+		g2.setFont(new Font("SansSerif", Font.PLAIN, 16))
+		def dateStr = new Date().toString()
+		def titleStr = "$schemeName ($schemeId)"
+		g2.drawString(titleStr, MARGIN, MARGIN)
+
+		// draw tiles
+		g2.setFont(new Font("SansSerif", Font.PLAIN, 6))
+		def fontMetrics = g2.fontMetrics
+		def letterHeight = fontMetrics.height
+		def row = 0, col = 0
+		schemeEntries.eachWithIndex { entry, index ->
+			def x = MARGIN + col * (entryWidth + entryPadding)
+			def y = MARGIN + TITLE_HEIGHT + row * (entryWidth + entryTextHeight)
+
+			if (isLithology) { 
+				g2.setPaint(parseColor(entry.color))
+				g2.fillRect(x, y, entryWidth, entryWidth)
+			}
+			
+			def image = null
+			try {
+				image = ImageIO.read(resolve(entry.image))
+			} catch (IOException e) {
+				println "Couldn't load image ${entry.image}"
+			}
+			if (image) {
+				def wid = isLithology ? entryWidth : image.width
+				def hit = isLithology ? entryWidth : image.height
+				g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(0, 0, wid, hit)))
+				g2.fillRect(x, y, entryWidth, entryWidth)
+			}
+			
+			g2.setPaint(Color.BLACK)
+			def lines = wrap(entry.name, fontMetrics, entryWidth)
+			lines.eachWithIndex { line, curLine ->
+				g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
+			}
+
+			col++
+			if (col >= entriesPerRow) {
+				row++
+				col = 0
+			}
+		}
+		
+        g2.dispose();
+        document.close();
 	}
 }

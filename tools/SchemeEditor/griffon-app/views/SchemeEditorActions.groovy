@@ -52,6 +52,12 @@ actions {
 		enabled: bind { model.schemeValid },
 		closure: controller.saveAs
 	)
+	action(
+		id: 'exportCatalogAction',
+		name: 'Export Catalog...',
+		enabled: bind { model.schemeValid },
+		closure: controller.exportCatalog
+	)
 	action( id: 'updateSchemeAction',
 		closure: controller.schemeChanged
 	)

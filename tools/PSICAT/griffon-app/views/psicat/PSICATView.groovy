@@ -44,10 +44,12 @@ def propertiesPanel = new PropertiesPanel()
 def prefs = Preferences.userNodeForPackage(PSICATController)
 def mainWidth = prefs.getDouble('psicat.mainViewWidth', 800.0) as Integer
 def mainHeight = prefs.getDouble('psicat.mainViewHeight', 600.0) as Integer
-
+def xpos = prefs.getDouble('psicat.mainViewX', 50.0) as Integer
+def ypos = prefs.getDouble('psicat.mainView.Y', 50.0) as Integer
 // build our application
 application(title:"PSICAT ${app.applicationProperties['app.version']}", id:'mainView', size:[mainWidth,mainHeight],
-            locationByPlatform: true, layout: new MigLayout('fill'), 
+			location:[xpos,ypos],
+			layout: new MigLayout('fill'), 
 			defaultCloseOperation: 0,
 			windowClosing: { evt -> if (controller.canClose(evt)) app.shutdown() },
 			windowActivated: { evt -> controller.enableMouse(evt) },

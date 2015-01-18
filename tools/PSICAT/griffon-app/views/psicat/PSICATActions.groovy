@@ -117,6 +117,13 @@ actions {
 		shortDescription: 'Add/remove schemes used in the current project'
 	)
 	action(
+		id: 'grainSizeScaleAction',
+		name: 'Grain Size Scale...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['grainSizeScale'],
+		shortDescription: "Edit the current project's grain size scale"
+	)
+	action(
 		id: 'undoAction',
 		name: 'Undo',
 		enabled: bind { model.diagramState.canUndo },

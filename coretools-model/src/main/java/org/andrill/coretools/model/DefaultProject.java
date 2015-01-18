@@ -327,11 +327,11 @@ public class DefaultProject extends AbstractProject {
 		}
 	}
 
-	protected void saveConfiguration() {
+	public void saveConfiguration() {
 		// save the configuration
 		Properties properties = new Properties();
 		properties.putAll(configuration);
-
+		
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(new File(directory, CONFIG_FILE));

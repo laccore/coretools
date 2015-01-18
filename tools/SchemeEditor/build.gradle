@@ -15,6 +15,7 @@ repositories {
 // add any dependencies you want downloaded as part of the bootstrap process
 dependencies {
 	//compile 'com.google.collections:google-collections:1.0-rc2'
+	compile 'com.lowagie:itext:2.1.7'
 }
 
 // copies in the dependencies

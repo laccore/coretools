@@ -26,6 +26,9 @@ prefs.put('psicat.lastDir', Dialogs.currentDir.absolutePath)
 def mainViewDims = app.views.PSICAT.mainView.size
 prefs.putDouble('psicat.mainViewWidth', mainViewDims.width)
 prefs.putDouble('psicat.mainViewHeight', mainViewDims.height)
+def mainViewLoc = app.views.PSICAT.mainView.location
+prefs.putDouble('psicat.mainViewX', mainViewLoc.x)
+prefs.putDouble('psicat.mainViewY', mainViewLoc.y)
 
 // save open project
 def project = app.models.PSICAT.project

@@ -277,7 +277,7 @@ public class SchemeHelper {
 		lines << curLine
 	}
 	
-	def exportCatalog(schemeEntries, schemeType, schemeName, schemeId) {
+	def exportCatalog(destFile, schemeEntries, schemeType, schemeName, schemeId) {
 		def isLithology = (schemeType == "lithology") // else "symbol"
 		
 		final int TITLE_HEIGHT = 30
@@ -290,7 +290,7 @@ public class SchemeHelper {
     	final int height = (schemeEntries.size() / entriesPerRow + 1) * (entryWidth + entryTextHeight) + TITLE_HEIGHT
     	
         Document document = new Document(new Rectangle(width, height))
-        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("catalog.pdf")) // brgtodo
+        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(destFile))
         document.open();
         PdfContentByte cb = writer.getDirectContent();
         Graphics2D g2 = cb.createGraphics(width, height);

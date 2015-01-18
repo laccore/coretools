@@ -59,8 +59,8 @@ menuBar(id: 'menuBar') {
 		separator()
 		menuItem(findAndReplaceAction)
 		separator()
+		menuItem(grainSizeScaleAction)
 		menuItem(chooseSchemesAction)
-
 	}
 
 

@@ -43,7 +43,7 @@ public class GrainSizeTrack extends GeologyTrack {
 	}
 
 	Scale getGrainSize() {
-		String code = getParameter('grain-size', '0.25:0<Mud<0.0625<Sand<2<Gravel<512')
+		String code = container.project.configuration.grainSizeScale ?: Scale.DEFAULT
 		return new Scale(code)
 	}
 

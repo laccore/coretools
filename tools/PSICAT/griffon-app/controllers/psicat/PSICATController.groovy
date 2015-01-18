@@ -30,6 +30,7 @@ import org.andrill.coretools.misc.io.LegacyReader
 import org.andrill.coretools.model.Project
 import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.ui.Scale
 import org.andrill.coretools.geology.DeleteIntervalCommand
 import org.andrill.coretools.geology.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
@@ -344,13 +345,26 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 			}
 		},
 		'findAndReplace': { evt = null ->
-			 def mockProp = new MockProp()
-			 def sws = Platform.getService(SwingWidgetSet.class)
-			 withMVC('FindReplace', project: model.project,
-				 findWidget: sws.getWidget(mockProp, false),
-				 replaceWidget: sws.getWidget(mockProp, false)) { mvc ->
-				 mvc.controller.show()
-			 }
+			def mockProp = new MockProp()
+			def sws = Platform.getService(SwingWidgetSet.class)
+			withMVC('FindReplace', project: model.project,
+				findWidget: sws.getWidget(mockProp, false),
+				replaceWidget: sws.getWidget(mockProp, false)) { mvc ->
+				mvc.controller.show()
+			}
+		},
+		'grainSizeScale': { evt = null ->
+			def gss = model.project.configuration.grainSizeScale ?: Scale.DEFAULT
+			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", gss)
+			if (result) {
+				try {
+					def testScale = new Scale(result)
+					model.project.configuration.grainSizeScale = result
+					model.project.saveConfiguration()
+				} catch (NumberFormatException e) {
+					Dialogs.showErrorDialog("Invalid Grain Size Scale", "Invalid grain size scale: ${e.message}", app.appFrames[0])
+				}
+			}
 		},
 		'mUnits':  { evt = null -> setUnits('m') },
 		'cmUnits': { evt = null -> setUnits('cm') },

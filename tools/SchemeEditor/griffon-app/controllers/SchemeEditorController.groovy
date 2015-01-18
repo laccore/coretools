@@ -160,7 +160,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    def fc = new JFileChooser(currentDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
-	    if (fc.showDialog(app.appFrames[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
+	    if (fc.showDialog(app.appFrames[0], "Save") == JFileChooser.APPROVE_OPTION) {
 			currentDir = fc.currentDirectory
 			updateSchemeFile(fc.selectedFile)
 			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
@@ -174,7 +174,13 @@ class SchemeEditorController implements ListSelectionListener {
 	 * Export the current scheme's entries as a PDF "catalog" 
 	 */
 	def exportCatalog = { evt = null ->
-		helper.exportCatalog(model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
+		def fc = new JFileChooser(currentDir)
+		fc.fileSelectionMode = JFileChooser.FILES_ONLY
+		fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.pdf'], description:'PDF Files (*.pdf)'))
+		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
+			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
+			helper.exportCatalog(destFile, model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
+		}
 	}
     
 	// If empty, populate Code field based on Name. Don't force user to devise and type a code!

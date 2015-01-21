@@ -239,8 +239,8 @@ class PSICATController {
 		},
 		'deleteSection': { evt = null ->
 			def sections = getSelectedSections()
-			def ret = JOptionPane.showConfirmDialog(app.appFrames[0], "Delete selected section(s) ${sections}?",
-					"PSICAT", JOptionPane.YES_NO_OPTION)
+			def msg = sections.size() > 1 ? "Delete ${sections.size()} selected sections?" : "Delete section ${sections[0]}?"
+			def ret = JOptionPane.showConfirmDialog(app.appFrames[0], msg, "PSICAT", JOptionPane.YES_NO_OPTION)
 			if (ret == JOptionPane.YES_OPTION) {
 				sections.each { sectionName ->
 					def indexToClose = model.openDiagrams.findIndexOf { it.model.id == sectionName }

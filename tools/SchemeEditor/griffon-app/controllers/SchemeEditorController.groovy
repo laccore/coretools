@@ -283,8 +283,6 @@ class SchemeEditorController implements ListSelectionListener {
     	def color = JColorChooser.showDialog(app.appFrames[0], "Choose Color", view.preview.color)
     	if (color) {
     		model.entryColor = "${color.red},${color.green},${color.blue}"
-    	} else {
-    		model.entryColor = null
     	}
     	entryChanged()
     	updatePreview()
@@ -295,8 +293,6 @@ class SchemeEditorController implements ListSelectionListener {
     			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 		if (option == JOptionPane.OK_OPTION) {
 			model.entryImage = view.standardImages.selectedValue?.image
-		} else {
-			model.entryImage = null
 		}
     	view.imageFilter.text = ""
     	entryChanged()

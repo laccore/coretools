@@ -20,7 +20,8 @@ import psicat.util.Dialogs
 
 // save our current directory
 def prefs = Preferences.userNodeForPackage(PSICATController)
-prefs.put('psicat.lastDir', Dialogs.currentDir.absolutePath)
+prefs.put('psicat.lastOpenDir', Dialogs.currentOpenDir.absolutePath)
+prefs.put('psicat.lastSaveDir', Dialogs.currentSaveDir.absolutePath)
 
 // save PSICAT window dimensions
 def mainViewDims = app.views.PSICAT.mainView.size

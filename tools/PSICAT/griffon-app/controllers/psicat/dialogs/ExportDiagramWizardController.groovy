@@ -97,7 +97,7 @@ class ExportDiagramWizardController {
     				default: format = 'Raster'
     			}
     			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
-					sectionName, new File(Dialogs.currentDir, name))
+					sectionName, new File(Dialogs.currentSaveDir, name))
     		}
     		return "Exported " + (containers.size() == 1 ? (containers.keySet() as List)[0] : 'each section')
     	} else {

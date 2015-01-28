@@ -25,6 +25,6 @@ class ImportTabularWizardModel {
 	
 	File getFile() {
 		if (!filePath) return null
-		filePath.contains(File.separator) ? new File(filePath) : new File(Dialogs.currentDir, filePath)
+		filePath.contains(File.separator) ? new File(filePath) : new File(Dialogs.currentOpenDir, filePath)
 	}
 }

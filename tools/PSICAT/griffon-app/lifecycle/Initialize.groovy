@@ -31,18 +31,11 @@ SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
 // initialize the coretools platform
 Platform.start()
 
-// brg 4/6/2014: Schemes are now loaded per-project
-// add resources from the resource/ directory
-//def loader = Platform.getService(ResourceLoader.class)
-//def res = new File("resources")
-//if (res.exists() && res.isDirectory()) {
-//	res.eachFile { loader.addResource(it.toURL()) }	
-//}
-
-// restore the last directory
-def lastDir = new File(Preferences.userNodeForPackage(PSICATController).get('psicat.lastDir', System.getProperty("user.home")))
-if (lastDir.exists() && lastDir.isDirectory()) {
-	Dialogs.currentDir = lastDir
-} else {
-	Dialogs.currentDir = new File(System.getProperty("user.home"))
+def getDirPref(prefKey) {
+	def dir = new File(Preferences.userNodeForPackage(PSICATController).get(prefKey, System.getProperty("user.home")))
+	return (dir.exists() && dir.isDirectory()) ? dir : new File(System.getProperty("user.home"))
 }
+
+// restore the last open and save directories
+Dialogs.currentOpenDir = getDirPref('psicat.lastOpenDir')
+Dialogs.currentSaveDir = getDirPref('psicat.lastSaveDir')

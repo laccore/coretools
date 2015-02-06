@@ -55,8 +55,8 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 panel(id: 'tablePanel', layout: new MigLayout('fill')) {
 	scrollPane(constraints: 'grow, wrap') { table(id: 'table') }
 	buttonGroup().with { group ->
-		radioButton(selected: bind { !model.createSections }, text: 'Add to:', buttonGroup: group, constraints:'split')
-		comboBox(id:'section', editable: true, enabled: bind { !model.createSections }, items: model.project.containers, constraints:'growx, wrap')
-		radioButton(text: 'Create a new section for each image', selected: bind(source: model, sourceProperty:'createSections', mutual:true), buttonGroup: group)
+		radioButton(text: 'Create a new section for each image', selected: bind { !model.addToSection }, buttonGroup: group, constraints:'growx, wrap')
+		radioButton(text: 'Add to existing section:', selected: bind(source:model, sourceProperty:'addToSection', mutual:true), buttonGroup: group, constraints:'split')
+		comboBox(id:'section', editable: true, enabled: bind { model.addToSection }, items: model.project.containers, constraints:'growx')
 	}
 }

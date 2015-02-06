@@ -84,7 +84,7 @@ class ImportImageWizardController {
                     setColumnValue: { object, value, index -> object."${columns[index].toLowerCase()}" = value; return object }
                 ] as WritableTableFormat)
 			if (Dialogs.showCustomDialog("Imported Images", view.tablePanel, app.appFrames[0])) {
-				return model.createSections ? createSections(images) : createImages(images, view.section.selectedItem)
+				return model.addToSection ? createImages(images, view.section.selectedItem) : createSections(images)
 			}
 		}
     }

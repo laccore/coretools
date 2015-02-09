@@ -111,7 +111,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		singleSection = sections.size() == 1 && sections[0]?.top && sections[0]?.base
 		if (singleSection) {
 			sectionTop = sections[0].top
-			adjustUp(models)
+			GeoUtils.adjustUp(models, sectionTop)
 		}
 
     	// set our properties and listeners
@@ -148,37 +148,13 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     boolean save() {
     	if (model.dirty) {
-			if (singleSection && sectionTop) { adjustDown(model.scene.models) }
+			if (singleSection && sectionTop) { GeoUtils.adjustDown(model.scene.models, sectionTop) }
     		model.project.saveContainer(model.scene.models)
-    		if (singleSection && sectionTop) { adjustUp(model.scene.models) }
+    		if (singleSection && sectionTop) { GeoUtils.adjustUp(model.scene.models, sectionTop) }
     		markClean()
     	}
     	return true
     }
-	
-	protected void adjustUp(container) {
-		container.models.each { m ->
-			if (m.hasProperty('top') && m.top) {
-				m.top = m.top - sectionTop
-			}
-			if (m.hasProperty('base') && m.base) {
-				m.base = m.base - sectionTop
-			}
-			m.updated()
-		}
-	}
-	
-	protected void adjustDown(container) {
-		container.models.each { m ->
-			if (m.hasProperty('top') && m.top) {
-				m.top = m.top + sectionTop
-			}
-			if (m.hasProperty('base') && m.base) {
-				m.base = m.base + sectionTop
-			}
-			m.updated()
-		}
-	}
 
     void setOrientation(vertical) {
     	// set the orientation

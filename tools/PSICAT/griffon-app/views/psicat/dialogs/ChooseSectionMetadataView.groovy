@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Josh Reed, 2009.
+ * Copyright (c) Brian Grivna 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@
  */
 package psicat.dialogs
 
-import org.andrill.coretools.model.edit.EditableProperty
-import org.andrill.coretools.model.scheme.Scheme
-import org.andrill.coretools.model.scheme.SchemeEntry
-import org.andrill.coretools.model.scheme.SchemeManager
-import org.andrill.coretools.ui.widget.swing.SchemeEntryWidget
-
 import net.miginfocom.swing.MigLayout
-import psicat.util.*
 
 actions {
-	action(id: 'chooseMetadata', name:'Choose Metadata File...', closure: controller.actions.chooseMetadata)
+	action(id: 'browseAction', name:'Choose Section Metadata File...', closure: controller.actions.browse)
 }
 
 panel(id:'root', layout: new MigLayout('fill, wrap 2'), border: etchedBorder()) {
-	button(text:"Choose Metadata File...", action: chooseMetadata)
-	label(id:'metadataFileLabel', text:bind { model.metadataFile?.name ?: "[no metadata file selected]" }, constraints:'wmin 300px')
+	label("Section metadata file requirements:", constraints:'wrap, span 2')
+	label("  - CSV (comma-separated values) format", constraints:'wrap, span 2')
+	label("  - Three columns, in order: section name, top depth (m), bottom depth (m).", constraints: 'wrap, span 2')
+	label("  - No column header/label row", constraints:'wrap, span 2, gapbottom 10px')
+	button(text:"Choose Metadata File...", action: browseAction)
+	label(id:'metadataFileLabel', text: bind { model.metadataFile?.name ?: "[no metadata file selected]"})
 }

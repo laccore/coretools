@@ -52,37 +52,6 @@ class ExportStratColumnWizardController {
     	model.project = args.project
     }
 
-	// reconcile metadata section IDs with those in current project: because PSICAT section IDs
-	// come from image names in our workflow, some are appended with info about the image,
-	// e.g "_lighter", so will not be a perfect match with metadata section IDs. Consider
-	// a section that starts with the metadata section ID to be a match.
-	// brgtodo: notify user when sections in metadata file are missing in project
-	def reconcileSectionIDs(metadata) {
-		metadata.each { sec ->
-			def projSec = model.project.containers.find { it.startsWith(sec.section) }
-			if (!projSec) {
-				println "Couldn't find match for ${sec.section}"
-			} else if (!projSec.equals(sec.section)) {
-				println "Found match for ${sec.section}: $projSec"
-				sec.section = projSec
-			}
-		}
-	}
-	
-	def parseMetadataFile(File file) {
-		def metadata = []
-		CSVReader reader = new CSVReader(new FileReader(file));
-		def entries = reader.readAll()
-		entries.eachWithIndex { row, index ->
-			def secdata = ['section':row[0], 'top':row[1] as BigDecimal, 'base':row[2] as BigDecimal]
-			metadata.add(secdata)
-		}
-		//metadata.each {	println "${it['section']} ${it['top']} ${it['base']} - length = ${it['base'].subtract(it['top'])}" }
-		def sorted = metadata.sort { it.top }
-		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
-		return sorted
-	}
-	
 	def setScaleFactor(top, base) {
 		def intervalLength = base - top
 		scaleFactor = (PAGE_HEIGHT - MARGIN*2) / intervalLength
@@ -117,10 +86,10 @@ class ExportStratColumnWizardController {
 			while (modelIterator.hasNext()) {
 				GeologyModel mod = modelIterator.next()
 				if (mod.modelType.equals("Interval")) {
-					def gsTop = mod.grainSizeTop?.value
-					def gsBase = mod.grainSizeBase?.value
-					if (gsTop) updateGrainSizeRange(gsTop)
-					if (gsBase) updateGrainSizeRange(gsBase)
+					//def gsTop = mod.grainSizeTop?.value
+					//def gsBase = mod.grainSizeBase?.value
+					if (mod.grainSizeTop) updateGrainSizeRange(mod.grainSizeTop)
+					if (mod.grainSizeBase) updateGrainSizeRange(mod.grainSizeBase)
 				} else if (mod.modelType.equals("Occurrence")) {
 					secOccs << mod
 				}
@@ -141,8 +110,8 @@ class ExportStratColumnWizardController {
 			if (mod.modelType.equals("Interval")) {
 				def top = mod.top.to('m').value // ensure we're working in meters
 				def base = mod.base.to('m').value
-				def gsTop = mod.grainSizeTop?.value ?: gsdef() // ignore unit from grain size and assume mm
-				def gsBase = mod.grainSizeBase?.value ?: gsdef()
+				def gsTop = mod.grainSizeTop ?: gsdef() // ignore unit from grain size and assume mm
+				def gsBase = mod.grainSizeBase ?: gsdef()
 				//println "top = $gsTop, base = $gsBase"
 				
 				// gather occurrences whose top depth is within this interval
@@ -162,9 +131,11 @@ class ExportStratColumnWizardController {
 	}
 
 	void export() {
+		if (!model.metadataFile) return
+
 		// create depth-sorted list of section/top/base vals
-		def sortedMetadata = parseMetadataFile(model.metadataFile)
-		sortedMetadata = reconcileSectionIDs(sortedMetadata)
+		def sortedMetadata = GeoUtils.parseMetadataFile(model.metadataFile)
+		sortedMetadata = GeoUtils.reconcileSectionIDs(sortedMetadata, model.project)
 		def occMap = prepareMetadata(sortedMetadata)
 		
 		// determine depth to pixel scaling
@@ -277,13 +248,13 @@ class ExportStratColumnWizardController {
 	}
 		
     def actions = [
-		'browse': { evt = null ->
-			def csvFilter = new CustomFileFilter(description: "CSV Files (*.csv)", extensions: [".csv"])
-			def file = Dialogs.showOpenDialog("Select Metadata File", csvFilter, app.appFrames[0])
-	    	if (file) {
-	    		model.metadataFile = file
-				view.metadataFileLabel.text = file.name
-	    	}
+		'chooseMetadata': { evt = null ->
+			app.controllers['PSICAT'].withMVC('ChooseSectionMetadata', project:model.project, metadataFile:model.metadataFile) { mvc ->
+				if (mvc.controller.show()) {
+					model.metadataFile = mvc.model.metadataFile
+					view.root.setPreferredSize(view.root.getPreferredSize())
+				}
+			}
 		}
     ]
 

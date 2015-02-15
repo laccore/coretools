@@ -373,6 +373,16 @@ public class PDFDriver implements Driver {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void embedImage(final Rectangle2D rect, final URL url) {
+		// 2/15/2015 brg: to satisfy Driver - if we get PDFDriver up and running for PDF
+		// export (we currently use Java2DDriver), we can remove Driver.embedImage(), since
+		// this.drawImage() correctly embeds the full-resolution image instead of the scaled
+		// image from the cache
+	}
 
 	/**
 	 * {@inheritDoc}

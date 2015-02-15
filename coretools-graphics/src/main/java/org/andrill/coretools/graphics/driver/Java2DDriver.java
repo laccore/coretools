@@ -287,9 +287,25 @@ public class Java2DDriver implements Driver {
 	 * {@inheritDoc}
 	 */
 	public void drawImage(final Rectangle2D rect, final URL image) {
+		drawImageScaled(rect, image, true);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void embedImage(final Rectangle2D rect, final URL image) {
+		drawImageScaled(rect, image, false);
+	}
+	
+	// Internal draw method to accommodate drawImage and embedImage
+	protected void drawImageScaled(final Rectangle2D rect, final URL image, final boolean scaleToRect) {
 		prepareDraw();
-		Future<BufferedImage> future = cache.get(image, new Dimension((int) rect.getWidth(), (int) rect.getHeight()),
-		        interactive);
+		Future<BufferedImage> future = null;
+		if (scaleToRect) {
+			future = cache.get(image, new Dimension((int) rect.getWidth(), (int) rect.getHeight()), interactive);
+		} else {
+			future = cache.get(image, interactive);
+		}
 		if ((interactive == null) || future.isDone()) {
 			try {
 				BufferedImage bi = future.get();
@@ -310,6 +326,7 @@ public class Java2DDriver implements Driver {
 			drawImageLoading(rect, image);
 		}
 	}
+	
 
 	protected void drawImageError(final Rectangle2D r, final URL orig) {
 		if (imageError == null) {

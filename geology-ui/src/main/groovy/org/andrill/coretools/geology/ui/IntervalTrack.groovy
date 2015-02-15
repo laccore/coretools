@@ -44,7 +44,7 @@ class IntervalTrack extends GeologyTrack {
 	}
 
 	Scale getGrainSize() {
-		String code = container.project.configuration.grainSizeScale ?: Scale.DEFAULT
+		String code = container?.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
 		return new Scale(code)
 	}
 

@@ -106,7 +106,17 @@ public class GraphicsContext implements Driver {
 		}
 		driver.drawImage(rect, image);
 	}
-
+	
+	/**
+	 * {@inheritDoc} 
+	 */
+	public void embedImage(final Rectangle2D rect, final URL image) {
+		if (image == null) {
+			return;
+		}
+		driver.embedImage(rect, image);
+	}
+	
 	public void drawImageCenter(final double x, final double y, final double w, final double h, final URL image) {
 		drawImageCenter(new Rectangle2D.Double(x, y, w, h), image);
 	}

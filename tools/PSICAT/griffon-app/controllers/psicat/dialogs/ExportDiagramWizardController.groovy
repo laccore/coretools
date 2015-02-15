@@ -21,6 +21,8 @@ import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.misc.util.SceneUtils
 
+import org.andrill.coretools.geology.ui.ImageTrack
+
 import psicat.util.*
 
 class ExportDiagramWizardController {
@@ -49,7 +51,6 @@ class ExportDiagramWizardController {
     	if (Dialogs.showCustomDialog(model.title, view.root, app.appFrames[0])) {
     		def project = model.project
 
-        	// select a scene
 			// select a scene
 			def scene
 			if (project.scenes) {
@@ -59,7 +60,7 @@ class ExportDiagramWizardController {
 				scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
 			}
     		scene.scalingFactor = 1000
-    		
+			
     		// get our containers
     		def containers = app.controllers['exportDiagramSections'].containers
     		boolean appendName = containers.size() > 1
@@ -96,6 +97,14 @@ class ExportDiagramWizardController {
     				case 'SVG': format = 'SVG'; break
     				default: format = 'Raster'
     			}
+				
+				// set rendering parameters
+				if (!format.equals('Raster')) {
+					// when rendering PDF or SVG, embed full-resolution image scaled to track bounds
+					def imageTrack = scene.tracks.find { it instanceof ImageTrack }
+					if (imageTrack) { imageTrack.setParameter("embed-image", "true") }
+				}
+	
     			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
 					sectionName, new File(Dialogs.currentDir, name))
     		}

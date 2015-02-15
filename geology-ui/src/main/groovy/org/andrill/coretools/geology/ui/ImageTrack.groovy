@@ -51,7 +51,12 @@ import org.andrill.coretools.model.Model;
 	}
 
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
-		graphics.drawImage(getModelBounds(m), m.path)
+		def param = getParameter("embed-image", "false")
+		if (param.equals("true")) {
+			graphics.embedImage(getModelBounds(m), m.path)
+		} else {
+			graphics.drawImage(getModelBounds(m), m.path)
+		}
 	}
 	
 	private double physWidth(model) {

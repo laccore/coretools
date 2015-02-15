@@ -83,6 +83,17 @@ public interface Driver {
 	 *            the image.
 	 */
 	void drawImage(Rectangle2D rect, URL image);
+	
+	/**
+	 * For use in non-raster output: embed the full-resolution image, scaled to
+	 * fit the specified rectangle.
+	 * 
+	 * @param rect
+	 *            the rectangle.
+	 * @param image
+	 *            the image.
+	 */
+	void embedImage(Rectangle2D rect, URL image);
 
 	/**
 	 * Draws a line.

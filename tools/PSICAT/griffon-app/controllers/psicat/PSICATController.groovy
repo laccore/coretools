@@ -239,6 +239,10 @@ class PSICATController {
 		},
 		'deleteSection': { evt = null ->
 			def sections = getSelectedSections()
+			if (sections.size() == 0) {
+				Dialogs.showErrorDialog("Delete Section(s)", "No sections selected", app.appFrames[0])
+				return
+			}
 			def msg = sections.size() > 1 ? "Delete ${sections.size()} selected sections?" : "Delete section ${sections[0]}?"
 			def ret = JOptionPane.showConfirmDialog(app.appFrames[0], msg, "PSICAT", JOptionPane.YES_NO_OPTION)
 			if (ret == JOptionPane.YES_OPTION) {

@@ -19,8 +19,8 @@ import net.miginfocom.swing.MigLayout
 
 // build our items list
 def items = []
-items.add('All sections')
-items.add('Each section')
+if (model.allSections) { items.add(model.allSectionsText) }
+if (model.eachSection) { items.add(model.eachSectionText) }
 items.addAll(model.project.containers)
 
 // the panel

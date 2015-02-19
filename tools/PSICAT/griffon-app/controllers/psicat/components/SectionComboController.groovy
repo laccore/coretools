@@ -64,9 +64,9 @@ class SectionComboController {
 	def copyContainers() {
 		def project = model.project
 		def containers = [:]
-		if (view.section.selectedItem == model.allSectionsText) {
+		if (model.allSections && view.section.selectedItem == model.allSectionsText) {
 			containers[project.name] = copy(project.containers)
-		} else if (view.section.selectedItem == model.eachSectionText) {
+		} else if (model.eachSection && view.section.selectedItem == model.eachSectionText) {
 			project.containers.each { c ->
 				containers[c] = copy(c)
 			}
@@ -87,13 +87,13 @@ class SectionComboController {
     def getContainers() {
     	def project = model.project
 		def containers = [:]
-        if (view.section.selectedItem == model.allSectionsText) {
+        if (model.allSections && view.section.selectedItem == model.allSectionsText) {
 			def container = Platform.getService(ModelContainer.class)
         	project.containers.each { c ->
         		project.openContainer(c).models.each { container.add(it) }
         	}
         	containers[project.name] = container
-        } else if (view.section.selectedItem == model.eachSectionText) {
+        } else if (model.eachSection && view.section.selectedItem == model.eachSectionText) {
 			project.containers.each { containers[it] = project.openContainer(it) }
         } else {
 			def section = view.section.selectedItem

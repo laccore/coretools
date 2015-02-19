@@ -25,8 +25,8 @@ class ExportTabularWizardModel {
 	
 	@Bindable String filePath
 	
-	File getFile() {
-		if (!filePath) return null
-		filePath.contains(File.separator) ? new File(filePath) : new File(Dialogs.currentSaveDir, filePath)
+	File getFile(String defaultName) {
+		def path = filePath ?: defaultName
+		path.contains(File.separator) ? new File(path) : new File(Dialogs.currentSaveDir, path)
 	}
 }

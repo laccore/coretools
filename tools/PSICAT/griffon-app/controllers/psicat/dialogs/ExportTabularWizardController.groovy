@@ -16,7 +16,7 @@
 package psicat.dialogs
 
 import org.andrill.coretools.Platform
-import org.andrill.coretools.misc.io.ExcelReaderWriter
+import org.andrill.coretools.geology.io.GeologyExcelWriter
 
 import psicat.util.*
 
@@ -40,35 +40,38 @@ class ExportTabularWizardController {
 	
 	def show() {
 		if (Dialogs.showCustomDialog(model.title, view.root, app.appFrames[0])) {
-			return exportTabular(app.controllers['exportTabularSections'].containers, view.format.selectedItem)
+			return exportTabular(app.controllers['exportTabularSections'].copyContainers(), view.format.selectedItem)
 		} else {
 			return ''
 		}
 	}
-	
+
+	// export selected containers' contents into a single Workbook
 	private def exportTabular(containers, format) {
-		// export each container
-		boolean appendName = containers.size() > 1
 		containers.each { k, v ->
-			// figure out the file name
-			def file = model.file ?: new File(k)
-			def name = file.name
-			int i = name.lastIndexOf('.')
-			if (i == -1) {
-				name = "${name}${appendName ? '_' + k : ''}.${format.toLowerCase()}"
-			} else {
-				name = name[0..<i] + (appendName ? "_$k" : '') + name[i..-1]
-			}
-			
-			// write
-			def writer
-			switch (format) {
-				case 'XLS': writer = Platform.getService(ExcelReaderWriter.class)
-			}
-			if (writer) {
-				new File(file.parentFile, name).withOutputStream { writer.write(v, it) }
-			}
+			// assume single section per container - adjust model depths to section depth
+			def section = v.find { it.modelType == "Section" }
+			GeoUtils.adjustUp(v, section.top)
 		}
+		
+		// determine output file path
+		def defaultName = containers.size() > 1 ? model.project.name : (containers.keySet() as List)[0]
+		def file = model.getFile(defaultName)
+		def name = file.name
+		int i = name.lastIndexOf('.')
+		if (name.lastIndexOf('.') == -1) {
+			name = "${name}.${format.toLowerCase()}"
+		}
+			
+		// write
+		def writer = null
+		switch (format) {
+			case 'XLS': writer = Platform.getService(GeologyExcelWriter.class)
+		}
+		if (writer) {
+			new File(file.parentFile, name).withOutputStream { writer.write(containers, it) }
+		}
+		
 		return "Exported " + (containers.size() == 1 ? (containers.keySet() as List)[0] : 'each section')
 	}
 }

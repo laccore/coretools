@@ -282,7 +282,7 @@ actions {
 	)
 	action(
 		id: 'importImageAction',
-		name: 'Images',
+		name: 'Import Images...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['importImage'],
 		shortDescription: 'Import images into the project'

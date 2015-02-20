@@ -15,6 +15,7 @@
  */
 package psicat.dialogs
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -43,18 +44,24 @@ class ExportStratColumnWizardController {
     def model
     def view
 	
-	def PAGE_HEIGHT = 72 * 60 // 48"
-	def PAGE_WIDTH = 620
-	def MARGIN = 36 // 1/2" margin at 72dpi 
+	def PAGE_HEIGHT = 72 * 60 // 60"
+	def PAGE_WIDTH = 612 // 8.5"
+	def MARGIN = 36 // 1/2" margin at 72dpi
+	def HEADER_HEIGHT = 64 // space for title
+	def HEADER_Y = MARGIN + HEADER_HEIGHT
+	def CONTENT_HEIGHT = PAGE_HEIGHT - HEADER_HEIGHT - (MARGIN * 2) 
+	def CONTENT_Y = MARGIN + HEADER_HEIGHT
+	def RULER_WIDTH = 50
+	def STRAT_WIDTH = 400
+	def OCCURENCE_WIDTH = 90 // extra space for occurrences
 	def scaleFactor = 1.0
 
     void mvcGroupInit(Map args) {
     	model.project = args.project
     }
 
-	def setScaleFactor(top, base) {
-		def intervalLength = base - top
-		scaleFactor = (PAGE_HEIGHT - MARGIN*2) / intervalLength
+	def setScaleFactor(intervalLength) {
+		scaleFactor = CONTENT_HEIGHT / intervalLength
 		//println "updated scaleFactor: $scaleFactor"
 	}
 	
@@ -75,8 +82,7 @@ class ExportStratColumnWizardController {
 	}
 	
 	def gsdef() { (model.gsMax - model.gsMin) / 2.0 }
-	
-	// brgtodo: do other preliminaries? e.g. collect used schemerefs for legend creation
+
 	def prepareMetadata(sortedMetadata) {
 		def occs = [:]
 		sortedMetadata.each {
@@ -86,8 +92,6 @@ class ExportStratColumnWizardController {
 			while (modelIterator.hasNext()) {
 				GeologyModel mod = modelIterator.next()
 				if (mod.modelType.equals("Interval")) {
-					//def gsTop = mod.grainSizeTop?.value
-					//def gsBase = mod.grainSizeBase?.value
 					if (mod.grainSizeTop) updateGrainSizeRange(mod.grainSizeTop)
 					if (mod.grainSizeBase) updateGrainSizeRange(mod.grainSizeBase)
 				} else if (mod.modelType.equals("Occurrence")) {
@@ -110,7 +114,7 @@ class ExportStratColumnWizardController {
 			if (mod.modelType.equals("Interval")) {
 				def top = mod.top.to('m').value // ensure we're working in meters
 				def base = mod.base.to('m').value
-				def gsTop = mod.grainSizeTop ?: gsdef() // ignore unit from grain size and assume mm
+				def gsTop = mod.grainSizeTop ?: gsdef()
 				def gsBase = mod.grainSizeBase ?: gsdef()
 				//println "top = $gsTop, base = $gsBase"
 				
@@ -130,6 +134,47 @@ class ExportStratColumnWizardController {
 		return intervals
 	}
 
+	// brgtodo: hook up once UI side is in place	
+	void drawTitle(graphics, title) {
+		graphics.setColor(Color.BLACK)
+		graphics.setFont(new Font("SansSerif", Font.PLAIN, 24))
+		def strHeight = (graphics.fontMetrics.height / 2).intValue()
+		graphics.drawString(title, MARGIN, (HEADER_HEIGHT / 2 + strHeight).intValue())
+	}
+	
+	void drawRuler(graphics, physHeight) {
+		def logHeight = physHeight * scaleFactor
+		//println "physHeight = $physHeight, page height = $PAGE_HEIGHT, content y = $CONTENT_Y, logical height of content = $logHeight"
+		def xbase = MARGIN + RULER_WIDTH
+		def ybase = CONTENT_Y
+		//def oldStroke = graphics.stroke
+		
+		// vertical line at right edge of ruler area
+		graphics.setStroke(new BasicStroke(2));
+		graphics.drawLine(xbase, ybase, xbase, ybase + CONTENT_HEIGHT - 2) // minus stroke width to keep out of bottom margin
+		
+		graphics.setFont(new Font("SansSerif", Font.PLAIN, 10)) // tick label font
+		
+		// draw ticks
+		def maxHeightInt = Math.ceil(physHeight).intValue()
+		def curHeight = 0
+		while (curHeight < maxHeightInt) {
+			def bigTick = (curHeight % 5 == 0)
+			def width = bigTick ? 30 : 15
+			def ytick = Math.ceil(ybase + (curHeight * scaleFactor)).intValue()
+			graphics.drawLine(xbase - width, ytick, xbase, ytick)
+			
+			if (true) { // brgtodo: label all ticks for now
+				def label = "$curHeight m"
+				def labelWidth = graphics.fontMetrics.stringWidth(label) + 5
+				graphics.drawString(label, xbase - labelWidth, ytick - 3)
+			}
+			
+			curHeight++
+		}
+		//graphics.stroke = oldStroke
+	}
+
 	void export() {
 		if (!model.metadataFile) return
 
@@ -139,19 +184,27 @@ class ExportStratColumnWizardController {
 		def occMap = prepareMetadata(sortedMetadata)
 		
 		// determine depth to pixel scaling
-		setScaleFactor(sortedMetadata[0].top, sortedMetadata[-1].base)
+		def totalIntervalLength = sortedMetadata[-1].base// - sortedMetadata[0].top
+		setScaleFactor(totalIntervalLength)
 		
 		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
 		// create PDF
-		String filename = new String("/Users/bgrivna/Desktop/stratcolumn.pdf");
-		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT + 300));
-		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename));
-		document.open();        
-		PdfContentByte cb = writer.getDirectContent();
-		cb.setLineWidth(0.1F)
-		Graphics2D g2 = cb.createGraphics(PAGE_WIDTH, PAGE_HEIGHT + 300);
+		//String filename = new String("/Users/bgrivna/Desktop/stratcolumn.pdf");
+		String filename = new String("C:\\Users\\bgrivna\\Desktop\\stratcolumn.pdf")
+		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))
+		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename))
+		document.open();
+		PdfContentByte cb = writer.getDirectContent()
+		Graphics2D g2 = cb.createGraphics(PAGE_WIDTH, PAGE_HEIGHT)
+		//cb.setLineWidth(0.1F)
 		g2.setFont(new Font("SansSerif", Font.PLAIN, 9))
+		
+		drawTitle(g2, "[Test Strat Column Title]")
+		drawRuler(g2, totalIntervalLength)
+		
+		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
+		g2.setStroke(new BasicStroke(0.3F))
 		
 		// draw each section's lithologies and grain sizes
 		sortedMetadata.each { secdata ->
@@ -176,20 +229,24 @@ class ExportStratColumnWizardController {
 			intervals.each { curint ->
 				def t = (curint.top - intTop) * sectionScale + secdata.top
 				def b = (curint.base - intTop) * sectionScale + secdata.top
+				def xbase = MARGIN + RULER_WIDTH
+				def ybase = MARGIN + HEADER_HEIGHT
 				def pattern = curint.model.lithology
 				if (pattern) {
 					def entry = getSchemeEntry(pattern.scheme, pattern.code)
 					if (entry) {
-						def y = new BigDecimal(t * scaleFactor).intValue()
+						def y = new BigDecimal(t * scaleFactor).intValue() + ybase
 						def height = new BigDecimal((b - t) * scaleFactor).intValue()
-						def xur = MARGIN + 300 + gsoff(curint.gsTop)
-						def xlr = MARGIN + 300 + gsoff(curint.gsBase)
+						def xur = xbase + 150 + gsoff(curint.gsTop)
+						def xlr = xbase + 150 + gsoff(curint.gsBase)
 						
 						def lithpoly = new Polygon()
-						lithpoly.addPoint(MARGIN, y + MARGIN)
-						lithpoly.addPoint(xur, y + MARGIN)
-						lithpoly.addPoint(xlr, y + MARGIN + height)
-						lithpoly.addPoint(MARGIN, y + MARGIN + height)
+						lithpoly.addPoint(xbase, y)
+						lithpoly.addPoint(xur, y)
+						lithpoly.addPoint(xlr, y + height)
+						lithpoly.addPoint(xbase, y + height)
+						
+						//println "drawing poly at depth $t ($y y-coord) of height $height (bottom coord ${y + height})"
 
 						g2.setPaint(entry.color) // background color
 						g2.fill(lithpoly)
@@ -211,9 +268,9 @@ class ExportStratColumnWizardController {
 							if (occEntry && occEntry.image) {
 								def occpoly = new Polygon()
 								def lx = maxx + occRowWidth
-								def ty = y + MARGIN
+								def ty = y// + MARGIN
 								def occheight = Math.min(occEntry.image.height as BigDecimal, height).intValue()
-								def occwidth = (occheight < occEntry.image.height) ? occheight : occEntry.image.width
+								def occwidth = (occheight < occEntry.image.height) ? occheight : occEntry.image.width // brgtodo - don't assume squareness
 								occpoly.addPoint(lx, ty)
 								occpoly.addPoint(lx + occwidth, ty)
 								occpoly.addPoint(lx + occwidth, ty + occheight)
@@ -235,13 +292,8 @@ class ExportStratColumnWizardController {
 						
 					} else { println "No entry found" }
 				} else { println "No lithology found" }
-				
-				// draw symbols (depth adjusted by sectionScale) whose top depth is within interval (original range) 
-				
 			}
 		}
-		
-		// draw legend
 		
 		g2.dispose();
 		document.close();

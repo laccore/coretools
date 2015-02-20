@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Josh Reed, 2009.
+ * Copyright (c) Brian Grivna, 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ class ExportStratColumnWizardController {
 	def PAGE_HEIGHT = 72 * 60 // 60"
 	def PAGE_WIDTH = 612 // 8.5"
 	def MARGIN = 36 // 1/2" margin at 72dpi
-	def HEADER_HEIGHT = 120 // title
-	def HEADER_Y = MARGIN + HEADER_HEIGHT
+	def HEADER_HEIGHT = 108 // space for grain size labels, ruler units, etc.
+	def HEADER_Y = MARGIN + HEADER_HEIGHT // = 144 i.e. 2"
 	def CONTENT_HEIGHT = PAGE_HEIGHT - HEADER_HEIGHT - (MARGIN * 2) 
 	def CONTENT_Y = MARGIN + HEADER_HEIGHT
 	def RULER_WIDTH = 50
@@ -122,14 +122,6 @@ class ExportStratColumnWizardController {
 		
 		return intervals
 	}
-
-	// brgtodo: hook up once UI side is in place	
-	void drawTitle(graphics, title) {
-		graphics.setColor(Color.BLACK)
-		graphics.setFont(new Font("SansSerif", Font.PLAIN, 24))
-		def strHeight = (graphics.fontMetrics.height / 2).intValue()
-		graphics.drawString(title, MARGIN, (HEADER_HEIGHT / 2 + strHeight).intValue())
-	}
 	
 	void drawRuler(graphics, physHeight) {
 		def logHeight = physHeight * scaleFactor
@@ -137,24 +129,26 @@ class ExportStratColumnWizardController {
 		def xbase = MARGIN + RULER_WIDTH
 		def ybase = CONTENT_Y
 		
-		// vertical line at right edge of ruler area
-		graphics.setStroke(new BasicStroke(2));
-		graphics.drawLine(xbase, ybase, xbase, ybase + CONTENT_HEIGHT - 2) // minus stroke width to keep out of bottom margin
+		graphics.setFont(new Font("SansSerif", Font.PLAIN, 9))
+		graphics.drawString("meters", xbase - graphics.fontMetrics.stringWidth("meters"), ybase - 15)
 		
-		graphics.setFont(new Font("SansSerif", Font.PLAIN, 10)) // tick label font
+		// vertical line at right edge of ruler area
+		graphics.setStroke(new BasicStroke(1));
+		graphics.drawLine(xbase, ybase, xbase, ybase + CONTENT_HEIGHT - 1) // minus stroke width to keep out of bottom margin
 		
 		// draw ticks
 		def maxHeightInt = Math.ceil(physHeight).intValue()
 		def curHeight = 0
 		while (curHeight < maxHeightInt) {
 			def bigTick = (curHeight % 5 == 0)
+			def labelTick = (curHeight % 10 == 0)
 			def width = bigTick ? 30 : 15
 			def ytick = Math.ceil(ybase + (curHeight * scaleFactor)).intValue()
 			graphics.drawLine(xbase - width, ytick, xbase, ytick)
 			
-			if (true) { // brgtodo: label all ticks for now
-				def label = "$curHeight m"
-				def labelWidth = graphics.fontMetrics.stringWidth(label) + 5
+			if (labelTick) {
+				def label = "$curHeight"
+				def labelWidth = graphics.fontMetrics.stringWidth(label) + 20
 				graphics.drawString(label, xbase - labelWidth, ytick - 3)
 			}
 			
@@ -167,37 +161,39 @@ class ExportStratColumnWizardController {
 		def xmin = MARGIN + RULER_WIDTH
 		def xmax = xmin + STRAT_WIDTH
 		
-		// base line
+		graphics.setStroke(new BasicStroke(1))
+		graphics.setFont(new Font("SansSerif", Font.BOLD, 9))
+		def labelHeight = graphics.fontMetrics.height
+		
+		// horizontal line over strat column
 		graphics.drawLine(xmin, CONTENT_Y, xmax, CONTENT_Y)
 		
-		graphics.setFont(new Font("SansSerif", Font.BOLD, 9)) // label font
-		
-		// vertical grain size separators
+		// vertical grain size separator ticks
 		def labelCount = model.grainSizeScale.labels.size()
 		def offsetMax = (xmin + (model.grainSizeScale.offset * STRAT_WIDTH)).intValue()
 		def wid = ((xmax - offsetMax) / labelCount)
 		for (int i = 0; i <= labelCount; i++) {
 			def x = (offsetMax + (i * wid)).intValue()
-			// always draw last tick at xmax or we may come up short (due to rounding)
+			// always draw last tick at xmax or we may come up short due to BigDecimal -> int conversion
 			if (i == labelCount)
 				x = xmax
 			graphics.drawLine(x, CONTENT_Y, x, CONTENT_Y - TICK_HEIGHT)
 			
-			// draw grain size scale lines over entire interval? 
-			if (true) { // brgtodo
-				def oldStroke = graphics.stroke
-				float[] dash = [ 5.0F ]
-				graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10.0F, dash, 3.0F))
-				graphics.drawLine(x, CONTENT_Y, x, PAGE_HEIGHT - MARGIN)
-				graphics.stroke = oldStroke
-			}
+			// draw grain size scale lines over entire interval - brg 2/20/2015: shelving for now
+//			if (false) {
+//				def oldStroke = graphics.stroke
+//				float[] dash = [ 5.0F ]
+//				graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10.0F, dash, 3.0F))
+//				graphics.drawLine(x, CONTENT_Y, x, PAGE_HEIGHT - MARGIN)
+//				graphics.stroke = oldStroke
+//			}
 			
 			if (i < labelCount) {
-				// draw label vertically
+				// draw labels vertically
 				def oldTrans = graphics.transform
 				def label = model.grainSizeScale.labels[i]
-				graphics.translate(x + wid - 3, CONTENT_Y - 3) // fudgy -3 so labels aren't touching ticks
-				graphics.rotate(-1.57079) // pi/2 radians i.e. 90 degrees CCW
+				graphics.translate(x + (wid/2).intValue() + (labelHeight/2).intValue(), CONTENT_Y - 3) // fudgy -3 so labels aren't touching ticks
+				graphics.rotate(-1.57079633) // pi/2 radians, i.e. 90 degrees CCW
 				graphics.drawString(label, 0, 0)
 				graphics.transform = oldTrans
 			}
@@ -219,17 +215,14 @@ class ExportStratColumnWizardController {
 		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
 		// create PDF
-		//String filename = new String("/Users/bgrivna/Desktop/stratcolumn.pdf");
-		String filename = new String("C:\\Users\\bgrivna\\Desktop\\stratcolumn.pdf")
+		String filename = new String("/Users/bgrivna/Desktop/stratcolumn.pdf");
+		//String filename = new String("C:\\Users\\bgrivna\\Desktop\\stratcolumn.pdf")
 		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))
 		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename))
 		document.open();
 		PdfContentByte cb = writer.getDirectContent()
 		Graphics2D g2 = cb.createGraphics(PAGE_WIDTH, PAGE_HEIGHT)
-		//cb.setLineWidth(0.1F)
-		g2.setFont(new Font("SansSerif", Font.PLAIN, 9))
 		
-		drawTitle(g2, "[Test Strat Column Title]")
 		drawGrainSizeScale(g2)
 		drawRuler(g2, totalIntervalLength)
 		
@@ -290,7 +283,7 @@ class ExportStratColumnWizardController {
 						g2.setPaint(Color.BLACK) // section outline
 						g2.draw(lithpoly)
 						
-						def OCC_SPACE = 5
+						def OCC_SPACE = 2
 						def occRowWidth = OCC_SPACE * 2 // pad between end of lithology and start of occurrence
 						curint.occs.each { o ->
 							def occEntry = getSchemeEntry(o.scheme?.scheme, o.scheme?.code)
@@ -298,9 +291,9 @@ class ExportStratColumnWizardController {
 							if (occEntry && occEntry.image) {
 								def occpoly = new Polygon()
 								def lx = maxx + occRowWidth
-								def ty = y// + MARGIN
+								def ty = y
 								def occheight = Math.min(occEntry.image.height as BigDecimal, height).intValue()
-								def occwidth = (occheight < occEntry.image.height) ? occheight : occEntry.image.width // brgtodo - don't assume squareness
+								def occwidth = (occheight < occEntry.image.height) ? (occEntry.image.width * (occheight / occEntry.image.height)).intValue() : occEntry.image.width
 								occpoly.addPoint(lx, ty)
 								occpoly.addPoint(lx + occwidth, ty)
 								occpoly.addPoint(lx + occwidth, ty + occheight)
@@ -311,20 +304,22 @@ class ExportStratColumnWizardController {
 								def rect = new java.awt.geom.Rectangle2D.Double(lx, ty, occwidth, occheight)
 								
 								// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
-								g2.setColor(Color.WHITE)
-								g2.fillRect(lx, ty, occwidth, occheight)
+								// brg 2/20/2015: shelved
+								//g2.setColor(Color.WHITE)
+								//g2.fillRect(lx, ty, occwidth, occheight)
 								
 								g2.setPaint(new TexturePaint(occEntry.image, rect))
 								g2.fill(occpoly)
 							}
 						}
-						
-						if (drawSecName) {
-							g2.setPaint(Color.BLACK)
-							g2.drawString(secdata.section, MARGIN + 450, y + MARGIN)
-							drawSecName = false
-						}
-						
+
+						// draw section name - 2/20/2015 brg: shelving for now
+//						if (drawSecName) {
+//							g2.setFont(new Font("SansSerif", Font.PLAIN, 9))
+//							g2.setPaint(Color.BLACK)
+//							g2.drawString(secdata.section, MARGIN + 450, y + MARGIN)
+//							drawSecName = false
+//						}
 					} else { println "No entry found" }
 				} else { println "No lithology found" }
 			}

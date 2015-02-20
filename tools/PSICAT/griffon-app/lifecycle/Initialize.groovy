@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import java.awt.Font
 import java.util.prefs.Preferences
+import javax.swing.UIManager
 
 import groovy.swing.SwingBuilder
 import griffon.util.GriffonPlatformHelper
@@ -26,7 +29,7 @@ import psicat.util.Dialogs
 
 // set our look and feel
 GriffonPlatformHelper.tweakForNativePlatform(app)
-SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
+SwingBuilder.lookAndFeel('system')
 
 // initialize the coretools platform
 Platform.start()
@@ -39,3 +42,6 @@ def getDirPref(prefKey) {
 // restore the last open and save directories
 Dialogs.currentOpenDir = getDirPref('psicat.lastOpenDir')
 Dialogs.currentSaveDir = getDirPref('psicat.lastSaveDir')
+
+// on Windows, JTextArea uses fixed-width font, unlike all other controls - force it to match
+UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"))

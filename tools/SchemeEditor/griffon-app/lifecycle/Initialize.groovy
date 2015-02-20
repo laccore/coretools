@@ -36,4 +36,4 @@ import groovy.swing.SwingBuilder
  */
 
 GriffonPlatformHelper.tweakForNativePlatform(app)
-SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
+SwingBuilder.lookAndFeel('system')

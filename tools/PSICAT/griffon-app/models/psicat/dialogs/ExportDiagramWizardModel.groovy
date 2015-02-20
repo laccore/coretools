@@ -31,7 +31,7 @@ class ExportDiagramWizardModel {
 	@Bindable String end
 	@Bindable String pageSize
 	@Bindable boolean renderHeader = true
-	@Bindable boolean renderFooter = true
+	@Bindable boolean renderFooter = false
 	@Bindable String filePath
 	
 	File getFile() {

@@ -35,11 +35,13 @@ menuBar(id: 'menuBar') {
 		separator()
 		menuItem(deleteSectionAction)
 		separator()
-		menu(text: 'Import', enabled: bind { model.project != null }) {
-			menuItem(importImageAction)
-			menuItem(importTabularAction)
-			menuItem(importLegacyAction)
-		}
+		menuItem(importImageAction)
+		// brg 2/18/2015: tabular output format has changed, no one is using Legacy anything.
+//		menu(text: 'Import', enabled: bind { model.project != null }) {
+//			menuItem(importImageAction)
+//			menuItem(importTabularAction)
+//			menuItem(importLegacyAction)
+//		}
 		menu(text: 'Export', enabled: bind { model.project != null }) {
 			menuItem(exportTabularAction)
 			menuItem(exportDiagramAction)

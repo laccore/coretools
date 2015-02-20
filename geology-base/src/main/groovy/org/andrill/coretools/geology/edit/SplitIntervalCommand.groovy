@@ -1,10 +1,10 @@
-package org.andrill.coretools.geology
+package org.andrill.coretools.geology.edit
 
-import org.andrill.coretools.model.Model;
-import org.andrill.coretools.model.ModelContainer;
-import org.andrill.coretools.model.edit.AbstractCommand;
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.model.ModelContainer
+import org.andrill.coretools.model.edit.AbstractCommand
 
-import org.andrill.coretools.geology.models.Interval;
+import org.andrill.coretools.geology.models.Interval
 
 /**
  * A command for splitting an interval in two

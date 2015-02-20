@@ -31,8 +31,8 @@ import org.andrill.coretools.model.Project
 import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.ui.Scale
-import org.andrill.coretools.geology.DeleteIntervalCommand
-import org.andrill.coretools.geology.SplitIntervalCommand
+import org.andrill.coretools.geology.edit.DeleteIntervalCommand
+import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.misc.util.RenderUtils

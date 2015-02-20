@@ -20,7 +20,6 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.misc.util.SceneUtils
-
 import org.andrill.coretools.geology.ui.ImageTrack
 
 import psicat.util.*
@@ -51,6 +50,10 @@ class ExportDiagramWizardController {
     	if (Dialogs.showCustomDialog(model.title, view.root, app.appFrames[0])) {
     		def project = model.project
 
+    		// get our containers
+    		def containers = app.controllers['exportDiagramSections'].copyContainers()
+    		boolean appendName = containers.size() > 1
+
 			// select a scene
 			def scene
 			if (project.scenes) {
@@ -59,14 +62,18 @@ class ExportDiagramWizardController {
 			if (!scene) {
 				scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
 			}
-    		scene.scalingFactor = 1000
+			scene.scalingFactor = 1000
 			
-    		// get our containers
-    		def containers = app.controllers['exportDiagramSections'].containers
-    		boolean appendName = containers.size() > 1
-
-    		// export each containers
+    		// export each container
     		containers.each { k, v ->
+				def sectionTop = 0.0
+				def section = v.models.find { it.modelType == 'Section' }
+				if (section) {
+					sectionTop = section.top
+					GeoUtils.adjustUp(v, sectionTop)
+				}
+				final String sectionName = section?.name
+				
     			// validate our scene
     			scene.models = v
     			scene.validate()
@@ -85,10 +92,6 @@ class ExportDiagramWizardController {
     			} else {
     				name = name[0..<i] + (appendName ? "_$k" : '') + name[i..-1]
     			}
-
-				// find section name
-				def section = v.getModels().find { it.getModelType().equals("Section") }
-				final String sectionName = section?.name 
 				
 				// render
     			def format

@@ -22,7 +22,7 @@ actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
 }
 
-def section = buildMVCGroup('SectionCombo', 'exportDiagramSections', project: model.project).view.root
+def section = buildMVCGroup('SectionCombo', 'exportDiagramSections', project: model.project, allSections:false).view.root
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	widget(id:'section', section, constraints: 'span, growx, wrap')

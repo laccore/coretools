@@ -34,6 +34,7 @@ import com.lowagie.text.pdf.PdfWriter;
 
 import org.andrill.coretools.Platform;
 import org.andrill.coretools.geology.models.GeologyModel
+import org.andrill.coretools.geology.ui.Scale
 import org.andrill.coretools.model.scheme.Scheme
 import org.andrill.coretools.model.scheme.SchemeEntry
 import org.andrill.coretools.model.scheme.SchemeManager
@@ -47,7 +48,7 @@ class ExportStratColumnWizardController {
 	def PAGE_HEIGHT = 72 * 60 // 60"
 	def PAGE_WIDTH = 612 // 8.5"
 	def MARGIN = 36 // 1/2" margin at 72dpi
-	def HEADER_HEIGHT = 64 // space for title
+	def HEADER_HEIGHT = 120 // title
 	def HEADER_Y = MARGIN + HEADER_HEIGHT
 	def CONTENT_HEIGHT = PAGE_HEIGHT - HEADER_HEIGHT - (MARGIN * 2) 
 	def CONTENT_Y = MARGIN + HEADER_HEIGHT
@@ -58,6 +59,7 @@ class ExportStratColumnWizardController {
 
     void mvcGroupInit(Map args) {
     	model.project = args.project
+		model.grainSizeScale = args.grainSizeScale
     }
 
 	def setScaleFactor(intervalLength) {
@@ -70,18 +72,10 @@ class ExportStratColumnWizardController {
 		scheme == null ? null : scheme.getEntry(code)
 	}
 	
-	void updateGrainSizeRange(BigDecimal grainSize) {
-		if (grainSize < model.gsMin) model.gsMin = grainSize
-		if (grainSize > model.gsMax) model.gsMax = grainSize
-	}
+	def gsoff(grainSize) { (STRAT_WIDTH * model.grainSizeScale.toScreen(grainSize)).intValue()	}
 	
-	def gsoff(grainSize) {
-		def gs = (grainSize / (model.gsMax - model.gsMin) * 100) as Integer
-		//println "offset = $gs" 
-		return gs
-	}
-	
-	def gsdef() { (model.gsMax - model.gsMin) / 2.0 }
+	// get default grain size - first value in Scale
+	def gsdef() { model.grainSizeScale.values[0] }
 
 	def prepareMetadata(sortedMetadata) {
 		def occs = [:]
@@ -91,12 +85,7 @@ class ExportStratColumnWizardController {
 			def modelIterator = section.iterator()
 			while (modelIterator.hasNext()) {
 				GeologyModel mod = modelIterator.next()
-				if (mod.modelType.equals("Interval")) {
-					if (mod.grainSizeTop) updateGrainSizeRange(mod.grainSizeTop)
-					if (mod.grainSizeBase) updateGrainSizeRange(mod.grainSizeBase)
-				} else if (mod.modelType.equals("Occurrence")) {
-					secOccs << mod
-				}
+				if (mod.modelType.equals("Occurrence")) { secOccs << mod }
 			}
 			occs[it.section] = secOccs
 			model.project.closeContainer(section)
@@ -147,7 +136,6 @@ class ExportStratColumnWizardController {
 		//println "physHeight = $physHeight, page height = $PAGE_HEIGHT, content y = $CONTENT_Y, logical height of content = $logHeight"
 		def xbase = MARGIN + RULER_WIDTH
 		def ybase = CONTENT_Y
-		//def oldStroke = graphics.stroke
 		
 		// vertical line at right edge of ruler area
 		graphics.setStroke(new BasicStroke(2));
@@ -172,7 +160,48 @@ class ExportStratColumnWizardController {
 			
 			curHeight++
 		}
-		//graphics.stroke = oldStroke
+	}
+	
+	void drawGrainSizeScale(graphics) {
+		def TICK_HEIGHT = 20
+		def xmin = MARGIN + RULER_WIDTH
+		def xmax = xmin + STRAT_WIDTH
+		
+		// base line
+		graphics.drawLine(xmin, CONTENT_Y, xmax, CONTENT_Y)
+		
+		graphics.setFont(new Font("SansSerif", Font.BOLD, 9)) // label font
+		
+		// vertical grain size separators
+		def labelCount = model.grainSizeScale.labels.size()
+		def offsetMax = (xmin + (model.grainSizeScale.offset * STRAT_WIDTH)).intValue()
+		def wid = ((xmax - offsetMax) / labelCount)
+		for (int i = 0; i <= labelCount; i++) {
+			def x = (offsetMax + (i * wid)).intValue()
+			// always draw last tick at xmax or we may come up short (due to rounding)
+			if (i == labelCount)
+				x = xmax
+			graphics.drawLine(x, CONTENT_Y, x, CONTENT_Y - TICK_HEIGHT)
+			
+			// draw grain size scale lines over entire interval? 
+			if (true) { // brgtodo
+				def oldStroke = graphics.stroke
+				float[] dash = [ 5.0F ]
+				graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10.0F, dash, 3.0F))
+				graphics.drawLine(x, CONTENT_Y, x, PAGE_HEIGHT - MARGIN)
+				graphics.stroke = oldStroke
+			}
+			
+			if (i < labelCount) {
+				// draw label vertically
+				def oldTrans = graphics.transform
+				def label = model.grainSizeScale.labels[i]
+				graphics.translate(x + wid - 3, CONTENT_Y - 3) // fudgy -3 so labels aren't touching ticks
+				graphics.rotate(-1.57079) // pi/2 radians i.e. 90 degrees CCW
+				graphics.drawString(label, 0, 0)
+				graphics.transform = oldTrans
+			}
+		}
 	}
 
 	void export() {
@@ -201,6 +230,7 @@ class ExportStratColumnWizardController {
 		g2.setFont(new Font("SansSerif", Font.PLAIN, 9))
 		
 		drawTitle(g2, "[Test Strat Column Title]")
+		drawGrainSizeScale(g2)
 		drawRuler(g2, totalIntervalLength)
 		
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
@@ -237,8 +267,8 @@ class ExportStratColumnWizardController {
 					if (entry) {
 						def y = new BigDecimal(t * scaleFactor).intValue() + ybase
 						def height = new BigDecimal((b - t) * scaleFactor).intValue()
-						def xur = xbase + 150 + gsoff(curint.gsTop)
-						def xlr = xbase + 150 + gsoff(curint.gsBase)
+						def xur = xbase + gsoff(curint.gsTop)
+						def xlr = xbase + gsoff(curint.gsBase)
 						
 						def lithpoly = new Polygon()
 						lithpoly.addPoint(xbase, y)
@@ -279,6 +309,11 @@ class ExportStratColumnWizardController {
 								occRowWidth += (occwidth + OCC_SPACE)
 
 								def rect = new java.awt.geom.Rectangle2D.Double(lx, ty, occwidth, occheight)
+								
+								// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
+								g2.setColor(Color.WHITE)
+								g2.fillRect(lx, ty, occwidth, occheight)
+								
 								g2.setPaint(new TexturePaint(occEntry.image, rect))
 								g2.fill(occpoly)
 							}

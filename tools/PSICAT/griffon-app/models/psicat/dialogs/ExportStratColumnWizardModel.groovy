@@ -24,6 +24,5 @@ import psicat.util.Dialogs
 @Bindable class ExportStratColumnWizardModel {
 	def project = null
 	def metadataFile = null
-	def gsMin = 10000 	// min grain size
-	def gsMax = -10000	// max grain size
+	def grainSizeScale = null
 }

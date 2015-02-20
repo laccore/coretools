@@ -75,6 +75,15 @@ class PSICATController {
 		return model.openDiagrams.inject(true) { flag, cur -> flag &= cur.controller.close() }
 	}
 	
+	Scale getGrainSize() {
+		String code = model.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
+		return new Scale(code)
+	}
+	
+	def getGrainSizeCode() {
+		model.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
+	}
+	
 	// 12/12/2014 brg: retain name to ensure we enable the panel that was actually disabled
 	// (user could click on a different diagram's tab to activate window, so
 	// we can't rely on currently active diagram's name)
@@ -313,7 +322,7 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 			}
 		},
 		'exportStratColumn': { evt = null ->
-			withMVC('ExportStratColumnWizard', project: model.project) { mvc ->
+			withMVC('ExportStratColumnWizard', project: model.project, grainSizeScale: getGrainSize()) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},
@@ -358,8 +367,7 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 			}
 		},
 		'grainSizeScale': { evt = null ->
-			def gss = model.project.configuration.grainSizeScale ?: Scale.DEFAULT
-			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", gss)
+			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", getGrainSizeCode())
 			if (result) {
 				try {
 					def testScale = new Scale(result)

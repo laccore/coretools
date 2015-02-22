@@ -19,6 +19,9 @@ import javax.swing.filechooser.FileFilter
 
 class CustomFileFilter extends FileFilter {
 	static final CustomFileFilter IMAGES = new CustomFileFilter(description: "Image files", extensions: [".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff"])
+	static final CustomFileFilter PDF = new CustomFileFilter(description: "PDF Document", extensions: [".pdf"])
+	static final CustomFileFilter CSV = new CustomFileFilter(description: "Comma-seprated values (CSV)", extensions: [".csv"])
+	static final CustomFileFilter EXCEL = new CustomFileFilter(description: "Excel Spreadsheet", extensions: [".xls"])
 	
 	List extensions = []
 	String description

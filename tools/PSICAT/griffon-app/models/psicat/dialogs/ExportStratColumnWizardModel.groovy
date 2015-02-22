@@ -23,6 +23,7 @@ import psicat.util.Dialogs
 
 @Bindable class ExportStratColumnWizardModel {
 	def project = null
-	def metadataFile = null
 	def grainSizeScale = null
+	@Bindable def metadataPath = null
+	@Bindable def exportPath = null
 }

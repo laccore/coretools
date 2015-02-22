@@ -201,10 +201,13 @@ class ExportStratColumnWizardController {
 	}
 
 	void export() {
-		if (!model.metadataFile) return
+		if (!model.metadataPath) return
+		
+		view.progress.value = 10
+		view.progress.string = "Preparing data"
 
 		// create depth-sorted list of section/top/base vals
-		def sortedMetadata = GeoUtils.parseMetadataFile(model.metadataFile)
+		def sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath)
 		sortedMetadata = GeoUtils.reconcileSectionIDs(sortedMetadata, model.project)
 		def occMap = prepareMetadata(sortedMetadata)
 		
@@ -215,10 +218,8 @@ class ExportStratColumnWizardController {
 		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
 		// create PDF
-		String filename = new String("/Users/bgrivna/Desktop/stratcolumn.pdf");
-		//String filename = new String("C:\\Users\\bgrivna\\Desktop\\stratcolumn.pdf")
 		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))
-		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename))
+		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(model.exportPath))
 		document.open();
 		PdfContentByte cb = writer.getDirectContent()
 		Graphics2D g2 = cb.createGraphics(PAGE_WIDTH, PAGE_HEIGHT)
@@ -230,7 +231,10 @@ class ExportStratColumnWizardController {
 		g2.setStroke(new BasicStroke(0.3F))
 		
 		// draw each section's lithologies and grain sizes
-		sortedMetadata.each { secdata ->
+		sortedMetadata.eachWithIndex { secdata, index ->
+			view.progress.string = "Writing ${secdata.section}"
+			view.progress.value = 10 + (index / sortedMetadata.size() * 90).intValue()
+			
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
 			
 			// determine total length of intervals - assume they are contiguous (brgtodo: gaps)
@@ -327,22 +331,30 @@ class ExportStratColumnWizardController {
 		
 		g2.dispose();
 		document.close();
+		
+		view.progress.value = 100
+		view.progress.string = "Export complete"
 	}
 		
     def actions = [
 		'chooseMetadata': { evt = null ->
-			app.controllers['PSICAT'].withMVC('ChooseSectionMetadata', project:model.project, metadataFile:model.metadataFile) { mvc ->
-				if (mvc.controller.show()) {
-					model.metadataFile = mvc.model.metadataFile
-					view.root.setPreferredSize(view.root.getPreferredSize())
-				}
+			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
+			if (file) {
+				model.metadataPath = file.absolutePath
 			}
+		},
+		'chooseExport': { evt = null ->
+			def file = Dialogs.showOpenDialog('Export Strat Column', CustomFileFilter.PDF, app.appFrames[0])
+			if (file) {
+				model.exportPath = file.absolutePath
+			}
+		},
+		'doExport': { evt = null ->
+			doOutside {	export() }
 		}
     ]
 
     def show() {
-    	if (Dialogs.showCustomDialog("Export Strat Column", view.root, app.appFrames[0])) {
-			export()
-    	}
+    	Dialogs.showCustomOneButtonDialog("Export Strat Column", view.root, app.appFrames[0])
     }
 }

@@ -113,4 +113,8 @@ class Dialogs {
 	static boolean showCustomDialog(title, message, parent = null) {
 		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null) == JOptionPane.OK_OPTION
 	}
+	
+	static boolean showCustomOneButtonDialog(title, message, parent = null) {
+		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, ["Close"].toArray(), null) == JOptionPane.OK_OPTION
+	}
 }

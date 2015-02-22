@@ -199,15 +199,26 @@ class ExportStratColumnWizardController {
 			}
 		}
 	}
+	
+	def updateProgress(value, string) { 
+		view.progress.value = value
+		view.progress.string = string
+	}
+	
+	def resetProgress() { updateProgress(0, '') }
 
 	void export() {
-		if (!model.metadataPath) return
-		
-		view.progress.value = 10
-		view.progress.string = "Preparing data"
+		updateProgress(10, "Preparing data...")
 
 		// create depth-sorted list of section/top/base vals
-		def sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath)
+		def sortedMetadata = null
+		try {
+			sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath)
+		} catch (e) {
+			Dialogs.showErrorDialog("Export Error", "Couldn't parse metadata file: does it meet all requirements?")
+			resetProgress()
+			return
+		}
 		sortedMetadata = GeoUtils.reconcileSectionIDs(sortedMetadata, model.project)
 		def occMap = prepareMetadata(sortedMetadata)
 		
@@ -232,8 +243,7 @@ class ExportStratColumnWizardController {
 		
 		// draw each section's lithologies and grain sizes
 		sortedMetadata.eachWithIndex { secdata, index ->
-			view.progress.string = "Writing ${secdata.section}"
-			view.progress.value = 10 + (index / sortedMetadata.size() * 90).intValue()
+			updateProgress(10 + (index / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
 			
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
 			
@@ -332,10 +342,9 @@ class ExportStratColumnWizardController {
 		g2.dispose();
 		document.close();
 		
-		view.progress.value = 100
-		view.progress.string = "Export complete"
+		updateProgress(100, "Export complete!")
 	}
-		
+
     def actions = [
 		'chooseMetadata': { evt = null ->
 			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
@@ -344,7 +353,7 @@ class ExportStratColumnWizardController {
 			}
 		},
 		'chooseExport': { evt = null ->
-			def file = Dialogs.showOpenDialog('Export Strat Column', CustomFileFilter.PDF, app.appFrames[0])
+			def file = Dialogs.showSaveDialog('Export Strat Column', CustomFileFilter.PDF, '.pdf', app.appFrames[0])
 			if (file) {
 				model.exportPath = file.absolutePath
 			}

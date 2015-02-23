@@ -75,6 +75,12 @@ class PSICATController {
 		return model.openDiagrams.inject(true) { flag, cur -> flag &= cur.controller.close() }
 	}
 	
+	// Is the selected directory a PSICAT project directory?
+	boolean isProject(projFile) {
+		def propsFile = new File(projFile, "project.properties") // simple, reliable-ish check
+		propsFile.exists()	
+	}
+	
 	Scale getGrainSize() {
 		String code = model.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
 		return new Scale(code)
@@ -206,7 +212,13 @@ class PSICATController {
 		},
 		'openProject': { evt = null ->
 			def file = Dialogs.showOpenDirectoryDialog("Select Project Directory/Folder", null, app.appFrames[0])
-			if (file && canClose(evt)) { openProject(new DefaultProject(file)) }
+			if (file && canClose(evt)) {
+				if (isProject(file)) { 
+					openProject(new DefaultProject(file))
+				} else {
+					Dialogs.showErrorDialog("Open Project", "The selected directory is not a PSICAT project directory.", app.appFrames[0])
+				}
+			}
 		},
 		'closeProject': { evt = null ->
 			if (canClose(evt)) closeProject()

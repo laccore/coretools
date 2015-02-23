@@ -32,10 +32,6 @@ class ExportDiagramWizardModel {
 	@Bindable String pageSize
 	@Bindable boolean renderHeader = true
 	@Bindable boolean renderFooter = false
-	@Bindable String filePath
-	
-	File getFile() {
-		if (!filePath) return null
-		filePath.contains(File.separator) ? new File(filePath) : new File(Dialogs.currentSaveDir, filePath)
-	}
+	@Bindable String filePath = Dialogs.currentSaveDir.absolutePath
+	@Bindable String prefix = ''	
 }

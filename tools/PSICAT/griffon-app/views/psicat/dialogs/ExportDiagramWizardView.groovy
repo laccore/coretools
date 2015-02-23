@@ -20,10 +20,12 @@ import psicat.util.*
 
 actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
-	action(id: 'exportAction', name:'Export', enabled:bind { model.filePath }, closure: controller.actions.export)
+	action(id: 'exportAction', name:'Export', closure: controller.actions.export)
 }
 
 def section = buildMVCGroup('SectionCombo', 'exportDiagramSections', project: model.project, allSections:false).view.root
+
+def prefixToolTip = "Optional: prefix output files' names with specified text, e.g. 'my_[section_name].pdf'"
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	widget(id:'section', section, constraints: 'span, growx, wrap')
@@ -47,12 +49,17 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	checkBox(text: 'Render Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'span, wrap')
 	separator(constraints: 'span, growx, wrap')
 
-	label('Format:')
-	comboBox(id:'format', editable: false, items: ['PDF', 'PNG', 'JPEG', 'BMP', 'SVG'], constraints: 'span, wrap')
 	
-	label('File:')
-	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
+	label('To Directory:')
+	textField(enabled:false, text: bind { model.filePath }, constraints:'width min(200px), growx')
 	button(action: browseAction, constraints:'wrap')
+	
+	label(text:'Filename Prefix:', toolTipText:prefixToolTip)
+	textField(text: bind(source:model, sourceProperty:'prefix', mutual:true), toolTipText:prefixToolTip, constraints:'growx, wrap')
+	
+	label('Export Format:')
+	comboBox(id:'format', editable: false, items: ['PDF', 'PNG', 'JPEG', 'BMP', 'SVG'], constraints: 'span, wrap')
+
 	separator(constraints: 'span, growx, wrap')
 	
 	panel(layout:new MigLayout('','[grow][]',''), constraints:'span, growx') {

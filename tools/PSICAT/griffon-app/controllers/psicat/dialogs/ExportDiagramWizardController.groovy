@@ -33,15 +33,7 @@ class ExportDiagramWizardController {
 
     def actions = [
 	    'browse': {
-    		def filter
-    		switch (view.format.selectedItem) {
-    			case 'PDF':  filter = new CustomFileFilter(extensions:['.pdf'], description:'PDF Document (*.pdf)'); break
-    			case 'PNG':  filter = new CustomFileFilter(extensions:['.png'], description:'PNG Image (*.png)'); break
-    			case 'JPEG': filter = new CustomFileFilter(extensions:['.jpeg'], description:'JPEG Image (*.jpeg)'); break
-    			case 'BMP':  filter = new CustomFileFilter(extensions:['.bmp'], description:'BMP Image (*.bmp)'); break
-    			case 'SVG':  filter = new CustomFileFilter(extensions:['.svg'], description:'SVG Image (*.svg)'); break
-    		}
-    		def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], app.appFrames[0])
+			def file = Dialogs.showSaveDirectoryDialog("Select Export Directory", null, app.appFrames[0])
     		if (file) { model.filePath = file.absolutePath }
     	},
 		'export': { 
@@ -93,18 +85,12 @@ class ExportDiagramWizardController {
 			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, 1)
 			def paper = Paper.getDefault()	// TODO: handle DPI
 
-			// figure out the file name
-			def name = model.file?.name ?: k
-			int i = name.lastIndexOf('.')
-			if (i == -1) {
-				name = "${name}${appendName ? '_' + k : ''}.${view.format.selectedItem.toLowerCase()}"
-			} else {
-				name = name[0..<i] + (appendName ? "_$k" : '') + name[i..-1]
-			}
+			// build file name
+			def name = (model.prefix ?: "${model.prefix}") + "$k.${view.format.selectedItem.toLowerCase()}"
 			
 			// render
 			def format
-			switch (view.format.selectedItem) {
+			switch (view.format.selectedItem) {	
 				case 'PDF': format = 'PDF'; break
 				case 'SVG': format = 'SVG'; break
 				default: format = 'Raster'
@@ -118,7 +104,7 @@ class ExportDiagramWizardController {
 			}
 
 			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
-				sectionName, new File(Dialogs.currentSaveDir, name))
+				sectionName, new File(model.filePath, name))
 		}
 		
 		view.progress.value = 100

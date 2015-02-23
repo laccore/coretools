@@ -39,81 +39,94 @@ class ExportDiagramWizardController {
     			case 'PNG':  filter = new CustomFileFilter(extensions:['.png'], description:'PNG Image (*.png)'); break
     			case 'JPEG': filter = new CustomFileFilter(extensions:['.jpeg'], description:'JPEG Image (*.jpeg)'); break
     			case 'BMP':  filter = new CustomFileFilter(extensions:['.bmp'], description:'BMP Image (*.bmp)'); break
-    			case 'SVG':  filter = new CustomFileFilter(extensions:['.svg'], description:'SVG IMage (*.svg)'); break
+    			case 'SVG':  filter = new CustomFileFilter(extensions:['.svg'], description:'SVG Image (*.svg)'); break
     		}
     		def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], app.appFrames[0])
     		if (file) { model.filePath = file.absolutePath }
-    	}
+    	},
+		'export': { 
+			doOutside {
+				view.exportBtn.enabled = false // disable to prevent starting a parallel Export
+				export()
+				view.exportBtn.enabled = true
+			}
+		}
     ]
 
-    def show() {
-    	if (Dialogs.showCustomDialog(model.title, view.root, app.appFrames[0])) {
-    		def project = model.project
+	def export() {
+		def project = model.project
 
-    		// get our containers
-    		def containers = app.controllers['exportDiagramSections'].copyContainers()
-    		boolean appendName = containers.size() > 1
+		// get our containers
+		def containers = app.controllers['exportDiagramSections'].copyContainers()
+		boolean appendName = containers.size() > 1
 
-			// select a scene
-			def scene
-			if (project.scenes) {
-				scene = SceneUtils.fromXML(project.scenes[0])
-			}
-			if (!scene) {
-				scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
-			}
-			scene.scalingFactor = 1000
+		// select a scene
+		def scene
+		if (project.scenes) {
+			scene = SceneUtils.fromXML(project.scenes[0])
+		}
+		if (!scene) {
+			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
+		}
+		scene.scalingFactor = 1000
+		
+		// export each container
+		containers.eachWithIndex { k, v, index ->
+			view.progress.value = (index / containers.size() * 100).intValue()
+			view.progress.string = "Exporting $k"
 			
-    		// export each container
-    		containers.each { k, v ->
-				def sectionTop = 0.0
-				def section = v.models.find { it.modelType == 'Section' }
-				if (section) {
-					sectionTop = section.top
-					GeoUtils.adjustUp(v, sectionTop)
-				}
-				final String sectionName = section?.name
-				
-    			// validate our scene
-    			scene.models = v
-    			scene.validate()
-				
-    			// figure out the extents
-    			def start = model.exportAll ? scene.contentSize.minY / scene.scalingFactor : model.start as Double
-    			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
-    			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, 1)
-    			def paper = Paper.getDefault()	// TODO: handle DPI
+			def sectionTop = 0.0
+			def section = v.models.find { it.modelType == 'Section' }
+			if (section) {
+				sectionTop = section.top
+				GeoUtils.adjustUp(v, sectionTop)
+			}
+			final String sectionName = section?.name
+			
+			// validate our scene
+			scene.models = v
+			scene.validate()
+			
+			// figure out the extents
+			def start = model.exportAll ? scene.contentSize.minY / scene.scalingFactor : model.start as Double
+			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
+			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, 1)
+			def paper = Paper.getDefault()	// TODO: handle DPI
 
-    			// figure out the file name
-    			def name = model.file?.name ?: k
-    			int i = name.lastIndexOf('.')
-    			if (i == -1) {
-    				name = "${name}${appendName ? '_' + k : ''}.${view.format.selectedItem.toLowerCase()}"
-    			} else {
-    				name = name[0..<i] + (appendName ? "_$k" : '') + name[i..-1]
-    			}
-				
-				// render
-    			def format
-    			switch (view.format.selectedItem) {
-    				case 'PDF': format = 'PDF'; break
-    				case 'SVG': format = 'SVG'; break
-    				default: format = 'Raster'
-    			}
-				
-				// set rendering parameters
-				if (!format.equals('Raster')) {
-					// when rendering PDF or SVG, embed full-resolution image scaled to track bounds
-					def imageTrack = scene.tracks.find { it instanceof ImageTrack }
-					if (imageTrack) { imageTrack.setParameter("embed-image", "true") }
-				}
+			// figure out the file name
+			def name = model.file?.name ?: k
+			int i = name.lastIndexOf('.')
+			if (i == -1) {
+				name = "${name}${appendName ? '_' + k : ''}.${view.format.selectedItem.toLowerCase()}"
+			} else {
+				name = name[0..<i] + (appendName ? "_$k" : '') + name[i..-1]
+			}
+			
+			// render
+			def format
+			switch (view.format.selectedItem) {
+				case 'PDF': format = 'PDF'; break
+				case 'SVG': format = 'SVG'; break
+				default: format = 'Raster'
+			}
+			
+			// set rendering parameters
+			if (!format.equals('Raster')) {
+				// when rendering PDF or SVG, embed full-resolution image scaled to track bounds
+				def imageTrack = scene.tracks.find { it instanceof ImageTrack }
+				if (imageTrack) { imageTrack.setParameter("embed-image", "true") }
+			}
+
+			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
+				sectionName, new File(Dialogs.currentSaveDir, name))
+		}
+		
+		view.progress.value = 100
+		view.progress.string = "Export complete!"
+	}
 	
-    			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
-					sectionName, new File(Dialogs.currentSaveDir, name))
-    		}
-    		return "Exported " + (containers.size() == 1 ? (containers.keySet() as List)[0] : 'each section')
-    	} else {
-    		return ''
-    	}
-    }
+    def show() { 
+		Dialogs.showCustomOneButtonDialog(model.title, view.root, app.appFrames[0])
+		return ''
+	}
 }

@@ -62,8 +62,8 @@ class OccurrenceTrack extends GeologyTrack {
 
 	def layout(Model m) {
 		// need to re-layout if scalingFactor or image has changed, otherwise use cached values
-		if (cache[m] && scene.scalingFactor == cache[m].scalingFactor && 
-			cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL) { 
+		if (cache[m] && scene.scalingFactor == cache[m].scalingFactor &&
+			((cache[m].image == null) || (cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL))) { 
 			return cache[m].bounds
 		}
 

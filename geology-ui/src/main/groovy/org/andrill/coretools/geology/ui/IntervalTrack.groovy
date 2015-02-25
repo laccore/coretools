@@ -59,8 +59,8 @@ class IntervalTrack extends GeologyTrack {
 
 	void renderSelected(Model model, GraphicsContext graphics, Rectangle2D bounds) {
 		graphics.pushState()
-		graphics.lineThickness = 1
-		graphics.lineColor = Color.yellow
+		graphics.lineThickness = 2
+		graphics.lineColor = Color.red
 
 		// render our outline
 		graphics.drawPolygon(getOutline(model))

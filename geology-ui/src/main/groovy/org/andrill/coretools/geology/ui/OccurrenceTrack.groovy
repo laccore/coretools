@@ -18,7 +18,7 @@ package org.andrill.coretools.geology.ui
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Rectangle
-import java.awt.geom.Rectangle2Dimport java.math.RoundingModeimport org.andrill.coretools.geology.models.Occurrence
+import java.awt.geom.Rectangle2Dimport java.math.RoundingModeimport org.andrill.coretools.geology.models.*
 import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.geology.ui.event.MovePolicy
@@ -61,8 +61,11 @@ class OccurrenceTrack extends GeologyTrack {
 	}
 
 	def layout(Model m) {
-		// need to re-layout if scalingFactor has changed, otherwise use cached values
-		//if (cache[m] && scene.scalingFactor == cache[m].scalingFactor && cache[m].image != null) { return cache[m].bounds }
+		// need to re-layout if scalingFactor or image has changed, otherwise use cached values
+		if (cache[m] && scene.scalingFactor == cache[m].scalingFactor && 
+			cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL) { 
+			return cache[m].bounds
+		}
 
 		// base model bounds
 		int ss = symbolSize
@@ -70,7 +73,8 @@ class OccurrenceTrack extends GeologyTrack {
 		if (r.height < ss) { r = rect(r.x, r.y - (ss - r.height)/2, r.width, ss) }
 
 		// adjust for overlap
-		def intersecting = index.get(mmin(m) - 1, mmax(m)).findAll(filter) as List
+		def offset = new Length("1 m").to(units).value
+		def intersecting = index.get(mmin(m) - offset, mmax(m)).findAll(filter) as List
 		int index = intersecting.indexOf(m)
 		if (index > 0) {
 			def overlap = intersecting[0..index - 1].find { r.intersects(layout(it)) }
@@ -82,8 +86,7 @@ class OccurrenceTrack extends GeologyTrack {
 
 		// cache the results
 		def entry = getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code)
-		//println "Occurrence.layout(), got scheme entry $entry"
-		cache[m] = new CachedOccurrence(bounds: r, image: entry == null ? null : entry.imageURL, scalingFactor: scene.scalingFactor)
+		cache[m] = new CachedOccurrence(bounds: r, image: entry == null ? null : entry?.imageURL, scalingFactor: scene.scalingFactor)
 		return r
 	}
 		
@@ -149,20 +152,23 @@ class OccurrenceTrack extends GeologyTrack {
 
 	void modelAdded(Model m) {
 		//super.modelAdded(m)
-		index.get(mmin(m) - 1, mmax(m) + 1).findAll(filter).each { cache.remove(it) }
+		def offset = new Length("1 m").to(units).value
+		index.get(mmin(m) - offset, mmax(m) + offset).findAll(filter).each { cache.remove(it) }
 		invalidate()
 	}
 	void modelRemoved(Model m) {
 		//super.modelRemoved(m)
-		index.get(mmin(m) - 1, mmax(m) + 1).findAll(filter).each { cache.remove(it) }
+		def offset = new Length("1 m").to(units).value
+		index.get(mmin(m) - offset, mmax(m) + offset).findAll(filter).each { cache.remove(it) }
 		invalidate()
 	}
 	void modelUpdated(Model m) {
 		//super.modelUpdated(m);
+		def offset = new Length("1 m").to(units).value
 		def r = cache[m]?.bounds
 		if (r) {
-			def min = phys(r.minY, bounds) - 1
-			def max = phys(r.maxY, bounds) + 1
+			def min = phys(r.minY, bounds) - offset
+			def max = phys(r.maxY, bounds) + offset
 			index.get(min, max).findAll(filter).each { cache.remove(it) }
 		}
 		invalidate()

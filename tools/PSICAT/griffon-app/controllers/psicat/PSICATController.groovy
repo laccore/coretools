@@ -238,7 +238,15 @@ class PSICATController {
 					model.openDiagrams << diagram
 					view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
 					view.diagrams.selectedIndex = model.openDiagrams.size() - 1
-					diagram.model.scene.scalingFactor = (view.diagrams.size.height / diagram.model.scene.contentSize.height) * 4
+					
+					// Force contentHeight to integer meters, then convert back to current units to compute scalingFactor.
+					// This ensures initial ImageTrack width is consistent regardless of current units. Resolves issue
+					// of ImageTrack using entire width of diagram when current unit is cm or in.  
+					def contentHeight = diagram.model.scene.contentSize.height
+					def intMeterHeight = Math.ceil(new Length(contentHeight, diagram.model.units).to('m').value)
+					def normalizedHeight = new Length(intMeterHeight, 'm').to(diagram.model.units).value
+					diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
+					
 					model.status = "Opened section '${diagram.model.name}'"
 				} else {
 					destroyMVCGroup(id)

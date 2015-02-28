@@ -63,7 +63,7 @@ application(title:"PSICAT ${app.applicationProperties['app.version']}", id:'main
 	// content area
 	splitPane(orientation: JSplitPane.HORIZONTAL_SPLIT, dividerLocation: 200, resizeWeight: 0.0, border: emptyBorder(5), constraints:'grow') {
 		widget(id:'sidePanel', buildMVCGroup('Project', 'project', openHandler: { evt, mvc -> controller.actions.openSection(evt) }).view.root)
-		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 400, resizeWeight: 0.50, border: emptyBorder(0), constraints: 'grow') {
+		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: mainHeight * 0.65, resizeWeight: 0.65, border: emptyBorder(0), constraints: 'grow') {
 			tabbedPane(id:'diagrams', constraints: 'grow')
 		    scrollPane(constraints: 'grow', border: emptyBorder(0)) {
 		    	widget(id:'propertiesPanel', propertiesPanel)

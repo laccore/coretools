@@ -282,6 +282,13 @@ public class GraphicsContext implements Driver {
 	public void drawString(final double x, final double y, final Font font, final String string) {
 		drawString(new Point2D.Double(x, y), font, string);
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void drawStringRotated(final Point2D point, final Font font, final String string, final double theta) {
+		driver.drawStringRotated(point, font, string, theta);
+	}
 
 	/**
 	 * {@inheritDoc}

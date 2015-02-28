@@ -23,6 +23,7 @@ import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.TexturePaint;
@@ -407,6 +408,17 @@ public class Java2DDriver implements Driver {
 		prepareDraw();
 		g2d.setFont(font);
 		g2d.drawString(string, (int) point.getX(), (int) point.getY() + font.getSize());
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void drawStringRotated(Point2D point, Font font, String string, double theta) {
+		AffineTransform oldTransform = g2d.getTransform();
+		g2d.translate(point.getX(), point.getY());
+		g2d.rotate(theta);
+		drawString(new Point(0, 0), font, string);
+		g2d.setTransform(oldTransform);
 	}
 
 	private void fill(final Shape s) {

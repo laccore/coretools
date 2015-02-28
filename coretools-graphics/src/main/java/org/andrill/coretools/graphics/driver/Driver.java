@@ -150,6 +150,20 @@ public interface Driver {
 	void drawString(Point2D point, Font font, String string);
 
 	/**
+	 * Draws a string, rotated by the specified angle.
+	 * 
+	 * @param point
+	 *            the point,
+	 * @param font
+	 *            the font.
+	 * @param string
+	 *            the string.
+	 * @param theta
+	 *            the angle of rotation, in radians.
+	 */
+	void drawStringRotated(Point2D point, Font font, String string, double theta);
+
+	/**
 	 * Fills an arc.
 	 * 
 	 * @param bounds

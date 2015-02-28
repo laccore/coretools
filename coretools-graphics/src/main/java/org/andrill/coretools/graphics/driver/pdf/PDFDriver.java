@@ -431,6 +431,13 @@ public class PDFDriver implements Driver {
 		        0);
 		content.endText();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void drawStringRotated(final Point2D point, final Font font, final String string, final double theta) {
+		// stub for now to satisfy compiler, PDFDriver isn't complete
+	}
 
 	protected void fill(final Shape shape) {
 

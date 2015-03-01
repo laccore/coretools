@@ -15,6 +15,12 @@
  */
 package psicat.dialogs
 
+import javax.swing.JOptionPane
+
+import org.andrill.coretools.model.edit.CommandStack
+import org.andrill.coretools.model.edit.CompositeCommand
+import org.andrill.coretools.geology.GCommand
+
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.model.scheme.Scheme
 import org.andrill.coretools.model.scheme.SchemeEntry
@@ -25,70 +31,92 @@ import psicat.util.*
 class FindReplaceController {
     def model
     def view
-    def project
 	def SchemeEntryWidget findWidget, replaceWidget
 	def findUI, replaceUI // transient objects for view creation - probably a better way
 
     void mvcGroupInit(Map args) {
-    	project = args.project
 		findWidget = args.findWidget
 		replaceWidget = args.replaceWidget
 		findUI = findWidget.getEditableUI()
 		replaceUI = replaceWidget.getEditableUI()
-    }
 
-	void findAndReplace(findEntry, replaceEntry) {
-		if (findEntry.scheme.type != replaceEntry.scheme.type) {
-			Dialogs.showErrorDialog('Error', "Selected Find and Replace scheme types must match.")
-			return
+		model.project = args.project
+		model.commandStack = new CommandStack(true)
+    }
+	
+	def openContainer(containerName) {
+		def container = null
+		if (containerName in model.containers) {
+			container = model.containers[containerName]
+		} else {
+			container = model.project.openContainer(containerName)
+			model.containers[containerName] = container
 		}
-		
-		project.containers.each { containerName ->
-			//print "searching container $containerName "
-			def container = project.openContainer(containerName)
-			def needSave = false
-			
+		return container
+	}
+	
+	void findAndReplace(findEntry, replaceEntry) {
+		def commands = []
+		model.project.containers.each { containerName ->
+			def container = openContainer(containerName)
 			def modelIterator = container.iterator()
 			while (modelIterator.hasNext()) {
 				GeologyModel mod = modelIterator.next()
 				def modelType = (findEntry.scheme.type == "lithology" ? "Interval" : "Occurrence")
 				def keyName = (findEntry.scheme.type == "lithology" ? "lithology" : "scheme")
-				//print "found model ${mod.modelType}...scheme type = $modelType "
 				if (mod.modelType.equals(modelType)) {
 					def uid = findEntry.scheme.id + ':' + findEntry.code
-					//print "found, lithology = ${mod.modelData.lithology}, uid = $uid..."
 					if (mod.modelData[keyName].equals(uid)) {
-						//println "match, updating!"
-						mod.setProperty(keyName, replaceEntry.scheme.id + ':' + replaceEntry.code)
-						needSave = true
-						container.update(mod)
-						//println "updated model props: ${mod.modelData}"
+						
+						// using GCommand rather than directly modifying model grants undo/redo powers! 
+						def replaceId = replaceEntry.scheme.id + ':' + replaceEntry.code
+						commands << new GCommand(source: mod, prop: keyName, value: replaceId, old: uid)
+						
+						model.containersToSave << container
 					}
 				}
 			}
-			
-			if (needSave) project.save(container)
-			project.closeContainer(container)
+		}
+
+		if (commands.size() > 0) {
+			def compCommand = new CompositeCommand("Find and Replace", *commands)
+			model.commandStack.execute(compCommand)
+			updateUndoButton()
 		}
 	}
 	
+	def getFindEntry() { return findWidget.getEntry(findWidget.getWidgetValue()) }
+	def getReplaceEntry() { return replaceWidget.getEntry(replaceWidget.getWidgetValue()) }
+	def updateUndoButton() { view.undoButton.enabled = model.commandStack.canUndo() }
+	
     def actions = [
 		'replace': { evt = null ->
-			def proceed = Dialogs.showCustomDialog("Confirm Find and Replace",
-				"This operation will modify all matching items in the project and cannot be undone. Are you sure you want to proceed?");
-			if (proceed) {
-				final String findCode = findWidget.getWidgetValue()
-				final String replaceCode = replaceWidget.getWidgetValue()
-				SchemeEntry findEntry = findWidget.getEntry(findCode)
-				SchemeEntry replaceEntry = replaceWidget.getEntry(replaceCode)
-				findAndReplace(findEntry, replaceEntry)
+			SchemeEntry findEntry = getFindEntry()
+			SchemeEntry replaceEntry = getReplaceEntry()
+			if (findEntry.scheme.type != replaceEntry.scheme.type) {
+				Dialogs.showErrorDialog("Error", "Find and replace items must be the same type.")
+				return
 			}
+			view.replaceButton.enabled = false
+			findAndReplace(findEntry, replaceEntry)
+			view.replaceButton.enabled = true
+		},
+		'undo': { evt = null ->
+			model.commandStack.undo()
+			updateUndoButton()
 		}
     ]	
 
     def show() {
-    	if (Dialogs.showCustomDialog("Find and Replace", view.root, app.appFrames[0])) {
-			println "okayed out of replace land!"
-    	}
-    }
+		def saveChanges = JOptionPane.showOptionDialog(app.appFrames[0], view.root, "Find and Replace", JOptionPane.OK_CANCEL_OPTION,
+			JOptionPane.PLAIN_MESSAGE, null, ['Save Changes and Close', 'Cancel Changes and Close'].toArray(), null) == JOptionPane.OK_OPTION
+		if (saveChanges) {
+			model.containersToSave.each { 
+				model.project.save(it)
+			}
+		} else {
+			while (model.commandStack.canUndo()) { model.commandStack.undo() }
+		}
+		model.containers.each { k, v -> model.project.closeContainer(v) }
+	}
 }

@@ -19,8 +19,13 @@ import java.io.File
 
 import groovy.beans.Bindable
 
+import org.andrill.coretools.model.edit.CommandStack
+
 import psicat.util.Dialogs
 
-@Bindable class FindReplaceModel {
-
+class FindReplaceModel {
+	def project = null
+	@Bindable CommandStack commandStack = null
+	def containers = [:]
+	def containersToSave = new HashSet()
 }

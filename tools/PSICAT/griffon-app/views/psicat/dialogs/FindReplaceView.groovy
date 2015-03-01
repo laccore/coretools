@@ -25,7 +25,8 @@ import net.miginfocom.swing.MigLayout
 import psicat.util.*
 
 actions {
-	action(id: 'replaceAction', name:'Replace', closure: controller.actions.replace)
+	action(id:'replaceAction', name:'Replace', closure: controller.actions.replace)
+	action(id:'undoAction', name:'Undo', enabled:false, closure: controller.actions.undo)
 }
 
 panel(id:'root', layout: new MigLayout('fill, wrap 2'), border: etchedBorder()) {
@@ -33,5 +34,9 @@ panel(id:'root', layout: new MigLayout('fill, wrap 2'), border: etchedBorder()) 
 	widget(id:'findPanel', controller.findUI)
 	label('Replace:')
 	widget(id:'replacePanel', controller.replaceUI)
-	button(id:'replaceButton', action: replaceAction, constraints:'span 2')
+	
+	panel(layout:new MigLayout('', '[grow][]', ''), constraints:'span 2, growx') {
+		button(id:'replaceButton', action: replaceAction, constraints:'align right')
+		button(id:'undoButton', action: undoAction, constraints:'align right')
+	}
 }

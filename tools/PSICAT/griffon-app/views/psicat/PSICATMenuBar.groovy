@@ -19,8 +19,11 @@ import static griffon.util.GriffonApplicationUtils.*
 
 menuBar(id: 'menuBar') {
 	menu(text: 'File', mnemonic: 'F') {
-		menuItem(newProjectAction)
-		menuItem(newSectionAction)
+		menu(text: 'New') {
+			menuItem(newProjectAction)
+			menuItem(importImageAction)
+			menuItem(newSectionAction)
+		}
 		menuItem(openProjectAction)
 		menuItem(closeProjectAction)
 		// brg 4/6/2014: Changes to scheme handling likely mean DIS projects are going to misbehave,
@@ -35,8 +38,7 @@ menuBar(id: 'menuBar') {
 		separator()
 		menuItem(deleteSectionAction)
 		separator()
-		menuItem(importImageAction)
-		// brg 2/18/2015: tabular output format has changed, no one is using Legacy anything.
+		// brg 2/18/2015: hide for now: tabular format changed, no need for legacy import at present
 //		menu(text: 'Import', enabled: bind { model.project != null }) {
 //			menuItem(importImageAction)
 //			menuItem(importTabularAction)
@@ -67,8 +69,8 @@ menuBar(id: 'menuBar') {
 
 
 	menu(text: 'View', mnemonic:'V') {
-		menuItem(rotateAction)
-		separator()
+		//menuItem(rotateAction)
+		//separator()
 		menuItem(zoomInAction)
 		menuItem(zoomOutAction)
 		menu(text: 'Zoom Level', enabled: bind { model.scene != null }) {
@@ -90,7 +92,7 @@ menuBar(id: 'menuBar') {
 
 	menu(text: 'Help', mnemonic:'H') {
 		menuItem(aboutAction)
-		menuItem(documentationAction)
-		menuItem(feedbackAction)
+		//menuItem(documentationAction)
+		//menuItem(feedbackAction)
 	}
 }

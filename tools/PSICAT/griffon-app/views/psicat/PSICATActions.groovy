@@ -25,14 +25,22 @@ actions {
 	)
 	action(
 		id: 'newProjectAction',
-		name: 'New Project...',
+		name: 'Project...',
 		closure: controller.actions['newProject'],
 		accelerator: shortcut('N', 1),
 		shortDescription: 'Create a new project'
 	)
 	action(
+		id: 'importImageAction',
+		name: 'Section(s) from Images...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['importImage'],
+		accelerator: shortcut('I'),
+		shortDescription: 'Create sections from image data'
+	)
+	action(
 		id: 'newSectionAction',
-		name: 'New Section...',
+		name: 'Section...',
 		closure: controller.actions['newSection'],
 		enabled: bind { model.project != null },
 		accelerator: shortcut('N'),
@@ -59,7 +67,7 @@ actions {
 	)
 	action(
 		id: 'closeAction',
-		name: 'Close',
+		name: 'Close Section',
 		enabled: bind { model.activeDiagram != null },
 		closure: controller.actions['close'],
 		accelerator: shortcut('W'),
@@ -67,7 +75,7 @@ actions {
 	)
 	action(
 		id: 'closeAllAction',
-		name: 'Close All',
+		name: 'Close All Sections',
 		enabled: bind { model.activeDiagram != null },
 		closure: controller.actions['closeAll'],
 		accelerator: shortcut('W', 1),
@@ -75,7 +83,7 @@ actions {
 	)
 	action(
 		id: 'saveAction',
-		name: 'Save',
+		name: 'Save Section',
 		enabled: bind { model.activeDiagram != null && model.diagramState.dirty },
 		closure: controller.actions['save'],
 		accelerator: shortcut('S'),
@@ -83,7 +91,7 @@ actions {
 	)
 	action(
 		id: 'saveAllAction',
-		name: 'Save All',
+		name: 'Save All Sections',
 		enabled: bind { model.diagramState.dirty || model.anyDirty },
 		closure: controller.actions['saveAll'],
 		accelerator: shortcut('S', 1),
@@ -279,13 +287,6 @@ actions {
 		enabled: bind { model.project != null },
 		closure: controller.actions['exportStratColumn'],
 		shortDescription: 'Export strat column as PDF'
-	)
-	action(
-		id: 'importImageAction',
-		name: 'Import Images...',
-		enabled: bind { model.project != null },
-		closure: controller.actions['importImage'],
-		shortDescription: 'Import images into the project'
 	)
 	action(
 		id: 'importLegacyAction',

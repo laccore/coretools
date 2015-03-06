@@ -33,15 +33,17 @@ def prefs = Preferences.userNodeForPackage(PSICATController)
 if (prefs.getBoolean('psicat.promptReopenLastProject', true)) {
 	String name = prefs.get('psicat.lastProjectName', null)
 	String path = prefs.get('psicat.lastProjectPath', null)
-	File projectFile = new File(new URL(path).toURI())
-	if (name && path && projectFile.exists()) {
-		JCheckBox prompt = new JCheckBox('Never prompt to re-open projects');
-		if (JOptionPane.showOptionDialog(app.appFrames[0], ["Re-open last project: '$name'\n\n", prompt] as Object[], "Re-open '$name'", 
-				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null) == JOptionPane.YES_OPTION) {
-			app.controllers.PSICAT.openProject(new DefaultProject(projectFile))	
-		}
-		if (prompt.isSelected()) {
-			prefs.putBoolean('psicat.promptReopenLastProject', false)
+	if (name && path) {
+		File projectFile = new File(new URL(path).toURI())
+		if (projectFile.exists()) {
+			JCheckBox prompt = new JCheckBox('Never prompt to re-open projects');
+			if (JOptionPane.showOptionDialog(app.appFrames[0], ["Re-open last project: '$name'\n\n", prompt] as Object[], "Re-open '$name'", 
+					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null) == JOptionPane.YES_OPTION) {
+				app.controllers.PSICAT.openProject(new DefaultProject(projectFile))	
+			}
+			if (prompt.isSelected()) {
+				prefs.putBoolean('psicat.promptReopenLastProject', false)
+			}
 		}
 	}
 }

@@ -33,7 +33,8 @@ class SchemeEditorController implements ListSelectionListener {
     def view
     
     private SchemeHelper helper
-    static File currentDir = new File(System.getProperty("user.home"))
+    static File currentOpenDir = new File(System.getProperty("user.home"))
+	static File currentSaveDir = new File(System.getProperty("user.home"))
 
     void mvcGroupInit(Map args) {
     	helper = new SchemeHelper()
@@ -75,11 +76,11 @@ class SchemeEditorController implements ListSelectionListener {
      * Open an existing scheme file.
      */
     def open = { evt = null ->
-	    def fc = new JFileChooser(currentDir)
+	    def fc = new JFileChooser(currentOpenDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
 	    if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
-	       currentDir = fc.currentDirectory
+	       currentOpenDir = fc.currentDirectory
 	       updateSchemeFile(fc.selectedFile)
 	       
 	       // parse our file
@@ -157,11 +158,11 @@ class SchemeEditorController implements ListSelectionListener {
      * Save the scheme, prompting the user for a filename.
      */
     def saveAs = { evt = null ->
-	    def fc = new JFileChooser(currentDir)
+	    def fc = new JFileChooser(currentSaveDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
 	    if (fc.showDialog(app.appFrames[0], "Save") == JFileChooser.APPROVE_OPTION) {
-			currentDir = fc.currentDirectory
+			currentSaveDir = fc.currentDirectory
 			updateSchemeFile(fc.selectedFile)
 			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
 				entries:model.schemeEntries], model.schemeFile)
@@ -174,10 +175,11 @@ class SchemeEditorController implements ListSelectionListener {
 	 * Export the current scheme's entries as a PDF "catalog" 
 	 */
 	def exportCatalog = { evt = null ->
-		def fc = new JFileChooser(currentDir)
+		def fc = new JFileChooser(currentSaveDir)
 		fc.fileSelectionMode = JFileChooser.FILES_ONLY
 		fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.pdf'], description:'PDF Files (*.pdf)'))
 		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
+			currentSaveDir = fc.currentDirectory
 			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
 			helper.exportCatalog(destFile, model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
 		}
@@ -322,11 +324,11 @@ class SchemeEditorController implements ListSelectionListener {
     }
     
     def customImage = { evt = null ->
-	    def fc = new JFileChooser(currentDir)
+	    def fc = new JFileChooser(currentOpenDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: helper.IMAGE_EXTENSIONS, description: 'Images'))
 	    if ( fc.showDialog(app.appFrames[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
-	    	currentDir = fc.currentDirectory
+	    	currentOpenDir = fc.currentDirectory
 	    	def f = fc.selectedFile
 	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm())]
 	    	model.standardImages << m

@@ -17,7 +17,15 @@
 import java.util.prefs.Preferences
 
 def prefs = Preferences.userNodeForPackage(SchemeEditorController)
+
+// save window size and position
 def mainViewDims = app.views.SchemeEditor.mainView.size
 prefs.putDouble('schemeEditor.mainViewWidth', mainViewDims.width)
 prefs.putDouble('schemeEditor.mainViewHeight', mainViewDims.height)
-prefs.put('schemeEditor.lastDir', app.controllers.SchemeEditor.currentDir.absolutePath)
+def mainViewLoc = app.views.SchemeEditor.mainView.location
+prefs.putDouble('schemeEditor.mainViewX', mainViewLoc.x)
+prefs.putDouble('schemeEditor.mainViewY', mainViewLoc.y)
+
+// save last open and save directory
+prefs.put('schemeEditor.lastOpenDir', app.controllers.SchemeEditor.currentOpenDir.absolutePath)
+prefs.put('schemeEditor.lastSaveDir', app.controllers.SchemeEditor.currentSaveDir.absolutePath)

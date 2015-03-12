@@ -33,8 +33,12 @@
  */
 
 import java.util.prefs.Preferences
-  
-def lastDir = new File(Preferences.userNodeForPackage(SchemeEditorController).get('schemeEditor.lastDir', System.getProperty("user.home")))
-if (lastDir.exists() && lastDir.isDirectory()) {
-    app.controllers.SchemeEditor.currentDir = lastDir
+ 
+def getDirPref(prefKey) {
+	def dir = new File(Preferences.userNodeForPackage(SchemeEditorController).get(prefKey, System.getProperty("user.home")))
+	return (dir.exists() && dir.isDirectory()) ? dir : new File(System.getProperty("user.home"))
 }
+
+// restore the last open and save directories
+app.controllers.SchemeEditor.currentOpenDir = getDirPref('schemeEditor.lastOpenDir')
+app.controllers.SchemeEditor.currentSaveDir = getDirPref('schemeEditor.lastSaveDir')

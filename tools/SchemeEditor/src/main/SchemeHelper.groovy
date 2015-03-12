@@ -47,7 +47,7 @@ public class SchemeHelper {
 			def rgb = color.split(",")
 			return new Color(rgb[0] as int, rgb[1] as int, rgb[2] as int)
 		} else {
-			return null
+			return Color.WHITE // default to white for null Color as we do in PSICAT
 		}
     }
 	
@@ -278,13 +278,11 @@ public class SchemeHelper {
 	}
 	
 	def exportCatalog(destFile, schemeEntries, schemeType, schemeName, schemeId) {
-		def isLithology = (schemeType == "lithology") // else "symbol"
-		
 		final int TITLE_HEIGHT = 30
 		final int MARGIN = 36 // 1/2"
 		final int entriesPerRow = 4
 		final int entryWidth = 130
-		final int entryTextHeight = 30 // leave space for text
+		final int entryTextHeight = 40 // space below entry image for entry name, image info
 		final int entryPadding = 5
 		final int width = 612 // 8.5" wide
     	final int height = (schemeEntries.size() / entriesPerRow + 1) * (entryWidth + entryTextHeight) + TITLE_HEIGHT
@@ -310,7 +308,7 @@ public class SchemeHelper {
 			def x = MARGIN + col * (entryWidth + entryPadding)
 			def y = MARGIN + TITLE_HEIGHT + row * (entryWidth + entryTextHeight)
 
-			if (isLithology) { 
+			if (schemeType == "lithology") {
 				g2.setPaint(parseColor(entry.color))
 				g2.fillRect(x, y, entryWidth, entryWidth)
 			}
@@ -322,18 +320,22 @@ public class SchemeHelper {
 				println "Couldn't load image ${entry.image}"
 			}
 			if (image) {
-				def wid = isLithology ? entryWidth : image.width
-				def hit = isLithology ? entryWidth : image.height
-				g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(0, 0, wid, hit)))
+				g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
 				g2.fillRect(x, y, entryWidth, entryWidth)
 			}
-			
+
+			// draw entry name, image info			
 			g2.setPaint(Color.BLACK)
-			def lines = wrap(entry.name, fontMetrics, entryWidth)
-			lines.eachWithIndex { line, curLine ->
+			def nameLines = wrap(entry.name, fontMetrics, entryWidth)
+			def imgName = entry.image.substring(entry.image.lastIndexOf('/') + 1)
+			def imgInfo = "image: $imgName ($image.width x $image.height)"
+			def imgLines = wrap(imgInfo, fontMetrics, entryWidth)
+			
+			(nameLines + imgLines).eachWithIndex { line, curLine ->
 				g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
 			}
 
+			// advance column and row
 			col++
 			if (col >= entriesPerRow) {
 				row++

@@ -177,6 +177,7 @@ class SchemeEditorController implements ListSelectionListener {
 	def exportCatalog = { evt = null ->
 		def fc = new JFileChooser(currentSaveDir)
 		fc.fileSelectionMode = JFileChooser.FILES_ONLY
+		fc.selectedFile = new File("${view.schemeName.text}")
 		fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.pdf'], description:'PDF Files (*.pdf)'))
 		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
 			currentSaveDir = fc.currentDirectory

@@ -35,10 +35,10 @@ class ChooseSchemesDialogController {
 
     def actions = [
 	    'add': { evt = null ->
-	    	def schemeFile = Dialogs.showOpenDialog("Select Scheme", new CustomFileFilter(extensions: ['.jar'],
+	    	def schemeFiles = Dialogs.showOpenMultipleDialog("Select Scheme", new CustomFileFilter(extensions: ['.jar'],
 				description: 'Scheme Files (*.jar)'), app.appFrames[0])
-			if (schemeFile) {
-				def newScheme = ProjectLocal.addScheme(schemeFile)
+			schemeFiles?.each {
+				def newScheme = ProjectLocal.addScheme(it)
 				if (newScheme) {
 					model.addedSchemes.add(newScheme)
 					model.schemes.add(newScheme)

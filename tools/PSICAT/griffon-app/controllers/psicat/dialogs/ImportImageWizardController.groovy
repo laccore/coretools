@@ -118,7 +118,7 @@ class ImportImageWizardController {
 	private def compileImages() {
 		if (model.imageFiles) {
 			double depth = model.parseTop ? -1.0 : model.top as Double
-			int dpi = model.parseBase ? -1 : model.dpi as Integer
+			def dpi = model.parseBase ? -1 : model.dpi as BigDecimal
 			
 			def images = new BasicEventList()
 			def regex = ~/([0-9]*\.[0-9]+)/

@@ -9,5 +9,5 @@ dependencies {
     compile project(":coretools-graphics")
 	compile project(":coretools-scene")
 	compile 'com.miglayout:miglayout:3.7'
-	compile 'net.java.dev.glazedlists:glazedlists_java15:1.7.0'
+	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
 }

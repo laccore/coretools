@@ -24,6 +24,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
 import org.andrill.coretools.model.edit.EditableProperty;
@@ -34,7 +36,7 @@ import org.andrill.coretools.ui.widget.AbstractWidget;
  * 
  * @author Josh Reed (jareed@andrill.org)
  */
-public class TextWidget extends AbstractWidget implements FocusListener, ActionListener {
+public class TextWidget extends AbstractWidget implements FocusListener, ActionListener, DocumentListener {
 	protected JTextComponent component = null;
 
 	/**
@@ -60,12 +62,25 @@ public class TextWidget extends AbstractWidget implements FocusListener, ActionL
 	public void focusLost(final FocusEvent e) {
 		fireChange();
 	}
+	
+	public void insertUpdate(DocumentEvent e) {
+		fireChange();
+	}
+	
+	public void removeUpdate(DocumentEvent e) {
+		fireChange();
+	}
+	
+	public void changedUpdate(DocumentEvent e) {
+		fireChange();
+	}
 
 	@Override
 	protected JTextComponent getEditableUI() {
 		if (component == null) {
 			if (TEXTAREA_TYPE.equalsIgnoreCase(property.getWidgetType())) {
 				JTextArea widget = new JTextArea(property.getValue(), 3, 40);
+				widget.getDocument().addDocumentListener(this);
 				widget.setLineWrap(true);
 				widget.setWrapStyleWord(true);
 				component = widget;

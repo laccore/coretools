@@ -104,8 +104,6 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	protected SelectionProvider selectionProvider = DEFAULT_PROVIDER;
 	protected int scrollUnits = 20;
 	
-	protected boolean handleMouse = true; // handle/ignore mouse clicks - see brg 12/12/2014 in PSICATController.groovy 
-
 	/**
 	 * Create a new ScenePanel.
 	 */
@@ -149,9 +147,6 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 		addKeyListener(this);
 	}
 
-	public void disableMouseHandling() { handleMouse = false; }
-	public void enableMouseHandling() { handleMouse = true; }
-	
 	public void adjustmentValueChanged(final AdjustmentEvent e) {
 		if (!repainting.getAndSet(true)) {
 			SwingUtilities.invokeLater(new Runnable() {
@@ -373,7 +368,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 
 	public void mouseClicked(final MouseEvent e) {
 		requestFocusInWindow();
-		if (isFocusOwner() && isEditable() && handleMouse) {
+		if (isFocusOwner() && isEditable()) {
 			SceneMouseEvent sme;
 			if ((handler != null) && ((sme = mouseEvent(e)) != null)) {
 				updateFeedback(handler.mouseClicked(sme));
@@ -396,7 +391,6 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 
 	public void mouseEntered(final MouseEvent e) {
-		requestFocusInWindow();
 		updateFeedback(null);
 	}
 
@@ -419,47 +413,41 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 
 	public void mouseMoved(final MouseEvent e) {
-		requestFocusInWindow();
 		if (scene != null) {
 			last = (orientation == Orientation.VERTICAL ? e.getY() : e.getX());
 			height = (int) scene.getContentSize().getHeight();
 		}
-		if (isFocusOwner()) {
-			SceneMouseEvent sme = mouseEvent(e);
-			setToolTipText((sme == null ? null : getToolTip(sme)));
-			if (isEditable()) {
-				if ((handler != null) && (sme != null)) {
-					updateFeedback(handler.mouseMoved(sme));
-				} else {
-					updateFeedback(null);
-				}
+		SceneMouseEvent sme = mouseEvent(e);
+		setToolTipText((sme == null ? null : getToolTip(sme)));
+		if (isEditable()) {
+			if ((handler != null) && (sme != null)) {
+				updateFeedback(handler.mouseMoved(sme));
+			} else {
+				updateFeedback(null);
 			}
 		}
 	}
 
 	public void mousePressed(final MouseEvent e) {
-		requestFocusInWindow();
-		if (isFocusOwner() && handleMouse) {
-			SceneMouseEvent sme = mouseEvent(e);
-			if (sme != null) {
-				Selection selection = selectionProvider.getSelection(scene, sme);
-				if ((selection != null) && (scene != null)) {
-					scene.setSelection(selection);
-				}
+		SceneMouseEvent sme = mouseEvent(e);
+		if (sme != null) {
+			Selection selection = selectionProvider.getSelection(scene, sme);
+			if ((selection != null) && (scene != null)) {
+				scene.setSelection(selection);
 			}
-			if (isEditable()) {
-				if ((handler != null) && ((sme) != null)) {
-					updateFeedback(handler.mousePressed(sme));
-				} else {
-					updateFeedback(null);
-				}
+		}
+		if (isEditable()) {
+			if ((handler != null) && ((sme) != null)) {
+				updateFeedback(handler.mousePressed(sme));
+			} else {
+				updateFeedback(null);
 			}
 		}
 	}
 
 	public void mouseReleased(final MouseEvent e) {
 		requestFocusInWindow();
-		if (isFocusOwner() && isEditable() && handleMouse) {
+		if (isEditable()) {
 			SceneMouseEvent sme;
 			if ((handler != null) && ((sme = mouseEvent(e)) != null)) {
 				updateFeedback(handler.mouseReleased(sme));

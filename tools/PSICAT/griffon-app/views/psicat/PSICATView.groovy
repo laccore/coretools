@@ -52,8 +52,6 @@ application(title:"PSICAT ${app.applicationProperties['app.version']}", id:'main
 			layout: new MigLayout('fill'), 
 			defaultCloseOperation: 0,
 			windowClosing: { evt -> if (controller.canClose(evt)) app.shutdown() },
-			windowActivated: { evt -> controller.enableMouse(evt) },
-			windowDeactivated: { evt -> controller.disableMouse(evt) },
 			iconImage: imageIcon('/psicat-icon-64.png').image, iconImages: [imageIcon('/psicat-icon-64.png').image,
 			imageIcon('/psicat-icon-32.png').image, imageIcon('/psicat-icon-16.png').image]) {
 

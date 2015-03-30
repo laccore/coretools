@@ -36,7 +36,6 @@ import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.misc.util.RenderUtils
-import org.andrill.coretools.ui.ScenePanel
 import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
 import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
@@ -88,33 +87,6 @@ class PSICATController {
 	
 	def getGrainSizeCode() {
 		model.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
-	}
-	
-	// 12/12/2014 brg: retain name to ensure we enable the panel that was actually disabled
-	// (user could click on a different diagram's tab to activate window, so
-	// we can't rely on currently active diagram's name)
-	def disabledPanelName = "" 
-
-	void enableMouse(evt) {
-		// 12/12/2014 brg: fixes an obnoxious bug where clicking to activate window
-		// created a new interval/symbol/unit if you happened to click in a track. 
-		// Wait briefly to enable ScenePanel mouse handling so activate click is ignored. 
-		doOutside {
-			Thread.sleep(200);
-			ScenePanel panel = getMVC(disabledPanelName)?.view?.contents
-			if (panel) {
-				panel.enableMouseHandling()
-				disabledPanelName = ""
-			}
-		}
-	}
-	
-	void disableMouse(evt) {
-		ScenePanel panel = getMVC(model.diagramState.name)?.view?.contents
-		if (panel) { 
-			panel.disableMouseHandling()
-			disabledPanelName = model.diagramState.name
-		}
 	}
 	
 	void openProject(project) {

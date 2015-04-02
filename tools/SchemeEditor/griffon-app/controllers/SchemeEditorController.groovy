@@ -171,10 +171,13 @@ class SchemeEditorController implements ListSelectionListener {
 	    }
     }
 	
+	def exportPaginatedCatalog = { evt = null -> exportCatalog(true) }
+	def exportOnePageCatalog = { evt = null -> exportCatalog(false) }
+	
 	/**
 	 * Export the current scheme's entries as a PDF "catalog" 
 	 */
-	def exportCatalog = { evt = null ->
+	def exportCatalog(paginate) {
 		def fc = new JFileChooser(currentSaveDir)
 		fc.fileSelectionMode = JFileChooser.FILES_ONLY
 		fc.selectedFile = new File("${view.schemeName.text}")
@@ -182,7 +185,7 @@ class SchemeEditorController implements ListSelectionListener {
 		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
 			currentSaveDir = fc.currentDirectory
 			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
-			helper.exportCatalog(destFile, model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
+			helper.exportCatalog(paginate, destFile, model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
 		}
 	}
     

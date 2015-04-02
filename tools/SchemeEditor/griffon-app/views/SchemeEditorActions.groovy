@@ -53,10 +53,16 @@ actions {
 		closure: controller.saveAs
 	)
 	action(
-		id: 'exportCatalogAction',
+		id: 'exportOnePageCatalogAction',
 		name: 'Export Catalog...',
 		enabled: bind { model.schemeValid },
-		closure: controller.exportCatalog
+		closure: controller.exportOnePageCatalog
+	)
+	action(
+		id: 'exportPaginatedCatalogAction',
+		name: 'Export Paginated Catalog...',
+		enabled: bind { model.schemeValid },
+		closure: controller.exportPaginatedCatalog
 	)
 	action( id: 'updateSchemeAction',
 		closure: controller.schemeChanged

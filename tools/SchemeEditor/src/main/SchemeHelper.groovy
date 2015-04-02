@@ -277,73 +277,112 @@ public class SchemeHelper {
 		lines << curLine
 	}
 	
-	def exportCatalog(destFile, schemeEntries, schemeType, schemeName, schemeId) {
-		final int TITLE_HEIGHT = 30
+	// assuming 8.5 x 11" for pagination
+	def exportCatalog(paginate, destFile, schemeEntries, schemeType, schemeName, schemeId) {
+		final int TITLE_HEIGHT = 20
 		final int MARGIN = 36 // 1/2"
 		final int entriesPerRow = 4
 		final int entryWidth = 130
 		final int entryTextHeight = 40 // space below entry image for entry name, image info
 		final int entryPadding = 5
 		final int width = 612 // 8.5" wide
-    	final int height = (schemeEntries.size() / entriesPerRow + 1) * (entryWidth + entryTextHeight) + TITLE_HEIGHT
+		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryWidth + entryTextHeight) + TITLE_HEIGHT
     	
         Document document = new Document(new Rectangle(width, height))
         PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(destFile))
         document.open();
-        PdfContentByte cb = writer.getDirectContent();
-        Graphics2D g2 = cb.createGraphics(width, height);
-
-		// draw title
-		g2.setFont(new Font("SansSerif", Font.PLAIN, 16))
-		def dateStr = new Date().toString()
-		def titleStr = "$schemeName ($schemeId)"
-		g2.drawString(titleStr, MARGIN, MARGIN)
-
-		// draw tiles
-		g2.setFont(new Font("SansSerif", Font.PLAIN, 6))
-		def fontMetrics = g2.fontMetrics
-		def letterHeight = fontMetrics.height
-		def row = 0, col = 0
-		schemeEntries.eachWithIndex { entry, index ->
-			def x = MARGIN + col * (entryWidth + entryPadding)
-			def y = MARGIN + TITLE_HEIGHT + row * (entryWidth + entryTextHeight)
-
-			if (schemeType == "lithology") {
-				g2.setPaint(parseColor(entry.color))
-				g2.fillRect(x, y, entryWidth, entryWidth)
+        PdfContentByte content = writer.getDirectContent();
+		
+		def g2 = null
+		def template = null
+		def lastPage = false
+		
+		def startIdx = 0
+		def entriesPerPage = paginate ? 16 : schemeEntries.size()
+		
+		while (!lastPage) {
+			// start a page
+			if (g2 != null) g2.dispose()
+			if (template != null) {
+				content.addTemplate(template, 0, 0)
+				document.newPage()
 			}
+			template = content.createTemplate(width, height)
+			g2 = content.createGraphics(width, height)
+			g2.translate(MARGIN, MARGIN)
 			
-			def image = null
-			try {
-				image = ImageIO.read(resolve(entry.image))
-			} catch (IOException e) {
-				println "Couldn't load image ${entry.image}"
-			}
-			if (image) {
-				g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
-				g2.fillRect(x, y, entryWidth, entryWidth)
-			}
-
-			// draw entry name, image info			
-			g2.setPaint(Color.BLACK)
-			def nameLines = wrap(entry.name, fontMetrics, entryWidth)
-			def imgName = entry.image.substring(entry.image.lastIndexOf('/') + 1)
-			def imgInfo = "image: $imgName ($image.width x $image.height)"
-			def imgLines = wrap(imgInfo, fontMetrics, entryWidth)
+			// draw title
+			g2.setFont(new Font("SansSerif", Font.PLAIN, 14))
+			def dateStr = new Date().toString()
+			def titleStr = "$schemeName ($schemeId)"
+			g2.drawString(titleStr, 0, 0)
+	
+			// draw tiles
+			g2.setFont(new Font("SansSerif", Font.PLAIN, 10))
+			def fontMetrics = g2.fontMetrics
+			def letterHeight = fontMetrics.height
+			def row = 0, col = 0
 			
-			(nameLines + imgLines).eachWithIndex { line, curLine ->
-				g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
+			def endIdx = startIdx + entriesPerPage - 1
+			if (endIdx >= schemeEntries.size() - 1) {
+				endIdx = schemeEntries.size() - 1
+				lastPage = true
 			}
-
-			// advance column and row
-			col++
-			if (col >= entriesPerRow) {
-				row++
-				col = 0
+			def entries = schemeEntries[startIdx..endIdx]
+			startIdx += entriesPerPage
+			
+			entries.eachWithIndex { entry, index ->
+				def x = col * (entryWidth + entryPadding)
+				def y = TITLE_HEIGHT + row * (entryWidth + entryTextHeight)
+	
+				def color = entry.color ?: Color.white
+				
+				if (schemeType == "lithology") {
+					g2.setPaint(parseColor(entry.color))
+					g2.fillRect(x, y, entryWidth, entryWidth)
+				}
+				
+				if (entry.image) {
+					def image = null
+					try {
+						image = ImageIO.read(resolve(entry.image))
+					} catch (IOException e) {
+						println "Couldn't load image ${entry.image}"
+					}
+					if (image) {
+						println "${entry.image}: tile dims = ${image.tileHeight} x ${image.tileWidth}, type = ${image.type}, transparency = ${image.transparency}"
+						g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
+						g2.fillRect(x, y, entryWidth, entryWidth)
+					} else {
+						println "no image found for ${entry.name}"
+					}
+				}
+	
+				// draw entry name, image info			
+				g2.setPaint(Color.BLACK)
+				def nameLines = wrap(entry.name, fontMetrics, entryWidth)
+//				def imgName = entry.image.substring(entry.image.lastIndexOf('/') + 1)
+//				def imgInfo = "image: $imgName ($image.width x $image.height)"
+//				def imgLines = wrap(imgInfo, fontMetrics, entryWidth)
+				
+				//(nameLines + imgLines).eachWithIndex { line, curLine ->
+				nameLines.eachWithIndex { line, curLine ->
+					g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
+				}
+	
+				// advance column and row
+				col++
+				if (col >= entriesPerRow) {
+					row++
+					col = 0
+				}
 			}
 		}
 		
-        g2.dispose();
+		if (g2 != null) {
+			g2.dispose();
+			content.addTemplate(template, 0, 0)	
+		}
         document.close();
 	}
 }

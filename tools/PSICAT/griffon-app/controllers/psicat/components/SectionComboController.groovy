@@ -44,6 +44,7 @@ class SectionComboController {
 				container.add(modelManager.build(m.modelType, m.modelData))
 			}
 		}
+		container.project = model.project // need project for e.g. grain size
 		return container
 	}
 	

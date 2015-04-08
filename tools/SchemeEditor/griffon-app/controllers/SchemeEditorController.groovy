@@ -185,7 +185,8 @@ class SchemeEditorController implements ListSelectionListener {
 		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
 			currentSaveDir = fc.currentDirectory
 			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
-			helper.exportCatalog(paginate, destFile, model.schemeEntries, view.schemeType.selectedItem, view.schemeName.text, view.schemeId.text)
+			def isLithology = (view.schemeType.selectedItem == "lithology")
+			helper.exportCatalog(paginate, destFile, model.schemeEntries, isLithology, view.schemeName.text, view.schemeId.text)
 		}
 	}
     

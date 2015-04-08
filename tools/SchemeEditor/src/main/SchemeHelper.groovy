@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import java.awt.Color
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.Font
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.Image
-import java.awt.image.BufferedImage;
-import java.awt.TexturePaint;
+import java.awt.image.BufferedImage
+import java.awt.TexturePaint
 import java.util.jar.JarFile
 import java.util.zip.ZipFileimport java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -278,15 +278,22 @@ public class SchemeHelper {
 	}
 	
 	// assuming 8.5 x 11" for pagination
-	def exportCatalog(paginate, destFile, schemeEntries, schemeType, schemeName, schemeId) {
+	def exportCatalog(paginate, destFile, schemeEntries, isLithology, schemeName, schemeId) {
 		final int TITLE_HEIGHT = 20
 		final int MARGIN = 36 // 1/2"
-		final int entriesPerRow = 4
-		final int entryWidth = 130
-		final int entryTextHeight = 40 // space below entry image for entry name, image info
+		final int SYMBOL_LARGE = 32
+		final int SYMBOL_SMALL = 16
+		final int INTERSYMBOL_PADDING = 8
+		final int SYMBOL_IMAGES_WIDTH = SYMBOL_LARGE + INTERSYMBOL_PADDING + SYMBOL_SMALL
+
 		final int entryPadding = 5
+		final int entryWidth = isLithology ? 130 : 260
+		final int entryHeight = isLithology ? 170 : 40
+		final int textWidth = isLithology ? entryWidth : (entryWidth - SYMBOL_IMAGES_WIDTH) // symbol: subtract large and small image width plus 5pix padding 
+
 		final int width = 612 // 8.5" wide
-		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryWidth + entryTextHeight) + TITLE_HEIGHT
+		final int entriesPerRow = (width / entryWidth)
+		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryHeight) + TITLE_HEIGHT // 11" high if paginated
     	
         Document document = new Document(new Rectangle(width, height))
         PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(destFile))
@@ -298,7 +305,7 @@ public class SchemeHelper {
 		def lastPage = false
 		
 		def startIdx = 0
-		def entriesPerPage = paginate ? 16 : schemeEntries.size()
+		def entriesPerPage = paginate ? (((height - MARGIN * 2) / entryHeight) * entriesPerRow) : schemeEntries.size()
 		
 		while (!lastPage) {
 			// start a page
@@ -333,13 +340,13 @@ public class SchemeHelper {
 			
 			entries.eachWithIndex { entry, index ->
 				def x = col * (entryWidth + entryPadding)
-				def y = TITLE_HEIGHT + row * (entryWidth + entryTextHeight)
+				def y = TITLE_HEIGHT + row * (entryHeight)
 	
 				def color = entry.color ?: Color.white
 				
-				if (schemeType == "lithology") {
+				if (isLithology) {
 					g2.setPaint(parseColor(entry.color))
-					g2.fillRect(x, y, entryWidth, entryWidth)
+					g2.fillRect(x.intValue(), y.intValue(), entryWidth, entryWidth)
 				}
 				
 				if (entry.image) {
@@ -349,25 +356,35 @@ public class SchemeHelper {
 					} catch (IOException e) {
 						println "Couldn't load image ${entry.image}"
 					}
+
 					if (image) {
-						println "${entry.image}: tile dims = ${image.tileHeight} x ${image.tileWidth}, type = ${image.type}, transparency = ${image.transparency}"
-						g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
-						g2.fillRect(x, y, entryWidth, entryWidth)
+						if (isLithology) {
+							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
+							g2.fillRect(x, y, entryWidth, entryWidth)
+						} else {
+							// PSICAT diagram output-sized image
+							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
+							g2.fillRect(x, y, SYMBOL_LARGE, SYMBOL_LARGE)
+							
+							def space = SYMBOL_LARGE + INTERSYMBOL_PADDING
+							
+							// in-PSICAT-sized image (smaller)
+							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x + space, y, (image.width / 2).intValue(), (image.height / 2).intValue())))
+							g2.fillRect(x + space, y, SYMBOL_SMALL, SYMBOL_SMALL)
+						}
 					} else {
 						println "no image found for ${entry.name}"
 					}
 				}
-	
-				// draw entry name, image info			
-				g2.setPaint(Color.BLACK)
-				def nameLines = wrap(entry.name, fontMetrics, entryWidth)
-//				def imgName = entry.image.substring(entry.image.lastIndexOf('/') + 1)
-//				def imgInfo = "image: $imgName ($image.width x $image.height)"
-//				def imgLines = wrap(imgInfo, fontMetrics, entryWidth)
 				
-				//(nameLines + imgLines).eachWithIndex { line, curLine ->
+				// draw entry name, wrapped if needed			
+				g2.setPaint(Color.BLACK)
+				def nameLines = wrap(entry.name, fontMetrics, textWidth)
 				nameLines.eachWithIndex { line, curLine ->
-					g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
+					if (isLithology)
+						g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
+					else
+						g2.drawString(line, x + 16 + 40 + entryPadding, y + letterHeight * (1 + curLine))
 				}
 	
 				// advance column and row

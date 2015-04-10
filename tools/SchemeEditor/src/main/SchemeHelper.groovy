@@ -304,8 +304,8 @@ public class SchemeHelper {
 		def template = null
 		def lastPage = false
 		
-		def startIdx = 0
-		def entriesPerPage = paginate ? (((height - MARGIN * 2) / entryHeight) * entriesPerRow) : schemeEntries.size()
+		int startIdx = 0
+		int entriesPerPage = paginate ? (((height - MARGIN * 2) / entryHeight) * entriesPerRow).intValue() : schemeEntries.size()
 		
 		while (!lastPage) {
 			// start a page
@@ -329,12 +329,13 @@ public class SchemeHelper {
 			def fontMetrics = g2.fontMetrics
 			def letterHeight = fontMetrics.height
 			def row = 0, col = 0
-			
-			def endIdx = startIdx + entriesPerPage - 1
+
+			int endIdx = startIdx + entriesPerPage - 1
 			if (endIdx >= schemeEntries.size() - 1) {
 				endIdx = schemeEntries.size() - 1
 				lastPage = true
 			}
+			
 			def entries = schemeEntries[startIdx..endIdx]
 			startIdx += entriesPerPage
 			

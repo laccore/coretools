@@ -14,7 +14,8 @@ repositories {
 
 // add any dependencies you want downloaded as part of the bootstrap process
 dependencies {
-	//compile 'com.google.collections:google-collections:1.0-rc2'
+	compile 'com.miglayout:miglayout:3.7'
+	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
 	compile 'com.lowagie:itext:2.1.7'
 }
 

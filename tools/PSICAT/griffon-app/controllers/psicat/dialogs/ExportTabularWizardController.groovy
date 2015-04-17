@@ -16,6 +16,7 @@
 package psicat.dialogs
 
 import org.andrill.coretools.Platform
+import org.andrill.coretools.model.scheme.SchemeManager
 import org.andrill.coretools.geology.io.GeologyExcelWriter
 
 import psicat.util.*
@@ -64,11 +65,10 @@ class ExportTabularWizardController {
 		}
 			
 		// write
-		def writer = null
-		switch (format) {
-			case 'XLS': writer = Platform.getService(GeologyExcelWriter.class)
-		}
+		def manager = Platform.getService(SchemeManager.class)
+		def writer = Platform.getService(GeologyExcelWriter.class)
 		if (writer) {
+			writer.setSchemeManager(manager)
 			new File(file.parentFile, name).withOutputStream { writer.write(containers, it) }
 		}
 		

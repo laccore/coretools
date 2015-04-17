@@ -19,6 +19,8 @@ import jxl.*
 import jxl.write.*
 import jxl.write.Label
 
+import org.andrill.coretools.Platform
+
 import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.model.io.ModelWriter
 import org.andrill.coretools.model.ModelContainer
@@ -29,8 +31,10 @@ class GeologyExcelWriter {
 	private headers = [:]
 	private rowCounts = [:]
 	private sheetCount = 0
+	private schemeManager = null
 		
 	String getFormat() { 'xls' }
+	void setSchemeManager(manager) { this.schemeManager = manager }
 	
 	// containers: map of containers keyed on section ID
 	void write(containerMap, stream) {
@@ -56,9 +60,36 @@ class GeologyExcelWriter {
 				value = new Length(v).value
 			sheet.addCell(cell(head.indexOf(k), row, value))
 		}
+		
+		// include human-readable lithology/symbol name in addition to with scheme:code string
+		if (modelHasScheme(model)) {
+			def entry = getSchemeEntry(model)
+			if (entry) {
+				def colName = getSchemeColumnName(model)
+				sheet.addCell(cell(head.indexOf(colName), row, entry.name))
+			}
+		}
+
 		sheet.addCell(cell(head.indexOf("Section ID"), row, sectionID))
 		rowCounts[model.modelType]++
 	}
+	
+	def getSchemeEntry(model) {
+		def entry = null
+		def schStr = model.modelType.equals("Interval") ? "lithology" : "scheme"
+		def scheme = model."$schStr"?.scheme
+		def code = model."$schStr"?.code
+		
+		if (scheme && code)
+			entry = schemeManager.getEntry(scheme, code)
+			
+		return entry
+	}
+	
+	// get appropriate name for human-readable lithology/symbol column
+	def getSchemeColumnName(model) { model.modelType.equals("Interval") ? "lithology name" : "symbol name" }
+	
+	boolean modelHasScheme(model) {	return ["Interval", "Occurrence"].contains(model.modelType)	}
 	
 	void createHeaders(model, sheet) {
 		if (!headers[model.modelType]) {
@@ -66,6 +97,10 @@ class GeologyExcelWriter {
 			model.constraints.each { k, v ->
 				newHeaders << k
 			}
+			
+			if (modelHasScheme(model))
+				newHeaders << getSchemeColumnName(model)
+			
 			newHeaders << "Section ID"
 	
 			// add header row with units to sheet

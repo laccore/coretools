@@ -54,9 +54,14 @@ class ExportStratColumnWizardController {
 	def CONTENT_HEIGHT = PAGE_HEIGHT - HEADER_HEIGHT - (MARGIN * 2) 
 	def CONTENT_Y = MARGIN + HEADER_HEIGHT
 	def RULER_WIDTH = 50
-	def STRAT_WIDTH = 400
-	def OCCURENCE_WIDTH = 90 // extra space for occurrences
+	def STRAT_WIDTH = 300
+	def OCCURRENCE_WIDTH = 60 // extra space for occurrences
+	def LEGEND_WIDTH = 130
 	def scaleFactor = 1.0
+	
+	// track used lithologies and occurrences for legend
+	def usedLiths = new HashSet()
+	def usedOccs = new HashSet()
 
     void mvcGroupInit(Map args) {
     	model.project = args.project
@@ -77,6 +82,25 @@ class ExportStratColumnWizardController {
 	
 	// get default grain size - first value in Scale
 	def gsdef() { model.grainSizeScale.values[0] }
+	
+	// blatantly copying from SchemeHelper.groovy - TODO: unify!
+	def wrap(text, fontMetrics, maxWidth) {
+		def lines = []
+		def width = 0
+		def curLine = ""
+		text.split(" ").each { word ->
+			def wordWidth = fontMetrics.stringWidth(word + " ")
+			if (width + wordWidth > maxWidth) {
+				lines << curLine
+				curLine = word + " "
+				width = wordWidth
+			} else {
+				curLine += (word + " ")
+				width += wordWidth
+			}
+		}
+		lines << curLine
+	}
 
 	def prepareMetadata(sortedMetadata) {
 		def occs = [:]
@@ -169,7 +193,7 @@ class ExportStratColumnWizardController {
 			
 			if (labelTick) {
 				def label = "$curHeight"
-				def labelWidth = graphics.fontMetrics.stringWidth(label) + 20
+				def labelWidth = graphics.fontMetrics.stringWidth(label) + 20 // + 20 to prevent overlap with small ticks
 				graphics.drawString(label, xbase - labelWidth, ytick - 3)
 			}
 			
@@ -228,32 +252,36 @@ class ExportStratColumnWizardController {
 		intervalDrawData.occs.each { o ->
 			def occEntry = getSchemeEntry(o.scheme?.scheme, o.scheme?.code)
 			if (occEntry && occEntry.image) {
-				def occpoly = new Polygon()
-				def lx = x + occRowWidth
-				//def ty = y
-				def occheight = Math.min(occEntry.image.height as BigDecimal, intervalHeight).intValue()
-				if (occheight < 1)
-					occheight = 1
-				def occwidth = (occheight < occEntry.image.height) ? (occEntry.image.width * (occheight / occEntry.image.height)).intValue() : occEntry.image.width
-				//println "   interval height = $intervalHeight, symbol height = $occheight, width = $occwidth"
-				occpoly.addPoint(lx, y)
-				occpoly.addPoint(lx + occwidth, y)
-				occpoly.addPoint(lx + occwidth, y + occheight)
-				occpoly.addPoint(lx, y + occheight)
-				
+				def occwidth = drawOccurrence(graphics, occEntry, x + occRowWidth, y, intervalHeight)
 				occRowWidth += (occwidth + OCC_SPACE)
-
-				def rect = new java.awt.geom.Rectangle2D.Double(lx, y, occwidth, occheight)
-				
-				// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
-				// brg 2/20/2015: shelved
-				//g2.setColor(Color.WHITE)
-				//g2.fillRect(lx, ty, occwidth, occheight)
-				
-				graphics.setPaint(new TexturePaint(occEntry.image, rect))
-				graphics.fill(occpoly)
+				usedOccs << occEntry
 			}
 		}
+	}
+	
+	int drawOccurrence(graphics, occEntry, x, y, height) {
+		def occheight = Math.min(occEntry.image.height as BigDecimal, height).intValue()
+		if (occheight < 1)
+			occheight = 1
+		def occwidth = (occheight < occEntry.image.height) ? (occEntry.image.width * (occheight / occEntry.image.height)).intValue() : occEntry.image.width
+
+		def occpoly = new Polygon()
+		occpoly.addPoint(x, y)
+		occpoly.addPoint(x + occwidth, y)
+		occpoly.addPoint(x + occwidth, y + occheight)
+		occpoly.addPoint(x, y + occheight)
+		
+		def rect = new java.awt.geom.Rectangle2D.Double(x, y, occwidth, occheight)
+		
+		// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
+		// brg 2/20/2015: shelved
+		//g2.setColor(Color.WHITE)
+		//g2.fillRect(lx, ty, occwidth, occheight)
+		
+		graphics.setPaint(new TexturePaint(occEntry.image, rect))
+		graphics.fill(occpoly)
+		
+		return occwidth
 	}
 	
 	// draw lithology pattern for interval
@@ -292,7 +320,7 @@ class ExportStratColumnWizardController {
 		// start line at end of section name
 		def strWidth = graphics.getFontMetrics().stringWidth(sectionData.section)
 		def startx = 5 + strWidth + 1
-		def endx = MARGIN + 10 + (offset ? 3 : 0)
+		def endx = MARGIN + 8 + (offset ? 3 : 0)
 		graphics.drawLine(startx, top, endx, top)
 		drawArrow(graphics, endx - 2, top, false) // down (indicating top of section)
 		graphics.drawLine(startx, base, endx, base)
@@ -306,6 +334,50 @@ class ExportStratColumnWizardController {
 		graphics.drawLine(x + 1, y + dy, x + 2, y)
 	}
 	
+	def drawLegendText(graphics, font, text, x, y, dim) {
+		def fm = graphics.getFontMetrics()
+		def lines = wrap(text, fm, LEGEND_WIDTH - (dim + 5))
+		def lineHeight = font.createGlyphVector(fm.getFontRenderContext(), text).getVisualBounds().getHeight().intValue()
+		def ystart = y + ((dim - lineHeight * (lines.size() - 1)) / 2).intValue()
+
+		lines.each {
+			graphics.setPaint(Color.BLACK)
+			graphics.drawString(it, x + dim + 5, ystart)
+			ystart += lineHeight
+		}		
+	}
+	
+	def drawLegend(graphics) {
+		def xbase = MARGIN + RULER_WIDTH + STRAT_WIDTH + OCCURRENCE_WIDTH
+		def ybase = CONTENT_Y
+		
+		// title, centered
+		graphics.setFont(new Font("SansSerif", Font.PLAIN, 14))
+		graphics.setPaint(Color.BLACK)
+		def title = "Legend"
+		def titleWidth = graphics.getFontMetrics().stringWidth(title)
+		graphics.drawString(title, xbase + ((LEGEND_WIDTH - titleWidth) / 2).intValue(), ybase + 10)
+		
+		def legendFont = new Font("SansSerif", Font.PLAIN, 9)
+		graphics.setFont(legendFont)
+		def y = ybase + 20
+		def lithDim = 30
+		def liths = usedLiths.toArray().sort { it.name }
+		liths.each {
+			drawInterval(graphics, it, xbase, xbase + lithDim, xbase + lithDim, y, lithDim)
+			drawLegendText(graphics, legendFont, it.name, xbase, y, lithDim)
+			y += lithDim + 5
+		}
+		
+		def occs = usedOccs.toArray().sort { it.name }
+		def occDim = 32
+		occs.each {
+			drawOccurrence(graphics, it, xbase, y, occDim)
+			drawLegendText(graphics, legendFont, it.name, xbase, y, occDim)
+			y += occDim + 5
+		}
+	}
+	
 	def updateProgress(value, string) { 
 		view.progress.value = value
 		view.progress.string = string
@@ -313,7 +385,14 @@ class ExportStratColumnWizardController {
 	
 	def resetProgress() { updateProgress(0, '') }
 
+	def preExport() {
+		usedLiths.clear()
+		usedOccs.clear()
+	}
+	
 	void export() {
+		preExport()
+		
 		updateProgress(10, "Preparing data...")
 		
 		// create depth-sorted list of section/top/base vals
@@ -347,9 +426,7 @@ class ExportStratColumnWizardController {
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
 		g2.setStroke(new BasicStroke(0.3F))
 		
-		def texCache = [:]
-		
-		// draw each section's lithologies and grain sizes
+		// draw each section's lithologies, occurrences and grain sizes
 		sortedMetadata.eachWithIndex { secdata, sectionIndex ->
 			updateProgress(10 + (sectionIndex / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
 			
@@ -397,23 +474,26 @@ class ExportStratColumnWizardController {
 									height += 1
 							}
 							
-							drawInterval(g2, entry, xbase, xur, xlr, y, height)// + fudgy)
+							drawInterval(g2, entry, xbase, xur, xlr, y, height)
 							drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
-	
 							if (drawSecName) {
-								def offset = (sectionIndex % 2 == 1)
+								def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
 								drawSectionName(g2, secdata, ybase, offset)
 								drawSecName = false
 							}
+							
+							usedLiths << entry
 						} else { println "No entry found" }
 					} else { println "No lithology found" }
 				}
 			} else { println "Couldn't create intervals for section ${secdata.section}" }
 		}
-		
-		g2.dispose();
-		document.close();
-		
+
+		if (model.drawLegend) drawLegend(g2)
+
+		g2.dispose()
+		document.close()
+
 		updateProgress(100, "Export complete!")
 	}
 

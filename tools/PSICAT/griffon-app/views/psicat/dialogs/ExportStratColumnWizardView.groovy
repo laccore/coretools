@@ -47,6 +47,7 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		textField(text: bind(source:model, sourceProperty:'exportPath', mutual:true), constraints:'growx')
 		button(action:chooseExport, constraints:'wrap')
 		hbox(constraints:'growx, span 3') {
+			checkBox(text:"Draw Legend", selected: bind(source:model, sourceProperty:'drawLegend', mutual:true))
 			checkBox(text:"Draw Section Names", selected:bind(source:model, sourceProperty:'drawSectionNames', mutual:true))
 			checkBox(text:"Draw dm Ruler Ticks", selected:bind(source:model, sourceProperty:'drawDms', mutual:true),
 				toolTipText:"If space allows, draw decimeter ticks on ruler", constraints:'growx')

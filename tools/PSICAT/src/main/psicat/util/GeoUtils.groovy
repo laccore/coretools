@@ -22,35 +22,38 @@ import org.andrill.coretools.geology.models.GeologyModel
 
 class GeoUtils {
 	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
-	static parseMetadataFile(metadataFile) {
+	static parseMetadataFile(metadataFile, project) throws Exception {
 		def metadata = []
-		CSVReader reader = new CSVReader(new FileReader(metadataFile));
+		CSVReader reader = null
+		try {
+			reader = new CSVReader(new FileReader(metadataFile));
+		} catch (e) {
+			println "Parsing CSV failed"
+			throw e
+		}
 		def entries = reader.readAll()
 		entries.eachWithIndex { row, index ->
-			def secdata = ['section':row[0], 'top':row[1] as BigDecimal, 'base':row[2] as BigDecimal]
-			metadata.add(secdata)
+			def section = row[0]
+			def projSection = project.containers.find { it.startsWith(section) } 
+			if (projSection) {
+				def top = null, base = null
+				try {
+					top = row[1] as BigDecimal
+					base = row[2] as BigDecimal
+				} catch (e) {
+					println "failed to parse top or bottom to BigDecimal"
+					throw e
+				}
+				def secdata = ['section':projSection, 'top':top, 'base':base]
+				metadata.add(secdata)
+			} else {
+				println "Couldn't find matching PSICAT section for ${section}"
+			}
 		}
 		//metadata.each {	println "${it['section']} ${it['top']} ${it['base']} - length = ${it['base'].subtract(it['top'])}" }
 		def sorted = metadata.sort { it.top }
 		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		return sorted
-	}
-		
-	// reconcile metadata section IDs with those in current project: because PSICAT section IDs
-	// come from image names in our workflow, some are appended with info about the image,
-	// e.g "_lighter", so will not be a perfect match with metadata section IDs. Consider
-	// a section that starts with the metadata section ID to be a match.
-	// brgtodo: notify user when sections in metadata file are missing in project
-	static reconcileSectionIDs(metadata, project) {
-		metadata.each { sec ->
-			def projSec = project.containers.find { it.startsWith(sec.section) }
-			if (!projSec) {
-				println "Couldn't find match for ${sec.section}"
-			} else if (!projSec.equals(sec.section)) {
-				println "Found match for ${sec.section}: $projSec"
-				sec.section = projSec
-			}
-		}
 	}
 	
 	static adjustUp(container, sectionTop) {

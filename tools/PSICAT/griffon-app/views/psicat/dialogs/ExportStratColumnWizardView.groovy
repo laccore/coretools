@@ -42,10 +42,15 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		button(action:chooseMetadata)
 	}
 	
-	panel(border: titledBorder("Export File"), layout: new MigLayout('','[][grow][]',''), constraints:'growx') {
+	panel(border: titledBorder("Export File & Options"), layout: new MigLayout('','[][grow][]'), constraints:'growx') {
 		label('File:')
 		textField(text: bind(source:model, sourceProperty:'exportPath', mutual:true), constraints:'growx')
-		button(action:chooseExport)
+		button(action:chooseExport, constraints:'wrap')
+		hbox(constraints:'growx, span 3') {
+			checkBox(text:"Draw Section Names", selected:bind(source:model, sourceProperty:'drawSectionNames', mutual:true))
+			checkBox(text:"Draw dm Ruler Ticks", selected:bind(source:model, sourceProperty:'drawDms', mutual:true),
+				toolTipText:"If space allows, draw decimeter ticks on ruler", constraints:'growx')
+		}
 	}
 	
 	panel(layout: new MigLayout('','[grow][]',''), constraints:'growx') {

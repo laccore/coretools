@@ -26,4 +26,6 @@ import psicat.util.Dialogs
 	def grainSizeScale = null
 	@Bindable def metadataPath = null
 	@Bindable def exportPath = null
+	@Bindable boolean drawSectionNames = false
+	@Bindable boolean drawDms = false
 }

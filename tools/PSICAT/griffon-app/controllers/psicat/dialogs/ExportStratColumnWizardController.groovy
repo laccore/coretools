@@ -18,6 +18,7 @@ package psicat.dialogs
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.TexturePaint;
@@ -45,7 +46,7 @@ class ExportStratColumnWizardController {
     def model
     def view
 	
-	def PAGE_HEIGHT = 72 * 60 // 60"
+	def PAGE_HEIGHT = 72 * 60 // 60" 
 	def PAGE_WIDTH = 612 // 8.5"
 	def MARGIN = 36 // 1/2" margin at 72dpi
 	def HEADER_HEIGHT = 108 // space for grain size labels, ruler units, etc.
@@ -81,7 +82,14 @@ class ExportStratColumnWizardController {
 		def occs = [:]
 		sortedMetadata.each {
 			def secOccs = []
-			def section = model.project.openContainer(it.section)
+			def section = null
+			try {
+				section = model.project.openContainer(it.section)
+			} catch (IllegalArgumentException iae) {
+				println "Metadata section ${it.section} could not be found"
+				return
+			}
+
 			def modelIterator = section.iterator()
 			while (modelIterator.hasNext()) {
 				GeologyModel mod = modelIterator.next()
@@ -93,6 +101,7 @@ class ExportStratColumnWizardController {
 		return occs
 	}
 	
+	// for given section, collect properties and occurrences for each Interval
 	def buildIntervalDrawData(sectionName, occMap) {
 		def occCount = occMap[sectionName]?.size()
 		def intervals = []
@@ -124,6 +133,7 @@ class ExportStratColumnWizardController {
 	}
 	
 	void drawRuler(graphics, physHeight) {
+		//println "scaleFactor = $scaleFactor, dmTicks = $dmTicks" 
 		def logHeight = physHeight * scaleFactor
 		//println "physHeight = $physHeight, page height = $PAGE_HEIGHT, content y = $CONTENT_Y, logical height of content = $logHeight"
 		def xbase = MARGIN + RULER_WIDTH
@@ -139,12 +149,23 @@ class ExportStratColumnWizardController {
 		// draw ticks
 		def maxHeightInt = Math.ceil(physHeight).intValue()
 		def curHeight = 0
+		def drawDmTicks = model.drawDms && (scaleFactor > 20.72) // resolution of 4144pix/200m...200m+ cores, no dms 
 		while (curHeight < maxHeightInt) {
 			def bigTick = (curHeight % 5 == 0)
-			def labelTick = (curHeight % 10 == 0)
+			def labelTick = (curHeight % 10 == 0 || drawDmTicks) // draw label every meter if dms are being drawn
 			def width = bigTick ? 30 : 15
 			def ytick = Math.ceil(ybase + (curHeight * scaleFactor)).intValue()
 			graphics.drawLine(xbase - width, ytick, xbase, ytick)
+			
+			if (drawDmTicks) {
+				for (int i = 1; i < 10; i++) {
+					def dmtick = Math.ceil(ybase + (curHeight + (0.1 * i)) * scaleFactor).intValue()
+					if (dmtick > PAGE_HEIGHT - MARGIN)
+						break
+					def dmTickWidth = 6
+					graphics.drawLine(xbase - dmTickWidth, dmtick, xbase, dmtick)
+				}
+			}
 			
 			if (labelTick) {
 				def label = "$curHeight"
@@ -200,6 +221,91 @@ class ExportStratColumnWizardController {
 		}
 	}
 	
+	// draw interval's occurrences starting from interval's rightmost edge (x) and top (y)
+	def drawOccurrences(graphics, intervalDrawData, intervalHeight, x, y) {
+		def OCC_SPACE = 2
+		def occRowWidth = OCC_SPACE * 2 // pad between end of lithology and start of occurrence
+		intervalDrawData.occs.each { o ->
+			def occEntry = getSchemeEntry(o.scheme?.scheme, o.scheme?.code)
+			if (occEntry && occEntry.image) {
+				def occpoly = new Polygon()
+				def lx = x + occRowWidth
+				//def ty = y
+				def occheight = Math.min(occEntry.image.height as BigDecimal, intervalHeight).intValue()
+				if (occheight < 1)
+					occheight = 1
+				def occwidth = (occheight < occEntry.image.height) ? (occEntry.image.width * (occheight / occEntry.image.height)).intValue() : occEntry.image.width
+				//println "   interval height = $intervalHeight, symbol height = $occheight, width = $occwidth"
+				occpoly.addPoint(lx, y)
+				occpoly.addPoint(lx + occwidth, y)
+				occpoly.addPoint(lx + occwidth, y + occheight)
+				occpoly.addPoint(lx, y + occheight)
+				
+				occRowWidth += (occwidth + OCC_SPACE)
+
+				def rect = new java.awt.geom.Rectangle2D.Double(lx, y, occwidth, occheight)
+				
+				// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
+				// brg 2/20/2015: shelved
+				//g2.setColor(Color.WHITE)
+				//g2.fillRect(lx, ty, occwidth, occheight)
+				
+				graphics.setPaint(new TexturePaint(occEntry.image, rect))
+				graphics.fill(occpoly)
+			}
+		}
+	}
+	
+	// draw lithology pattern for interval
+	def drawInterval(graphics, schemeEntry, x, xur, xlr, y, height) {
+		def lithpoly = new Polygon()
+		lithpoly.addPoint(x, y)
+		lithpoly.addPoint(xur, y)
+		lithpoly.addPoint(xlr, y + height)
+		lithpoly.addPoint(x, y + height)
+
+		graphics.setPaint(schemeEntry.color) // background color
+		graphics.fill(lithpoly)
+		
+		if (schemeEntry.image) { // texture
+			def rect = new java.awt.geom.Rectangle2D.Double(0, 0, schemeEntry.image.width / 2.0D, schemeEntry.image.height / 2.0D)
+			def texPaint = new TexturePaint(schemeEntry.image, rect)
+			graphics.setPaint(texPaint)
+			graphics.fill(lithpoly)
+		}
+		
+		graphics.setPaint(Color.BLACK) // section outline
+		graphics.draw(lithpoly)
+	}
+	
+	def drawSectionName(graphics, sectionData, y, offset) {
+		graphics.setFont(new Font("SansSerif", Font.PLAIN, 2))
+		graphics.setPaint(Color.BLACK)
+		
+		def top = (sectionData.top * scaleFactor).intValue() + y
+		def base = (sectionData.base * scaleFactor).intValue() + y
+
+		// center name vertically in section range
+		def centerShift = (((sectionData.base - sectionData.top) / 2.0) * scaleFactor).intValue() + 1
+		graphics.drawString(sectionData.section, 5, top + centerShift)
+
+		// start line at end of section name
+		def strWidth = graphics.getFontMetrics().stringWidth(sectionData.section)
+		def startx = 5 + strWidth + 1
+		def endx = MARGIN + 10 + (offset ? 3 : 0)
+		graphics.drawLine(startx, top, endx, top)
+		drawArrow(graphics, endx - 2, top, false) // down (indicating top of section)
+		graphics.drawLine(startx, base, endx, base)
+		drawArrow(graphics, endx - 2, base, true) // up (base of section)
+		graphics.drawLine(endx - 1, top + 1, endx - 1, base - 1)
+	}
+	
+	def drawArrow(graphics, x, y, up) {
+		def dy = up ? -1 : 1
+		graphics.drawLine(x, y, x + 1, y + dy)
+		graphics.drawLine(x + 1, y + dy, x + 2, y)
+	}
+	
 	def updateProgress(value, string) { 
 		view.progress.value = value
 		view.progress.string = string
@@ -209,22 +315,22 @@ class ExportStratColumnWizardController {
 
 	void export() {
 		updateProgress(10, "Preparing data...")
-
+		
 		// create depth-sorted list of section/top/base vals
 		def sortedMetadata = null
 		try {
-			sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath)
+			sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath, model.project)
 		} catch (e) {
 			Dialogs.showErrorDialog("Export Error", "Couldn't parse metadata file: does it meet all requirements?")
 			resetProgress()
 			return
 		}
-		sortedMetadata = GeoUtils.reconcileSectionIDs(sortedMetadata, model.project)
 		def occMap = prepareMetadata(sortedMetadata)
 		
 		// determine depth to pixel scaling
 		def totalIntervalLength = sortedMetadata[-1].base// - sortedMetadata[0].top
 		setScaleFactor(totalIntervalLength)
+		println "Content height = ${CONTENT_HEIGHT}, works out to $scaleFactor pix/m"
 		
 		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
@@ -241,102 +347,68 @@ class ExportStratColumnWizardController {
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
 		g2.setStroke(new BasicStroke(0.3F))
 		
+		def texCache = [:]
+		
 		// draw each section's lithologies and grain sizes
-		sortedMetadata.eachWithIndex { secdata, index ->
-			updateProgress(10 + (index / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
+		sortedMetadata.eachWithIndex { secdata, sectionIndex ->
+			updateProgress(10 + (sectionIndex / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
 			
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
-			
-			// determine total length of intervals - assume they are contiguous (brgtodo: gaps)
-			def intTop = intervals[0].top
-			//def mdTop = secdata.top
-			def intLength = intervals[-1].base - intervals[0].top
-			def mdLength = secdata.base - secdata.top
-			//println "interval length = $intLength, metadata length = $mdLength"
-			
-			// if interval length > section length, compress
-			def sectionScale = 1.0
-			if (intLength > mdLength) {
-				sectionScale = mdLength/intLength
-				//println "must compress intervals by factor of $sectionScale"
-			}
-			// if interval length < section length, DO NOT expand to fit - leave as is
-			
-			def drawSecName = false
-			intervals.each { curint ->
-				def t = (curint.top - intTop) * sectionScale + secdata.top
-				def b = (curint.base - intTop) * sectionScale + secdata.top
-				def xbase = MARGIN + RULER_WIDTH
-				def ybase = MARGIN + HEADER_HEIGHT
-				def pattern = curint.model.lithology
-				if (pattern) {
-					def entry = getSchemeEntry(pattern.scheme, pattern.code)
-					if (entry) {
-						def y = new BigDecimal(t * scaleFactor).intValue() + ybase
-						def height = new BigDecimal((b - t) * scaleFactor).intValue()
-						def xur = xbase + gsoff(curint.gsTop)
-						def xlr = xbase + gsoff(curint.gsBase)
-						
-						def lithpoly = new Polygon()
-						lithpoly.addPoint(xbase, y)
-						lithpoly.addPoint(xur, y)
-						lithpoly.addPoint(xlr, y + height)
-						lithpoly.addPoint(xbase, y + height)
-						
-						//println "drawing poly at depth $t ($y y-coord) of height $height (bottom coord ${y + height})"
+			if (intervals.size() > 0) {
+				
+				// determine total length of intervals - assume they are contiguous (brgtodo: gaps)
+				def intTop = intervals[0].top
+				def intLength = intervals[-1].base - intervals[0].top
+				def mdLength = secdata.base - secdata.top
+				
+				// if interval length > section length, compress
+				def sectionScale = 1.0
+				if (intLength > mdLength) {
+					sectionScale = mdLength/intLength
+					//println "must compress intervals by factor of $sectionScale"
+				}
+				// if interval length < section length, DO NOT expand to fit - leave as is
+				
+				def drawSecName = model.drawSectionNames
+				intervals.eachWithIndex { curint, intervalIndex ->
+					def t = (curint.top - intTop) * sectionScale + secdata.top
+					def b = (curint.base - intTop) * sectionScale + secdata.top
+					def xbase = MARGIN + RULER_WIDTH
+					def ybase = MARGIN + HEADER_HEIGHT
+					def pattern = curint.model.lithology
+					if (pattern) {
+						def entry = getSchemeEntry(pattern.scheme, pattern.code)
+						def code = pattern.scheme + ':' + pattern.code
+						if (entry) {
+							def y = new BigDecimal(t * scaleFactor).intValue() + ybase
+							def height = new BigDecimal((b - t) * scaleFactor).intValue()
+							def xur = xbase + gsoff(curint.gsTop)
+							def xlr = xbase + gsoff(curint.gsBase)
 
-						g2.setPaint(entry.color) // background color
-						g2.fill(lithpoly)
-						
-						if (entry.image) { // texture
-							def rect = new java.awt.geom.Rectangle2D.Double(0, 0, entry.image.width / 2.0D, entry.image.height / 2.0D)
-							g2.setPaint(new TexturePaint(entry.image, rect)) 
-							g2.fill(lithpoly)
-						}
-						
-						g2.setPaint(Color.BLACK) // section outline
-						g2.draw(lithpoly)
-						
-						def OCC_SPACE = 2
-						def occRowWidth = OCC_SPACE * 2 // pad between end of lithology and start of occurrence
-						curint.occs.each { o ->
-							def occEntry = getSchemeEntry(o.scheme?.scheme, o.scheme?.code)
-							def maxx = Math.max(xur, xlr)
-							if (occEntry && occEntry.image) {
-								def occpoly = new Polygon()
-								def lx = maxx + occRowWidth
-								def ty = y
-								def occheight = Math.min(occEntry.image.height as BigDecimal, height).intValue()
-								def occwidth = (occheight < occEntry.image.height) ? (occEntry.image.width * (occheight / occEntry.image.height)).intValue() : occEntry.image.width
-								occpoly.addPoint(lx, ty)
-								occpoly.addPoint(lx + occwidth, ty)
-								occpoly.addPoint(lx + occwidth, ty + occheight)
-								occpoly.addPoint(lx, ty + occheight)
-								
-								occRowWidth += (occwidth + OCC_SPACE)
-
-								def rect = new java.awt.geom.Rectangle2D.Double(lx, ty, occwidth, occheight)
-								
-								// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
-								// brg 2/20/2015: shelved
-								//g2.setColor(Color.WHITE)
-								//g2.fillRect(lx, ty, occwidth, occheight)
-								
-								g2.setPaint(new TexturePaint(occEntry.image, rect))
-								g2.fill(occpoly)
+							// In cases where the physical gap between sections resolves to less
+							// than one pixel, fill that gap by extending the base of the last
+							// interval to match the top of the next section. (Rather than drawing
+							// an exaggerated gap due to rounding up). Made change after seeing regular
+							// 1-pixel gaps between sections in a 520m strat column (CPCP).
+							if (intervalIndex == intervals.size() - 1 && sectionIndex < sortedMetadata.size() - 1) {
+								def nextSec = sortedMetadata[sectionIndex + 1]
+								def pixSize = 1.0 / scaleFactor
+								if (nextSec.top - secdata.base < pixSize)
+									height += 1
 							}
-						}
-
-						// draw section name - 2/20/2015 brg: shelving for now
-//						if (drawSecName) {
-//							g2.setFont(new Font("SansSerif", Font.PLAIN, 9))
-//							g2.setPaint(Color.BLACK)
-//							g2.drawString(secdata.section, MARGIN + 450, y + MARGIN)
-//							drawSecName = false
-//						}
-					} else { println "No entry found" }
-				} else { println "No lithology found" }
-			}
+							
+							drawInterval(g2, entry, xbase, xur, xlr, y, height)// + fudgy)
+							drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
+	
+							if (drawSecName) {
+								def offset = (sectionIndex % 2 == 1)
+								drawSectionName(g2, secdata, ybase, offset)
+								drawSecName = false
+							}
+						} else { println "No entry found" }
+					} else { println "No lithology found" }
+				}
+			} else { println "Couldn't create intervals for section ${secdata.section}" }
 		}
 		
 		g2.dispose();

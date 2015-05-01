@@ -451,7 +451,11 @@ class ExportStratColumnWizardController {
 				}
 				// if interval length < section length, DO NOT expand to fit - leave as is
 				
-				def drawSecName = model.drawSectionNames
+				if (model.drawSectionNames) {
+					def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
+					drawSectionName(g2, secdata, MARGIN + HEADER_HEIGHT, offset)
+				}
+
 				intervals.eachWithIndex { curint, intervalIndex ->
 					def t = (curint.top - intTop) * sectionScale + secdata.top
 					def b = (curint.base - intTop) * sectionScale + secdata.top
@@ -486,12 +490,7 @@ class ExportStratColumnWizardController {
 							
 							drawInterval(g2, entry, xbase, xur, xlr, y, height)
 							drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
-							if (drawSecName) {
-								def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
-								drawSectionName(g2, secdata, ybase, offset)
-								drawSecName = false
-							}
-							
+
 							usedLiths << entry
 						} else {
 							def code = pattern.scheme + ':' + pattern.code

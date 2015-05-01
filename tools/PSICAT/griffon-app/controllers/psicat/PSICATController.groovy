@@ -297,9 +297,13 @@ class PSICATController {
 			model.status = 'Diagram rotated'
 		},
 		'about': { evt = null ->
-			Dialogs.showMessageDialog('About', """Welcome to PSICAT [${app.applicationProperties['app.version']}]
+			Dialogs.showMessageDialog('About', """Welcome to PSICAT ${app.applicationProperties['app.version']}!
 
 PSICAT is a graphical tool for creating and editing core description and stratigraphic column diagrams.
+
+JRE Version: ${System.getProperty("java.version")}
+JRE Vendor: ${System.getProperty("java.vendor")}
+JRE Home: ${System.getProperty("java.home")}
 		""".toString(), app.appFrames[0])
 		},
 		'documentation': { evt = null ->

@@ -91,7 +91,7 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 				logger.warn("Unable to create model for type {}", type)
 			}
 		}
-		logger.info("Read {} XML models in {} ms", count, (System.currentTimeMillis() - start))
+		logger.debug("Read {} XML models in {} ms", count, (System.currentTimeMillis() - start))
 	}
 	
 	void write(final ModelContainer container, final OutputStream stream) {

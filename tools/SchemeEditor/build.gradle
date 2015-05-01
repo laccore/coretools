@@ -16,7 +16,7 @@ repositories {
 dependencies {
 	compile 'com.miglayout:miglayout:3.7'
 	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
-	compile 'com.lowagie:itext:2.1.7'
+	compile files('../../lib/itext-2.1.7-patched.jar')
 }
 
 // copies in the dependencies

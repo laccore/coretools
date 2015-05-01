@@ -24,6 +24,9 @@ import java.awt.Polygon;
 import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 import au.com.bytecode.opencsv.CSVReader
 
 import com.lowagie.text.Document;
@@ -45,6 +48,8 @@ import psicat.util.*
 class ExportStratColumnWizardController {
     def model
     def view
+	
+	private static Logger logger = LoggerFactory.getLogger(ExportStratColumnWizardController.class)
 	
 	def PAGE_HEIGHT = 72 * 60 // 60" 
 	def PAGE_WIDTH = 612 // 8.5"
@@ -70,7 +75,6 @@ class ExportStratColumnWizardController {
 
 	def setScaleFactor(intervalLength) {
 		scaleFactor = CONTENT_HEIGHT / intervalLength
-		//println "updated scaleFactor: $scaleFactor"
 	}
 	
 	def getSchemeEntry(String schemeId, String code) {
@@ -110,7 +114,7 @@ class ExportStratColumnWizardController {
 			try {
 				section = model.project.openContainer(it.section)
 			} catch (IllegalArgumentException iae) {
-				println "Metadata section ${it.section} could not be found"
+				logger.warn("Metadata section ${it.section} could not be found")
 				return
 			}
 
@@ -138,7 +142,6 @@ class ExportStratColumnWizardController {
 				def base = mod.base.to('m').value
 				def gsTop = mod.grainSizeTop ?: gsdef()
 				def gsBase = mod.grainSizeBase ?: gsdef()
-				//println "top = $gsTop, base = $gsBase"
 				
 				// gather occurrences whose top depth is within this interval
 				def occs = occMap[sectionName]
@@ -146,20 +149,17 @@ class ExportStratColumnWizardController {
 				occCount -= intervalOccs.size()
 				
 				intervals << ['top':top, 'base':base, 'model':mod, 'gsTop':gsTop, 'gsBase':gsBase, 'occs':intervalOccs]
-//				println "Interval top = $top, base = $base, gsTop = $gsTop, gsBase = $gsBase"
 			}
 		}
 		model.project.closeContainer(section)
 		
-		if (occCount > 0) println ("${sectionName}: ${occCount} occurrences left over")
+		if (occCount > 0) logger.warn("${sectionName}: ${occCount} occurrences left over")
 		
 		return intervals
 	}
 	
 	void drawRuler(graphics, physHeight) {
-		//println "scaleFactor = $scaleFactor, dmTicks = $dmTicks" 
 		def logHeight = physHeight * scaleFactor
-		//println "physHeight = $physHeight, page height = $PAGE_HEIGHT, content y = $CONTENT_Y, logical height of content = $logHeight"
 		def xbase = MARGIN + RULER_WIDTH
 		def ybase = CONTENT_Y
 		
@@ -409,7 +409,7 @@ class ExportStratColumnWizardController {
 		// determine depth to pixel scaling
 		def totalIntervalLength = sortedMetadata[-1].base// - sortedMetadata[0].top
 		setScaleFactor(totalIntervalLength)
-		println "Content height = ${CONTENT_HEIGHT}, works out to $scaleFactor pix/m"
+		logger.info("Content height = ${CONTENT_HEIGHT}, works out to $scaleFactor pix/m, or ${1.0/scaleFactor} m/pix")
 		
 		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
@@ -428,6 +428,7 @@ class ExportStratColumnWizardController {
 		
 		// draw each section's lithologies, occurrences and grain sizes
 		sortedMetadata.eachWithIndex { secdata, sectionIndex ->
+			logger.info("--- ${secdata.section} ---")
 			updateProgress(10 + (sectionIndex / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
 			
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
@@ -436,13 +437,17 @@ class ExportStratColumnWizardController {
 				// determine total length of intervals - assume they are contiguous (brgtodo: gaps)
 				def intTop = intervals[0].top
 				def intLength = intervals[-1].base - intervals[0].top
+				logger.info("interval top = ${intervals[0].top}, base = ${intervals[-1].base}, intervalLength = $intLength")
 				def mdLength = secdata.base - secdata.top
+				logger.info("metadata top = ${secdata.top}, base = ${secdata.base} len: $mdLength")
 				
 				// if interval length > section length, compress
 				def sectionScale = 1.0
 				if (intLength > mdLength) {
 					sectionScale = mdLength/intLength
-					//println "must compress intervals by factor of $sectionScale"
+					logger.info("must compress by factor of $sectionScale")
+				} else {
+					logger.info("intLength <= mdLength: diff = ${mdLength - intLength}")
 				}
 				// if interval length < section length, DO NOT expand to fit - leave as is
 				
@@ -450,29 +455,34 @@ class ExportStratColumnWizardController {
 				intervals.eachWithIndex { curint, intervalIndex ->
 					def t = (curint.top - intTop) * sectionScale + secdata.top
 					def b = (curint.base - intTop) * sectionScale + secdata.top
+					logger.info("Interval $intervalIndex: top = ${curint.top}, base = ${curint.base}, t = $t, b = $b")
 					def xbase = MARGIN + RULER_WIDTH
 					def ybase = MARGIN + HEADER_HEIGHT
 					def pattern = curint.model.lithology
 					if (pattern) {
 						def entry = getSchemeEntry(pattern.scheme, pattern.code)
-						def code = pattern.scheme + ':' + pattern.code
 						if (entry) {
 							def y = new BigDecimal(t * scaleFactor).intValue() + ybase
-							def height = new BigDecimal((b - t) * scaleFactor).intValue()
+							def bot = new BigDecimal(b * scaleFactor).intValue() + ybase
+							def height = bot - y
 							def xur = xbase + gsoff(curint.gsTop)
 							def xlr = xbase + gsoff(curint.gsBase)
 
 							// In cases where the physical gap between sections resolves to less
 							// than one pixel, fill that gap by extending the base of the last
-							// interval to match the top of the next section. (Rather than drawing
-							// an exaggerated gap due to rounding up). Made change after seeing regular
-							// 1-pixel gaps between sections in a 520m strat column (CPCP).
+							// interval to match the top of the next section instead of drawing a gap.
+							// Made change after seeing regular 1-pixel gaps between sections in a
+							// 520m strat column (CPCP).
 							if (intervalIndex == intervals.size() - 1 && sectionIndex < sortedMetadata.size() - 1) {
 								def nextSec = sortedMetadata[sectionIndex + 1]
 								def pixSize = 1.0 / scaleFactor
-								if (nextSec.top - secdata.base < pixSize)
-									height += 1
+								if (nextSec.top - secdata.base < pixSize) {
+									def nextSecTopY = (nextSec.top * scaleFactor).intValue() + ybase
+									logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
+									height = nextSecTopY - y
+								}
 							}
+							logger.info("y = $y, height = $height")
 							
 							drawInterval(g2, entry, xbase, xur, xlr, y, height)
 							drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
@@ -483,11 +493,16 @@ class ExportStratColumnWizardController {
 							}
 							
 							usedLiths << entry
-						} else { println "No entry found" }
-					} else { println "No lithology found" }
-				}
-			} else { println "Couldn't create intervals for section ${secdata.section}" }
-		}
+						} else {
+							def code = pattern.scheme + ':' + pattern.code
+							logger.warn("No scheme entry entry found for $code")
+						}
+					} else {
+						logger.warn("Interval has no defined lithology")
+					}
+				} // intervals.eachWithIndex
+			} else { logger.warn("Couldn't create intervals for section ${secdata.section}") }
+		} // sortedMetadata.eachWithIndex
 
 		if (model.drawLegend) drawLegend(g2)
 

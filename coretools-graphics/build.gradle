@@ -5,7 +5,7 @@ manifest.mainAttributes(
 
 dependencies {
     compile project(":coretools")
-	compile group: 'com.lowagie', name: 'itext', version: '2.1.7'
+	compile files('../lib/itext-2.1.7-patched.jar')
 	compile group: 'org.apache.xmlgraphics', name: 'batik-awt-util', version: '1.7'
 	compile group: 'org.apache.xmlgraphics', name: 'batik-util', version: '1.7'
 	compile group: 'org.apache.xmlgraphics', name: 'batik-svggen', version: '1.7'

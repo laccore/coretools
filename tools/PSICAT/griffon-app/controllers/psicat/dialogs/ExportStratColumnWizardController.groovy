@@ -65,6 +65,7 @@ class ExportStratColumnWizardController {
 	def scaleFactor = 1.0
 	
 	// track used lithologies and occurrences for legend
+	def noneSchemeEntry = new SchemeEntry("none", "None", null)
 	def usedLiths = new HashSet()
 	def usedOccs = new HashSet()
 
@@ -79,7 +80,7 @@ class ExportStratColumnWizardController {
 	
 	def getSchemeEntry(String schemeId, String code) {
 		def scheme = Platform.getService(SchemeManager.class)?.getScheme(schemeId)
-		scheme == null ? null : scheme.getEntry(code)
+		scheme == null ? noneSchemeEntry : scheme.getEntry(code)
 	}
 	
 	def gsoff(grainSize) { (STRAT_WIDTH * model.grainSizeScale.toScreen(grainSize)).intValue()	}
@@ -292,11 +293,11 @@ class ExportStratColumnWizardController {
 		lithpoly.addPoint(xlr, y + height)
 		lithpoly.addPoint(x, y + height)
 
-		graphics.setPaint(schemeEntry.color) // background color
+		graphics.setPaint(schemeEntry?.color ?: Color.WHITE) // background color
 		graphics.fill(lithpoly)
 		
-		if (schemeEntry.image) { // texture
-			def rect = new java.awt.geom.Rectangle2D.Double(0, 0, schemeEntry.image.width / 2.0D, schemeEntry.image.height / 2.0D)
+		if (schemeEntry?.image) { // texture
+			def rect = new java.awt.geom.Rectangle2D.Double(0, 0, schemeEntry.image.width / 4.0D, schemeEntry.image.height / 4.0D)
 			def texPaint = new TexturePaint(schemeEntry.image, rect)
 			graphics.setPaint(texPaint)
 			graphics.fill(lithpoly)
@@ -433,8 +434,7 @@ class ExportStratColumnWizardController {
 			
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
 			if (intervals.size() > 0) {
-				
-				// determine total length of intervals - assume they are contiguous (brgtodo: gaps)
+				// determine total length of intervals - assume they are contiguous
 				def intTop = intervals[0].top
 				def intLength = intervals[-1].base - intervals[0].top
 				logger.info("interval top = ${intervals[0].top}, base = ${intervals[-1].base}, intervalLength = $intLength")
@@ -462,44 +462,36 @@ class ExportStratColumnWizardController {
 					logger.info("Interval $intervalIndex: top = ${curint.top}, base = ${curint.base}, t = $t, b = $b")
 					def xbase = MARGIN + RULER_WIDTH
 					def ybase = MARGIN + HEADER_HEIGHT
-					def pattern = curint.model.lithology
-					if (pattern) {
-						def entry = getSchemeEntry(pattern.scheme, pattern.code)
-						if (entry) {
-							def y = new BigDecimal(t * scaleFactor).intValue() + ybase
-							def bot = new BigDecimal(b * scaleFactor).intValue() + ybase
-							def height = bot - y
-							def xur = xbase + gsoff(curint.gsTop)
-							def xlr = xbase + gsoff(curint.gsBase)
+					def y = new BigDecimal(t * scaleFactor).intValue() + ybase
+					def bot = new BigDecimal(b * scaleFactor).intValue() + ybase
+					def height = bot - y
+					def xur = xbase + gsoff(curint.gsTop)
+					def xlr = xbase + gsoff(curint.gsBase)
 
-							// In cases where the physical gap between sections resolves to less
-							// than one pixel, fill that gap by extending the base of the last
-							// interval to match the top of the next section instead of drawing a gap.
-							// Made change after seeing regular 1-pixel gaps between sections in a
-							// 520m strat column (CPCP).
-							if (intervalIndex == intervals.size() - 1 && sectionIndex < sortedMetadata.size() - 1) {
-								def nextSec = sortedMetadata[sectionIndex + 1]
-								def pixSize = 1.0 / scaleFactor
-								if (nextSec.top - secdata.base < pixSize) {
-									def nextSecTopY = (nextSec.top * scaleFactor).intValue() + ybase
-									logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
-									height = nextSecTopY - y
-								}
-							}
-							logger.info("y = $y, height = $height")
-							
-							drawInterval(g2, entry, xbase, xur, xlr, y, height)
-							drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
-
-							usedLiths << entry
-						} else {
-							def code = pattern.scheme + ':' + pattern.code
-							logger.warn("No scheme entry entry found for $code")
+					// In cases where the physical gap between sections resolves to less
+					// than one pixel, fill that gap by extending the base of the last
+					// interval to match the top of the next section instead of drawing a gap.
+					// Made change after seeing regular 1-pixel gaps between sections in a
+					// 520m strat column (CPCP).
+					if (intervalIndex == intervals.size() - 1 && sectionIndex < sortedMetadata.size() - 1) {
+						def nextSec = sortedMetadata[sectionIndex + 1]
+						def pixSize = 1.0 / scaleFactor
+						if (nextSec.top - secdata.base < pixSize) {
+							def nextSecTopY = (nextSec.top * scaleFactor).intValue() + ybase
+							logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
+							height = nextSecTopY - y
 						}
-					} else {
-						logger.warn("Interval has no defined lithology")
 					}
-				} // intervals.eachWithIndex
+					logger.info("y = $y, height = $height")
+					
+					def pattern = curint.model.lithology
+					def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
+					
+					drawInterval(g2, entry, xbase, xur, xlr, y, height)
+					drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
+					
+					usedLiths << entry
+				}
 			} else { logger.warn("Couldn't create intervals for section ${secdata.section}") }
 		} // sortedMetadata.eachWithIndex
 

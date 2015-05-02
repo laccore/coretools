@@ -23,7 +23,7 @@ allprojects {
 	
 	sourceCompatibility = 1.5
 	targetCompatibility = 1.5 
-	version = '0.9.3'
+	version = '0.9.4'
 }
 
 task 'assemble-jars'(dependsOn: build) << {

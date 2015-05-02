@@ -21,7 +21,7 @@
       <value>PSICAT</value>
    </javaProperties>
    <mainClassName>griffon.application.SingleFrameApplication</mainClassName>
-   <maximumMemoryHeap>67108864</maximumMemoryHeap>
+   <maximumMemoryHeap>1073741824</maximumMemoryHeap>
    <maximumVersion></maximumVersion>
    <minimumVersion>1.5</minimumVersion>
    <skeletonName>Autodownload Wrapper</skeletonName>

@@ -156,7 +156,7 @@ class ExportStratColumnWizardController {
 		
 		if (occCount > 0) logger.warn("${sectionName}: ${occCount} occurrences left over")
 		
-		return intervals
+		return intervals.sort { it.top }
 	}
 	
 	void drawRuler(graphics, physHeight) {
@@ -435,9 +435,11 @@ class ExportStratColumnWizardController {
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
 			if (intervals.size() > 0) {
 				// determine total length of intervals - assume they are contiguous
-				def intTop = intervals[0].top
-				def intLength = intervals[-1].base - intervals[0].top
-				logger.info("interval top = ${intervals[0].top}, base = ${intervals[-1].base}, intervalLength = $intLength")
+				def minDepth = intervals.min { it.top }
+				def maxDepth = intervals.max { it.base }
+				def intTop = minDepth.top
+				def intLength = maxDepth.base - minDepth.top
+				logger.info("interval top = ${minDepth.top}, base = ${maxDepth.base}, intervalLength = $intLength")
 				def mdLength = secdata.base - secdata.top
 				logger.info("metadata top = ${secdata.top}, base = ${secdata.base} len: $mdLength")
 				

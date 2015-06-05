@@ -56,7 +56,10 @@ class GeoUtils {
 		return sorted
 	}
 	
-	static adjustUp(container, sectionTop) {
+	// notify listeners of change by default, but provide option to avoid doing so
+	// in cases where we need to temporarily adjust to section depth (e.g. auditing
+	// project) without "modified" asterisk showing up in open diagrams. 
+	static adjustUp(container, sectionTop, update=true) {
 		container.models.each { m ->
 			if (m.hasProperty('top') && m.top) {
 				m.top = m.top - sectionTop
@@ -64,11 +67,12 @@ class GeoUtils {
 			if (m.hasProperty('base') && m.base) {
 				m.base = m.base - sectionTop
 			}
-			m.updated()
+			if (update)
+				m.updated()
 		}
 	}
 	
-	static adjustDown(container, sectionTop) {
+	static adjustDown(container, sectionTop, update=true) {
 		container.models.each { m ->
 			if (m.hasProperty('top') && m.top) {
 				m.top = m.top + sectionTop
@@ -76,7 +80,8 @@ class GeoUtils {
 			if (m.hasProperty('base') && m.base) {
 				m.base = m.base + sectionTop
 			}
-			m.updated()
+			if (update)
+				m.updated()
 		}
 	}
 }

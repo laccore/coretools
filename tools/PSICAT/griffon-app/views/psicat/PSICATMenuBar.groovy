@@ -65,6 +65,8 @@ menuBar(id: 'menuBar') {
 		separator()
 		menuItem(grainSizeScaleAction)
 		menuItem(chooseSchemesAction)
+		separator()
+		menuItem(auditProjectAction)
 	}
 
 

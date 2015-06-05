@@ -155,6 +155,13 @@ actions {
 		shortDescription: 'Find and replace lithologies and symbols'
 	)
 	action(
+		id: 'auditProjectAction',
+		name: 'Audit Project...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['auditProject'],
+		shortDescription: "Find and report potential problems in the current project"
+	)
+	action(
 		id: 'aboutAction',
 		name: 'About',
 		closure: controller.actions['about'],

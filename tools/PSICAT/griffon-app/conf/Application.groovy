@@ -99,4 +99,9 @@ mvcGroups {
 		controller="psicat.dialogs.FindReplaceController"
 		view="psicat.dialogs.FindReplaceView"
 	}
+	AuditProject {
+		model="psicat.dialogs.AuditProjectModel"
+		controller="psicat.dialogs.AuditProjectController"
+		view="psicat.dialogs.AuditProjectView"
+	}
 }

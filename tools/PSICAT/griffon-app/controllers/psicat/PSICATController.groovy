@@ -374,6 +374,9 @@ JRE Home: ${System.getProperty("java.home")}
 				}
 			}
 		},
+		'auditProject': { evt = null ->
+			withMVC('AuditProject', project: model.project) { mvc -> mvc.controller.show() }
+		},
 		'mUnits':  { evt = null -> setUnits('m') },
 		'cmUnits': { evt = null -> setUnits('cm') },
 		'ftUnits': { evt = null -> setUnits('ft') },

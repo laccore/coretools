@@ -80,7 +80,7 @@ abstract class GeologyModel implements Model {
 		def list = []
 		if (!args?.nullable)	list << { value, obj -> value != null }
 		if (!args?.blank)		list << { value, obj -> value == null || value.trim() != "" }
-		if (this.metaClass.getMetaProperty(name).type == Number.class)		list << { value, obj -> value == null || value as Double }
+		if (this.metaClass.getMetaProperty(name).type == Number.class)		list << { value, obj -> value == null || new BigDecimal(value) }
 		if (this.metaClass.getMetaProperty(name).type == Length.class)		list << { value, obj -> value == null || new Length(value) }
 		if (this.metaClass.getMetaProperty(name).type == SchemeRef.class)	list << { value, obj -> value == null || value?.indexOf(':') > -1 }
 		return list
@@ -124,6 +124,7 @@ abstract class GeologyModel implements Model {
 		} else if (v instanceof Length) {
 			String units = container?.project?.configuration?.units ?: 'm'
 			NumberFormat format = NumberFormat.getInstance(Locale.ENGLISH)
+			format.applyPattern('0.00#####')
 			return "${format.format(v.to(units).value)} ${units}"
 		} else {
 			return v?.toString()
@@ -146,6 +147,8 @@ abstract class GeologyModel implements Model {
 	 			}
 	        } else if (value != null && metaProperty.type == URL.class && !(value instanceof URL)) {
 	        	metaProperty.setProperty(this, new URL(value))
+	 		} else if (value != null && metaProperty.type == BigDecimal.class && !(value instanceof BigDecimal)) {
+			 	metaProperty.setProperty(this, new BigDecimal(value))
 	 		} else {
 	 			metaProperty.setProperty(this, value)
 	 		}
@@ -157,7 +160,7 @@ abstract class GeologyModel implements Model {
 	
 	protected format(value) {
 		def formatter = NumberFormat.getInstance()
-		formatter.applyPattern('0.00##')
+		formatter.applyPattern('0.0##')
 		switch(value.class) {
 			case Length: return "${formatter.format(value.value)} ${value.unit}"
 			case Number: return "${formatter.format(value)}"

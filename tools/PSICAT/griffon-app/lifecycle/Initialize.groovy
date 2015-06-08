@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import java.awt.Font
 import java.util.prefs.Preferences
+import javax.swing.UIManager
 
 import groovy.swing.SwingBuilder
 
@@ -24,22 +27,24 @@ import psicat.PSICATController
 import psicat.util.Dialogs
 
 // set our look and feel
-SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
+//<<<<<<< HEAD
+//SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
+//=======
+//GriffonPlatformHelper.tweakForNativePlatform(app)
+SwingBuilder.lookAndFeel('system')
+//>>>>>>> master
 
 // initialize the coretools platform
 Platform.start()
-		
-// add resources from the resource/ directory
-def loader = Platform.getService(ResourceLoader.class)
-def res = new File("resources")
-if (res.exists() && res.isDirectory()) {
-	res.eachFile { loader.addResource(it.toURL()) }	
+
+def getDirPref(prefKey) {
+	def dir = new File(Preferences.userNodeForPackage(PSICATController).get(prefKey, System.getProperty("user.home")))
+	return (dir.exists() && dir.isDirectory()) ? dir : new File(System.getProperty("user.home"))
 }
 
-// restore the last directory
-def lastDir = new File(Preferences.userNodeForPackage(PSICATController).get('psicat.lastDir', System.getProperty("user.home")))
-if (lastDir.exists() && lastDir.isDirectory()) {
-	Dialogs.currentDir = lastDir
-} else {
-	Dialogs.currentDir = new File(System.getProperty("user.home"))
-}
+// restore the last open and save directories
+Dialogs.currentOpenDir = getDirPref('psicat.lastOpenDir')
+Dialogs.currentSaveDir = getDirPref('psicat.lastSaveDir')
+
+// on Windows, JTextArea uses fixed-width font, unlike all other controls - force it to match
+UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"))

@@ -34,4 +34,9 @@ import groovy.swing.SwingBuilder
  * - SwingUtilities.invokeLater { // your code }
  */
 
-SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
+//<<<<<<< HEAD
+//SwingBuilder.lookAndFeel('mac', 'nimbus', 'gtk', ['metal', [boldFonts: false]])
+//=======
+//GriffonPlatformHelper.tweakForNativePlatform(app)
+SwingBuilder.lookAndFeel('system')
+//>>>>>>> master

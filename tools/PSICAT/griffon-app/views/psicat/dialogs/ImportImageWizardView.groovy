@@ -19,15 +19,14 @@ import net.miginfocom.swing.MigLayout
 import psicat.util.*
 
 actions {
-	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
+	action(id: 'browseAction', name:'Select Image Files...', closure: controller.actions.browse)
 }
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {	
-	// directory
-	label('Directory:', constraints: 'split')
-	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
-	button(text:'...', action: browseAction, constraints: 'wrap')
-	separator(constraints: 'growx, wrap')
+	// select image files
+	button(text: '...', action: browseAction, constraints: 'growx, wrap')
+	label(id: 'fileCountLabel', text: '[no image files selected]', constraints: 'wrap')
+	separator(constraints: 'width min(300px), growx, wrap')
 
 	// top
 	buttonGroup().with { group ->
@@ -56,8 +55,8 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 panel(id: 'tablePanel', layout: new MigLayout('fill')) {
 	scrollPane(constraints: 'grow, wrap') { table(id: 'table') }
 	buttonGroup().with { group ->
-		radioButton(selected: bind { !model.createSections }, text: 'Add to:', buttonGroup: group, constraints:'split')
-		comboBox(id:'section', editable: true, enabled: bind { !model.createSections }, items: model.project.containers, constraints:'growx, wrap')
-		radioButton(text: 'Create a new section for each image', selected: bind(source: model, sourceProperty:'createSections', mutual:true), buttonGroup: group)
+		radioButton(text: 'Create a new section for each image', selected: bind { !model.addToSection }, buttonGroup: group, constraints:'growx, wrap')
+		radioButton(text: 'Add to existing section:', selected: bind(source:model, sourceProperty:'addToSection', mutual:true), buttonGroup: group, constraints:'split')
+		comboBox(id:'section', editable: true, enabled: bind { model.addToSection }, items: model.project.containers, constraints:'growx')
 	}
 }

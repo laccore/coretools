@@ -103,7 +103,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	protected AtomicBoolean repainting = new AtomicBoolean(false);
 	protected SelectionProvider selectionProvider = DEFAULT_PROVIDER;
 	protected int scrollUnits = 20;
-
+	
 	/**
 	 * Create a new ScenePanel.
 	 */
@@ -376,7 +376,6 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 				updateFeedback(null);
 			}
 		}
-
 	}
 
 	public void mouseDragged(final MouseEvent e) {
@@ -392,7 +391,6 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 
 	public void mouseEntered(final MouseEvent e) {
-		requestFocusInWindow();
 		updateFeedback(null);
 	}
 
@@ -415,47 +413,41 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 
 	public void mouseMoved(final MouseEvent e) {
-		requestFocusInWindow();
 		if (scene != null) {
 			last = (orientation == Orientation.VERTICAL ? e.getY() : e.getX());
 			height = (int) scene.getContentSize().getHeight();
 		}
-		if (isFocusOwner()) {
-			SceneMouseEvent sme = mouseEvent(e);
-			setToolTipText((sme == null ? null : getToolTip(sme)));
-			if (isEditable()) {
-				if ((handler != null) && (sme != null)) {
-					updateFeedback(handler.mouseMoved(sme));
-				} else {
-					updateFeedback(null);
-				}
+		SceneMouseEvent sme = mouseEvent(e);
+		setToolTipText((sme == null ? null : getToolTip(sme)));
+		if (isEditable()) {
+			if ((handler != null) && (sme != null)) {
+				updateFeedback(handler.mouseMoved(sme));
+			} else {
+				updateFeedback(null);
 			}
 		}
 	}
 
 	public void mousePressed(final MouseEvent e) {
-		requestFocusInWindow();
-		if (isFocusOwner()) {
-			SceneMouseEvent sme = mouseEvent(e);
-			if (sme != null) {
-				Selection selection = selectionProvider.getSelection(scene, sme);
-				if ((selection != null) && (scene != null)) {
-					scene.setSelection(selection);
-				}
+		SceneMouseEvent sme = mouseEvent(e);
+		if (sme != null) {
+			Selection selection = selectionProvider.getSelection(scene, sme);
+			if ((selection != null) && (scene != null)) {
+				scene.setSelection(selection);
 			}
-			if (isEditable()) {
-				if ((handler != null) && ((sme) != null)) {
-					updateFeedback(handler.mousePressed(sme));
-				} else {
-					updateFeedback(null);
-				}
+		}
+		if (isEditable()) {
+			if ((handler != null) && ((sme) != null)) {
+				updateFeedback(handler.mousePressed(sme));
+			} else {
+				updateFeedback(null);
 			}
 		}
 	}
 
 	public void mouseReleased(final MouseEvent e) {
 		requestFocusInWindow();
-		if (isFocusOwner() && isEditable()) {
+		if (isEditable()) {
 			SceneMouseEvent sme;
 			if ((handler != null) && ((sme = mouseEvent(e)) != null)) {
 				updateFeedback(handler.mouseReleased(sme));

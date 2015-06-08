@@ -44,7 +44,7 @@ class IntervalTrack extends GeologyTrack {
 	}
 
 	Scale getGrainSize() {
-		String code = getParameter('grain-size', '0.25:0<Mud<0.0625<Sand<2<Gravel<512')
+		String code = container?.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
 		return new Scale(code)
 	}
 
@@ -59,8 +59,8 @@ class IntervalTrack extends GeologyTrack {
 
 	void renderSelected(Model model, GraphicsContext graphics, Rectangle2D bounds) {
 		graphics.pushState()
-		graphics.lineThickness = 1
-		graphics.lineColor = Color.yellow
+		graphics.lineThickness = 2
+		graphics.lineColor = Color.red
 
 		// render our outline
 		graphics.drawPolygon(getOutline(model))
@@ -82,8 +82,8 @@ class IntervalTrack extends GeologyTrack {
 	def getOutline(m) {
 		def outline = []
 		outline << pt(bounds.minX, pts(m.top.to(units).value, bounds))
-        outline << gs(m?.grainSizeTop?.value ?: 0, m.top.to(units).value)
-        outline << gs(m?.grainSizeBase?.value ?: 0, m.base.to(units).value)
+        outline << gs(m?.grainSizeTop ?: 0, m.top.to(units).value)
+        outline << gs(m?.grainSizeBase ?: 0, m.base.to(units).value)
         outline << pt(bounds.minX, pts(m.base.to(units).value, bounds))
         return outline
 	}

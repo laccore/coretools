@@ -25,13 +25,8 @@ class ImportImageWizardModel {
 	@Bindable boolean parseTop = false
 	@Bindable String top = '0.0'
 	@Bindable boolean parseBase = false
-	@Bindable String dpi = '254'
+	@Bindable String dpi = '127'
 	@Bindable String group
-	@Bindable boolean createSections = false
-	@Bindable String filePath
-	
-	File getFile() {
-		if (!filePath) return null
-		filePath.contains(File.separator) ? new File(filePath) : new File(Dialogs.currentDir, filePath)
-	}
+	@Bindable boolean addToSection = false
+	File[] imageFiles = null 
 }

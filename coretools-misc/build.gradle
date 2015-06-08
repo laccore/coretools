@@ -10,8 +10,4 @@ dependencies {
     compile project(":coretools-graphics")
 	compile project(":coretools-scene")
 	compile project(":coretools-ui")
-	compile project(":geology-base")
-	compile project(":geology-ui")
-	compile project(":dis-base")
-	compile project(":dis-ui")
 }

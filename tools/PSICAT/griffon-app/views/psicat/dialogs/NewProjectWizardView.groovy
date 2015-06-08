@@ -23,6 +23,11 @@ actions {
 }
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {	
+	// directory
+	label('Directory:')
+	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
+	button(action: browseAction, constraints: 'wrap')
+
 	// project name
 	label('Name:')
 	textField(text: bind(source: model, sourceProperty:'name', mutual:true), constraints: 'growx, span, wrap')
@@ -33,13 +38,15 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 		add radioButton(text: 'Well', selected: bind(source: model, sourceProperty: 'originTop', mutual:true), constraints:'split')
 		add radioButton(text: 'Outcrop', selected: bind { !model.originTop }, constraints: 'wrap')	
 	}
-	
-	// directory
-	label('Directory:')
-	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
-	button(action: browseAction, constraints: 'wrap')
-	separator(constraints: 'growx, span, wrap')
 
+	// schemes
+	label('Schemes:')
+	buttonGroup().with {
+		add radioButton(text: 'Default', selected: bind { !model.useCustomSchemes }, constraints:'split')
+		add radioButton(text: 'Custom', selected: bind(source: model, sourceProperty: 'useCustomSchemes', mutual:true), constraints:'wrap')
+	}
+	separator(constraints: 'growx, span, wrap')
+	
 	// import sections
 	checkBox(text: 'Open Import Sections wizard', selected: bind(source: model, sourceProperty: 'importSections', mutual:true), constraints: 'span')
 }

@@ -373,6 +373,16 @@ public class PDFDriver implements Driver {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void embedImage(final Rectangle2D rect, final URL url) {
+		// 2/15/2015 brg: to satisfy Driver - if we get PDFDriver up and running for PDF
+		// export (we currently use Java2DDriver), we can remove Driver.embedImage(), since
+		// this.drawImage() correctly embeds the full-resolution image instead of the scaled
+		// image from the cache
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -420,6 +430,13 @@ public class PDFDriver implements Driver {
 		content.showTextAligned(PdfContentByte.ALIGN_LEFT, string, x(point.getX()), y(point.getY() + font.getSize2D()),
 		        0);
 		content.endText();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void drawStringRotated(final Point2D point, final Font font, final String string, final double theta) {
+		// stub for now to satisfy compiler, PDFDriver isn't complete
 	}
 
 	protected void fill(final Shape shape) {

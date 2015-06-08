@@ -17,6 +17,8 @@ package org.andrill.coretools.geology.ui
 
 import java.lang.StringBuilder
 import java.awt.geom.Rectangle2D
+import java.awt.Color
+import java.awt.Font
 import java.text.DecimalFormat
 import org.andrill.coretools.graphics.GraphicsContext
 /**
@@ -27,6 +29,7 @@ import org.andrill.coretools.graphics.GraphicsContext
 class AnnotationTrack extends GeologyTrack {
 	private static final int PADDING = 3
 	private static final DecimalFormat DEC = new DecimalFormat("0.00")
+	def getAnnotFont() { new Font("SanSerif", Font.PLAIN, 9) }
 	def getHeader() { "Description" }
 	def getFooter() { "Description" }
 	def getWidth()  { return 128 }
@@ -42,18 +45,17 @@ class AnnotationTrack extends GeologyTrack {
 		if (!onpage) { return }
 		
 		// calculate some string metrics
-		def font = font
-		def stringBounds = graphics.getStringBounds(font, "MMMMMggggg")
-		def letterHeight = stringBounds.height
-		def letterWidth = stringBounds.width / 10
+		def font = annotFont
+		def boldFont = font.deriveFont(Font.BOLD)
+		def letterHeight = graphics.getStringBounds(font, "MMMMMggggg").getHeight()
 		
 		// wrap our description to the column width
 		def text = [:]
 		def rects = [:]
-		onpage.eachWithIndex { m, i -> 
-			text[m] = wrap(m, letterWidth, bounds.width - 2*PADDING)
+		onpage.eachWithIndex { m, i ->
+			text[m] = wrap(m, graphics, font, boldFont, bounds.width - 2*PADDING)
 			def r = mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
-			r.setSize((int) r.width, (int) ((text[m].size() + 1) * letterHeight))
+			r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
 			rects[m] = r
 			if (i > 0) {
 				def prev = rects[onpage[i-1]]
@@ -82,35 +84,42 @@ class AnnotationTrack extends GeologyTrack {
 			}
 		}
 		
-		// draw the text
+		// draw description text
 		onpage.each { m ->
 			def x = rects[m].x
 			def y = rects[m].y
-			text[m].each { line ->
-				if (line) { graphics.drawString(x, y, font, line) }
+			
+			// draw label
+			graphics.drawString(x, y, boldFont, m.toString() + " ")
+			def offset = graphics.getStringBounds(boldFont, m.toString() + " ").getWidth()
+			
+			text[m].eachWithIndex { line, index ->
+				if (index != 0) offset = 0 // offset for label on first line
+				if (line) { graphics.drawString(x + offset, y, font, line) }
 				y += letterHeight
 			}
 		}
 	}
 	
-	private def wrap(m, letterWidth, lineWidth) {
+	private def wrap(m, graphics, font, boldFont, lineWidth) {
 		def lines = []
-		// label
-		lines << m.toString()
-		
-		// description
-		m.description.readLines().each { line ->
+		m.description.readLines().eachWithIndex { line, index ->
+			// leave space for label to be drawn on first line
+			def labelWidth = graphics.getStringBounds(boldFont, m.toString() + " ").getWidth()
+			def w = (index == 0 ? labelWidth : 0)
+
 			StringBuilder current = new StringBuilder()
-			def w = 0
-			line.tokenize().each { word ->
-				if (w + word.length() * letterWidth < lineWidth) {
-					current.append(word + " ")
-					w += (word.length() + 1) * letterWidth
+			line.tokenize().each { _word ->
+				def word = _word + " "
+				def wordWidth = graphics.getStringBounds(font, word).getWidth() 
+				if (w + wordWidth < lineWidth) {
+					current.append(word)
+					w += wordWidth
 				} else {
 					lines << current.toString()
 					current = new StringBuilder()
-					current.append(word + " ")
-					w = (word.length() + 1) * letterWidth
+					current.append(word)
+					w = wordWidth
 				}
 			}
 			lines << current.toString()

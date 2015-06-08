@@ -18,8 +18,11 @@ package psicat
 import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 
+import javax.swing.JOptionPane
+
 import griffon.util.Metadata
 
+import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.edit.DeleteCommand
@@ -27,11 +30,17 @@ import org.andrill.coretools.dis.DISProject
 import org.andrill.coretools.misc.io.ExcelReaderWriter
 import org.andrill.coretools.misc.io.LegacyReader
 import org.andrill.coretools.model.Project
+import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.ui.Scale
+import org.andrill.coretools.geology.edit.DeleteIntervalCommand
+import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.ui.ScenePanel.Orientation
+import org.andrill.coretools.ui.widget.Widget
+import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
 import org.andrill.coretools.misc.util.LauncherUtils
 
 import psicat.util.*
@@ -41,7 +50,7 @@ class PSICATController {
 	def view
 
 	private def prefs = Preferences.userNodeForPackage(PSICATController)
-
+	
 	void mvcGroupInit(Map args) {}
 
 	// for working with MVC groups
@@ -67,11 +76,34 @@ class PSICATController {
 		return model.openDiagrams.inject(true) { flag, cur -> flag &= cur.controller.close() }
 	}
 	
+	// Is the selected directory a PSICAT project directory?
+	boolean isProject(projFile) {
+		def propsFile = new File(projFile, "project.properties") // simple, reliable-ish check
+		propsFile.exists()	
+	}
+	
+	Scale getGrainSize() {
+		String code = model.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
+		return new Scale(code)
+	}
+	
+	def getGrainSizeCode() {
+		model.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
+	}
+	
 	void openProject(project) {
 		actions.closeAll()
 		model.project = project
 		getMVC('project').controller.project = project
 		if (project) { model.status = "Opened project '${project.name}'" }
+	}
+	
+	void closeProject() {
+		actions.closeAll()
+		def name = model.project.name
+		model.project = null
+		getMVC('project').controller.project = null
+		model.status = "Closed project $name"
 	}
 
 	boolean closeDiagram(diagram) {
@@ -118,6 +150,16 @@ class PSICATController {
 		model.activeDiagram.controller.zoom = pageSize
 		model.status = "Set zoom to $pageSize ${model.activeDiagram.model.units}/page"
 	}
+	
+	void deleteSection(section) {
+		model.project.deleteContainer(section)
+		model.status = "Deleted section $section"
+	}
+	
+	List getSelectedSections() {
+		def project = getMVC('project').view
+		return project.sections.selectedValues as List
+	}
 
 	// our action implementations
 	def actions = [
@@ -127,6 +169,11 @@ class PSICATController {
 				def project = mvc.controller.show()
 				if (project && canClose(evt)) { 
 					openProject(project)
+					if (mvc.model.useCustomSchemes) {
+						actions.chooseSchemes()
+					} else {
+						ProjectLocal.copyDefaultSchemes(project)
+					}					
 					if (mvc.model.importSections) {
 						actions.importImage()
 					}
@@ -140,13 +187,21 @@ class PSICATController {
 			}
 		},
 		'openProject': { evt = null ->
-			def file = Dialogs.showOpenDirectoryDialog("Open Project", null, app.windowManager.windows[0])
-			if (file && canClose(evt)) { openProject(new DefaultProject(file)) }
+			def file = Dialogs.showOpenDirectoryDialog("Select Project Directory/Folder", null, app.windowManager.windows[0])
+			if (file && canClose(evt)) {
+				if (isProject(file)) { 
+					openProject(new DefaultProject(file))
+				} else {
+					Dialogs.showErrorDialog("Open Project", "The selected directory is not a PSICAT project directory.", app.windowManager.windows[0])
+				}
+			}
+		},
+		'closeProject': { evt = null ->
+			if (canClose(evt)) closeProject()
 		},
 		'openSection': { evt = null ->
 			// figure out our name and id
-			def project = getMVC('project').view
-			def sections = project.sections.selectedValues as List
+			def sections = getSelectedSections()
 			def id = sections.join('|')
 			
 			println "openSection: id = $id"
@@ -166,7 +221,15 @@ class PSICATController {
 					model.openDiagrams << diagram
 					view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
 					view.diagrams.selectedIndex = model.openDiagrams.size() - 1
-					diagram.model.scene.scalingFactor = (view.diagrams.size.height / diagram.model.scene.contentSize.height) * 4
+					
+					// Force contentHeight to integer meters, then convert back to current units to compute scalingFactor.
+					// This ensures initial ImageTrack width is consistent regardless of current units. Resolves issue
+					// of ImageTrack using entire width of diagram when current unit is cm or in.  
+					def contentHeight = diagram.model.scene.contentSize.height
+					def intMeterHeight = Math.ceil(new Length(contentHeight, diagram.model.units).to('m').value)
+					def normalizedHeight = new Length(intMeterHeight, 'm').to(diagram.model.units).value
+					diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
+					
 					model.status = "Opened section '${diagram.model.name}'"
 					println "success"
 				} else {
@@ -188,11 +251,39 @@ class PSICATController {
 			model.anyDirty = model.openDiagrams.inject(true) { dirty, diagram -> dirty &= diagram.controller.save() }
 			model.status = "Saved all sections"
 		},
+		'deleteSection': { evt = null ->
+			def sections = getSelectedSections()
+			if (sections.size() == 0) {
+				Dialogs.showErrorDialog("Delete Section(s)", "No sections selected", app.appFrames[0])
+				return
+			}
+			def msg = sections.size() > 1 ? "Delete ${sections.size()} selected sections?" : "Delete section ${sections[0]}?"
+			def ret = JOptionPane.showConfirmDialog(app.appFrames[0], msg, "PSICAT", JOptionPane.YES_NO_OPTION)
+			if (ret == JOptionPane.YES_OPTION) {
+				sections.each { sectionName ->
+					def indexToClose = model.openDiagrams.findIndexOf { it.model.id == sectionName }
+					if (indexToClose != -1)
+						closeDiagram(model.openDiagrams[indexToClose])
+					deleteSection(sectionName)
+				}
+			}
+		},
 		'delete': 	{ evt = null ->
 			def active = model.activeDiagram.model
 			active.scene.selection.selectedObjects.findAll { it instanceof Model }.each { m ->
-				active.commandStack.execute(new DeleteCommand(m, active.scene.models))
+				if (m instanceof Interval) {
+					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models))	
+				} else {
+					active.commandStack.execute(new DeleteCommand(m, active.scene.models))
+				}
 				model.status = "Deleted $m"
+			}
+		},
+		'splitInterval': { evt = null ->
+			def active = model.activeDiagram.model
+			def interval = active.scene.selection.selectedObjects.find { it instanceof Interval }
+			if (interval) {
+				active.commandStack.execute(new SplitIntervalCommand(interval, active.scene.models))
 			}
 		},
 		'undo':		{ evt = null -> model.diagramState.commandStack.undo() },
@@ -220,9 +311,13 @@ class PSICATController {
 		},
 		'about': { evt = null ->
 			def meta = Metadata.current
-			Dialogs.showMessageDialog('About', """Welcome to PSICAT [${meta['app.version']}]
+			Dialogs.showMessageDialog('About', """Welcome to PSICAT ${meta['app.version']}!
 
 PSICAT is a graphical tool for creating and editing core description and stratigraphic column diagrams.
+
+JRE Version: ${System.getProperty("java.version")}
+JRE Vendor: ${System.getProperty("java.vendor")}
+JRE Home: ${System.getProperty("java.home")}
 		""".toString(), app.windowManager.windows[0])
 		},
 		'documentation': { evt = null ->
@@ -232,14 +327,19 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 			LauncherUtils.openURL('http://bitbucket.org/joshareed/coretools/issues/new/')
 		},
 		// brg 3/24/2014: zipped-up export is easy!  
-		'exportProject': { evt = null ->
-			def ant = new AntBuilder()
-			def basedir = new File(model.project.path.toURI())
-			def zipout = new File("/Users/bgrivna/Desktop/zippo.zip")
-			ant.zip(basedir: basedir, destfile: zipout)
-		},
+//		'exportProject': { evt = null ->
+//			def ant = new AntBuilder()
+//			def basedir = new File(model.project.path.toURI())
+//			def zipout = new File("/Users/bgrivna/Desktop/zippo.zip")
+//			ant.zip(basedir: basedir, destfile: zipout)
+//		},
 		'exportDiagram': { evt = null -> ping('exportDiagram')
 			withMVC('ExportDiagramWizard', project: model.project) { mvc ->
+				model.status = mvc.controller.show()
+			}
+		},
+		'exportStratColumn': { evt = null ->
+			withMVC('ExportStratColumnWizard', project: model.project, grainSizeScale: getGrainSize()) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},
@@ -266,6 +366,33 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 		'importTabular': { evt = null -> ping('importTabular')
 			withMVC('ImportTabularWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
+			}
+		},
+		'chooseSchemes': { evt = null ->
+			withMVC('ChooseSchemesDialog', project: model.project) { mvc ->
+				if (mvc.controller.show())
+					getMVC('project').controller.loadSchemes()
+			}
+		},
+		'findAndReplace': { evt = null ->
+			def mockProp = new MockProp()
+			def sws = Platform.getService(SwingWidgetSet.class)
+			withMVC('FindReplace', project: model.project,
+				findWidget: sws.getWidget(mockProp, false),
+				replaceWidget: sws.getWidget(mockProp, false)) { mvc ->
+				mvc.controller.show()
+			}
+		},
+		'grainSizeScale': { evt = null ->
+			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", getGrainSizeCode())
+			if (result) {
+				try {
+					def testScale = new Scale(result)
+					model.project.configuration.grainSizeScale = result
+					model.project.saveConfiguration()
+				} catch (NumberFormatException e) {
+					Dialogs.showErrorDialog("Invalid Grain Size Scale", "Invalid grain size scale: ${e.message}", app.appFrames[0])
+				}
 			}
 		},
 		'mUnits':  { evt = null -> setUnits('m') },

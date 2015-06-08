@@ -18,7 +18,9 @@ package psicat.components
 import java.util.List
 
 import ca.odell.glazedlists.BasicEventList
+import ca.odell.glazedlists.SortedList
 
+import org.andrill.coretools.AlphanumComparator
 import org.andrill.coretools.model.Project
 
 import groovy.beans.Bindable
@@ -26,5 +28,6 @@ import groovy.beans.Bindable
 class ProjectModel {
 	@Bindable project
 	@Bindable name
-	List sections = new BasicEventList()
+	def comp = new AlphanumComparator.StringAlphanumComparator()
+	SortedList sections = new SortedList(new BasicEventList(), {a, b -> comp.compare(a,b)} as Comparator)
 }

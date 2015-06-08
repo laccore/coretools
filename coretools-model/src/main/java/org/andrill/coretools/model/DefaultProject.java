@@ -30,6 +30,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 
 import org.andrill.coretools.Platform;
+import org.andrill.coretools.AlphanumComparator;
 import org.andrill.coretools.model.io.ModelFormatManager;
 import org.andrill.coretools.model.io.ModelReader;
 import org.andrill.coretools.model.io.ModelWriter;
@@ -95,6 +96,18 @@ public class DefaultProject extends AbstractProject {
 		files.put(name, new File(dataDir, name + "." + getDataFormat()));
 		return Platform.getService(ModelContainer.class);
 	}
+	
+	@Override
+	protected void delete(final String name) {
+		File dataDir = getDataDir();
+		files.remove(name);
+		File fileToDelete = new File(dataDir, name + '.' + getDataFormat());
+		try {
+			fileToDelete.delete();
+		} catch (SecurityException e) {
+			LOGGER.error(e.getMessage());
+		}
+	}
 
 	protected String fileName(final File f) {
 		String name = f.getName();
@@ -115,7 +128,7 @@ public class DefaultProject extends AbstractProject {
 
 	protected String getExtension(final File f) {
 		String extension = f.getName();
-		int i = extension.indexOf('.');
+		int i = extension.lastIndexOf('.');
 		if (i != -1) {
 			extension = extension.substring(i + 1);
 		}
@@ -218,7 +231,7 @@ public class DefaultProject extends AbstractProject {
 				}
 			}
 		}
-		Collections.sort(sortedContainers);
+		Collections.sort(sortedContainers, new AlphanumComparator.StringAlphanumComparator());
 		return sortedContainers;
 	}
 	
@@ -314,11 +327,11 @@ public class DefaultProject extends AbstractProject {
 		}
 	}
 
-	protected void saveConfiguration() {
+	public void saveConfiguration() {
 		// save the configuration
 		Properties properties = new Properties();
 		properties.putAll(configuration);
-
+		
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(new File(directory, CONFIG_FILE));

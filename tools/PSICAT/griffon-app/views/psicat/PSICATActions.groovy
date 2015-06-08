@@ -15,6 +15,8 @@
  */
 package psicat
 
+import org.andrill.coretools.geology.models.Interval
+
 actions {
 	action(
 		id: 'exitAction',
@@ -23,14 +25,22 @@ actions {
 	)
 	action(
 		id: 'newProjectAction',
-		name: 'New Project...',
+		name: 'Project...',
 		closure: controller.actions['newProject'],
 		accelerator: shortcut('N', 1),
 		shortDescription: 'Create a new project'
 	)
 	action(
+		id: 'importImageAction',
+		name: 'Section(s) from Images...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['importImage'],
+		accelerator: shortcut('I'),
+		shortDescription: 'Create sections from image data'
+	)
+	action(
 		id: 'newSectionAction',
-		name: 'New Section...',
+		name: 'Section...',
 		closure: controller.actions['newSection'],
 		enabled: bind { model.project != null },
 		accelerator: shortcut('N'),
@@ -44,13 +54,20 @@ actions {
 		shortDescription: 'Open a project'
 	)
 	action(
+		id: 'closeProjectAction',
+		name: 'Close Project',
+		closure: controller.actions['closeProject'],
+		enabled: bind { model.project != null },
+		shortDescription: 'Close the current project'
+	)
+	action(
 		id: 'openSectionAction',
 		name: 'Open Section',
 		closure: controller.actions['openSection']
 	)
 	action(
 		id: 'closeAction',
-		name: 'Close',
+		name: 'Close Section',
 		enabled: bind { model.activeDiagram != null },
 		closure: controller.actions['close'],
 		accelerator: shortcut('W'),
@@ -58,7 +75,7 @@ actions {
 	)
 	action(
 		id: 'closeAllAction',
-		name: 'Close All',
+		name: 'Close All Sections',
 		enabled: bind { model.activeDiagram != null },
 		closure: controller.actions['closeAll'],
 		accelerator: shortcut('W', 1),
@@ -66,7 +83,7 @@ actions {
 	)
 	action(
 		id: 'saveAction',
-		name: 'Save',
+		name: 'Save Section',
 		enabled: bind { model.activeDiagram != null && model.diagramState.dirty },
 		closure: controller.actions['save'],
 		accelerator: shortcut('S'),
@@ -74,18 +91,18 @@ actions {
 	)
 	action(
 		id: 'saveAllAction',
-		name: 'Save All',
+		name: 'Save All Sections',
 		enabled: bind { model.diagramState.dirty || model.anyDirty },
 		closure: controller.actions['saveAll'],
 		accelerator: shortcut('S', 1),
 		shortDescription: 'Save all diagrams'
 	)
 	action(
-		id: 'exportProjectAction',
-		name: 'Export Project',
+		id: 'deleteSectionAction',
+		name: 'Delete Section(s)...',
 		enabled: bind { model.project != null },
-		closure: controller.actions['exportProject'],
-		shortDescription: 'Export current project in a shareable format'
+		closure: controller.actions['deleteSection'],
+		shortDescription: 'Delete selected section(s)'
 	)
 	action(
 		id: 'deleteAction',
@@ -93,6 +110,26 @@ actions {
 		enabled: bind { model.diagramState.selection != null },
 		closure: controller.actions['delete'],
 		accelerator: javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, 0)
+	)
+	action(
+		id: 'splitAction',
+		name: 'Split Interval',
+		enabled: bind { model.diagramState?.selection instanceof Interval },
+		closure: controller.actions['splitInterval']
+	)
+	action(
+		id: 'chooseSchemesAction',
+		name: 'Choose Schemes...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['chooseSchemes'],
+		shortDescription: 'Add/remove schemes used in the current project'
+	)
+	action(
+		id: 'grainSizeScaleAction',
+		name: 'Grain Size Scale...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['grainSizeScale'],
+		shortDescription: "Edit the current project's grain size scale"
 	)
 	action(
 		id: 'undoAction',
@@ -109,6 +146,13 @@ actions {
 		closure: controller.actions['redo'],
 		accelerator: shortcut('Z', 1),
 		shortDescription: 'Redo'
+	)
+	action(
+		id: 'findAndReplaceAction',
+		name: 'Find and Replace...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['findAndReplace'],
+		shortDescription: 'Find and replace lithologies and symbols'
 	)
 	action(
 		id: 'aboutAction',
@@ -225,24 +269,24 @@ actions {
 	)
 	action(
 		id: 'exportDiagramAction',
-		name: 'Diagram',
+		name: 'Diagram...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['exportDiagram'],
 		shortDescription: 'Export diagrams to PDF or other image formats'
 	)
 	action(
 		id: 'exportTabularAction',
-		name: 'Tabular Data',
+		name: 'Tabular Data...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['exportTabular'],
 		shortDescription: 'Export data to Excel'
 	)
 	action(
-		id: 'importImageAction',
-		name: 'Images',
+		id: 'exportStratColumnAction',
+		name: 'Strat Column...',
 		enabled: bind { model.project != null },
-		closure: controller.actions['importImage'],
-		shortDescription: 'Import images into the project'
+		closure: controller.actions['exportStratColumn'],
+		shortDescription: 'Export strat column as PDF'
 	)
 	action(
 		id: 'importLegacyAction',

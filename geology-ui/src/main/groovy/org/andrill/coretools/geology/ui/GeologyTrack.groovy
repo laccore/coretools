@@ -103,8 +103,8 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	
 	void renderSelected(Model model, GraphicsContext graphics, Rectangle2D bounds) {
 		graphics.pushState()
-		graphics.lineThickness = 1
-		graphics.lineColor = Color.yellow
+		graphics.lineThickness = 2
+		graphics.lineColor = Color.red
 		
 		// render our outline
 		def r = getModelBounds(model)
@@ -128,6 +128,7 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	}
 	
 	void drawHandle(x, y, GraphicsContext graphics) {
+		graphics.lineThickness = 1
 		graphics.lineColor = Color.black
 		graphics.drawLine(x - 7, y, x + 7, y)
 		graphics.setFill(Color.black)

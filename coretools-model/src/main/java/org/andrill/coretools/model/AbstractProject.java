@@ -103,6 +103,17 @@ public abstract class AbstractProject implements Project {
 		ref.count.incrementAndGet();
 		return ref.container;
 	}
+	
+	protected abstract void delete(final String name);
+	
+	public void deleteContainer(final String name) {
+		if (containers.containsKey(name)) {
+			containers.remove(name);
+			containerNames.remove(name);
+			delete(name);
+			pcs.firePropertyChange(CONTAINERS_KEY, name, null);
+		}
+	}
 
 	/**
 	 * {@inheritDoc}

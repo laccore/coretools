@@ -57,6 +57,13 @@ public interface Widget {
 	String getLabel();
 
 	/**
+	 * Gets the unit label for this widget
+	 * 
+	 * @return the label.
+	 */
+	String getUnitLabel();
+
+	/**
 	 * Gets the {@link EditableProperty} for this widget.
 	 * 
 	 * @return the editable property.

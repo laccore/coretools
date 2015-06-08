@@ -28,10 +28,19 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.event.DocumentListener
 
+import java.util.prefs.Preferences
+
 import net.miginfocom.swing.MigLayout
 
 // build our actions
 build(SchemeEditorActions)
+
+// restore previous dimensions of main window
+def prefs = Preferences.userNodeForPackage(SchemeEditorController)
+def mainWidth = prefs.getDouble('schemeEditor.mainViewWidth', 300.0) as Integer
+def mainHeight = prefs.getDouble('schemeEditor.mainViewHeight', 600.0) as Integer
+def xpos = prefs.getDouble('schemeEditor.mainViewX', 50.0) as Integer
+def ypos = prefs.getDouble('schemeEditor.mainViewY', 50.0) as Integer
 
 // force PreviewPanel borders to redraw correctly by pretending panel is non-opaque,
 // otherwise artifacts appear in borders around preview image on Win
@@ -39,7 +48,8 @@ def preview = new PreviewPanel()
 preview.setOpaque(false)
 
 // build our main application
-application(title:'Scheme Editor', pack:true, locationByPlatform:true, layout: new MigLayout('fill')) {
+application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
+			id:'mainView', size:[mainWidth, mainHeight], location:[xpos,ypos], layout: new MigLayout('fill')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {
 			menuItem(newAction)
@@ -47,6 +57,9 @@ application(title:'Scheme Editor', pack:true, locationByPlatform:true, layout: n
 			separator()
 			menuItem(saveAction)
 			menuItem(saveAsAction)
+			separator()
+			menuItem(exportOnePageCatalogAction)
+			menuItem(exportPaginatedCatalogAction)
 			if (!isMacOSX) {
 				separator()
 				menuItem(exitAction)
@@ -73,13 +86,15 @@ application(title:'Scheme Editor', pack:true, locationByPlatform:true, layout: n
 	    label('Name:', constraints: 'sg 2, split, right')
 	    textField(id:'entryName', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
 	    label('Code:', constraints: 'sg 2, split, right')
-	    textField(id:'entryCode', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
+	    textField(id:'entryCode', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction,
+			focusGained: { evt = null -> controller.fillCode() } )
 	    label('Group:', constraints: 'sg 2, split, right')
 	    textField(id:'entryGroup', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
 	    button(text: 'Set Image', constraints: 'split, growx', action:updateImageAction)
 	    button(text: 'Set Color', constraints: 'growx, wrap', action:updateColorAction)
 	    widget(preview, id:'preview', constraints:'span 2, grow, h 200px, wrap', border: titledBorder('Preview'))
-		button(action: saveEntryAction, constraints: 'split, right')
+		button(action: saveAndAddEntryAction, constraints: 'split, right')
+		button(action: saveEntryAction, constraints: 'right')
 		button(action: revertEntryAction, constraints: 'right')
 	}
 }

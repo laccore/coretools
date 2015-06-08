@@ -23,8 +23,8 @@ package org.andrill.coretools.geology.models
 class Interval extends GeologyModel {
 	Length top
 	Length base
-	Length grainSizeTop
-	Length grainSizeBase
+	BigDecimal grainSizeTop	 // grain size is always mm
+	BigDecimal grainSizeBase
 	SchemeRef lithology
 	String description
 	
@@ -32,8 +32,8 @@ class Interval extends GeologyModel {
 		top:			[linkTo: 'base', handle: 'north', group:'1', widgetProperties: [label: 'Range']],
 		base:			[linkTo: 'top', handle: 'south', group: '1', widgetProperties: [label: '-']],
 		lithology:		[nullable: true, widgetProperties: ['schemeType': 'lithology']],
-		grainSizeTop:	[nullable: true, group: '2', widgetProperties: [label: 'Grain Size']],
-		grainSizeBase:	[nullable: true, group: '2', widgetProperties: [label: 'to']],
+		grainSizeTop:	[nullable: true, group: '2', widgetProperties: [label: 'Grain Size', unitLabel: 'mm   to   ']],
+		grainSizeBase:	[nullable: true, group: '2', widgetProperties: [label: '', unitLabel: 'mm']],
 		description:	[nullable: true, widgetType: "TextArea"]
 	]
 }

@@ -43,7 +43,7 @@ public class GrainSizeTrack extends GeologyTrack {
 	}
 
 	Scale getGrainSize() {
-		String code = getParameter('grain-size', '0.25:0<Mud<0.0625<Sand<2<Gravel<512')
+		String code = container.project.configuration.grainSizeScale ?: Scale.DEFAULT
 		return new Scale(code)
 	}
 
@@ -55,8 +55,8 @@ public class GrainSizeTrack extends GeologyTrack {
 		def prev = null
 		models.findAll{ onpage(it, clip) }.each { m ->
 			if (m?.grainSizeTop && m?.grainSizeBase) {
-				def tgs = gs(m.grainSizeTop.value, m.top.to(units).value)
-				def bgs = gs(m.grainSizeBase.value, m.base.to(units).value)
+				def tgs = gs(m.grainSizeTop, m.top.to(units).value)
+				def bgs = gs(m.grainSizeBase, m.base.to(units).value)
 				
 				if (prev) { graphics.drawLine(prev, tgs) }
 				if (m == selection) {

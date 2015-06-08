@@ -15,6 +15,9 @@
  */
 package psicat.components
 
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
+
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import java.util.prefs.Preferences
@@ -35,7 +38,7 @@ import org.andrill.coretools.misc.util.SceneUtils
 import psicat.PSICATController
 import psicat.util.*
 
-class DiagramController implements ModelContainer.Listener, Scene.SelectionListener, PropertyChangeListener {
+class DiagramController implements ModelContainer.Listener, Scene.SelectionListener, PropertyChangeListener, ComponentListener {
     def model
     def view
     private def prefs = Preferences.userNodeForPackage(PSICATController)
@@ -108,7 +111,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		singleSection = sections.size() == 1 && sections[0]?.top && sections[0]?.base
 		if (singleSection) {
 			sectionTop = sections[0].top
-			adjustUp(models)
+			GeoUtils.adjustUp(models, sectionTop)
 		}
 
     	// set our properties and listeners
@@ -117,6 +120,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	scene.commandStack = model.commandStack
     	scene.addSelectionListener(this)
     	scene.models.addListener(this)
+		view.contents.addComponentListener(this)
     			
     	// setup the viewer
     	model.scene = scene
@@ -144,37 +148,13 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     boolean save() {
     	if (model.dirty) {
-			if (singleSection && sectionTop) { adjustDown(model.scene.models) }
+			if (singleSection && sectionTop) { GeoUtils.adjustDown(model.scene.models, sectionTop) }
     		model.project.saveContainer(model.scene.models)
-    		if (singleSection && sectionTop) { adjustUp(model.scene.models) }
+    		if (singleSection && sectionTop) { GeoUtils.adjustUp(model.scene.models, sectionTop) }
     		markClean()
     	}
     	return true
     }
-	
-	protected void adjustUp(container) {
-		container.models.each { m ->
-			if (m.hasProperty('top') && m.top) {
-				m.top = m.top - sectionTop
-			}
-			if (m.hasProperty('base') && m.base) {
-				m.base = m.base - sectionTop
-			}
-			m.updated()
-		}
-	}
-	
-	protected void adjustDown(container) {
-		container.models.each { m ->
-			if (m.hasProperty('top') && m.top) {
-				m.top = m.top + sectionTop
-			}
-			if (m.hasProperty('base') && m.base) {
-				m.base = m.base + sectionTop
-			}
-			m.updated()
-		}
-	}
 
     void setOrientation(vertical) {
     	// set the orientation
@@ -237,7 +217,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
             tabs.setTitleAt(index, title)
         }
     }
-
+	
     // ModelContainer.Listener
 	void modelAdded(Model m)	{ markDirty() }
 	void modelRemoved(Model m)	{ markDirty() }
@@ -253,4 +233,12 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 			case "redo": setState('canRedo', evt.newValue); break
 		}
 	}
+	
+	// ComponentListener - only interested in resize
+	void componentResized(ComponentEvent e) {
+		model.scene.preferredWidth = e.component.width
+	}
+	void componentHidden(ComponentEvent e) { }
+	void componentMoved(ComponentEvent e) { }
+	void componentShown(ComponentEvent e) { }
 }

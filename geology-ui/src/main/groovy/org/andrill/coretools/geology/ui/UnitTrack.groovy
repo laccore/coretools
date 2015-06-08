@@ -15,6 +15,7 @@
  */
 package org.andrill.coretools.geology.ui
 
+import java.awt.Point
 import java.awt.geom.Rectangle2D
 
 import org.andrill.coretools.geology.models.Unitimport org.andrill.coretools.geology.ui.event.CreatePolicy
@@ -51,7 +52,19 @@ class UnitTrack extends GeologyTrack {
 		def r = getModelBounds(m)
 		
 		String name = m.name ?: ''
-		graphics.drawStringCenter(r, font, m.name ?: '')	
+		
+		if (name.length() > 0) {
+			graphics.setClip(r) // don't draw name into units above or below
+
+			def xmid = (r.getX() + (r.width / 2)).intValue()
+			def ymid = (r.getY() + (r.height / 2)).intValue()
+			def bds = graphics.getStringBounds(font, name)
+			
+			def pt = new Point(xmid - (bds.height / 2).intValue(), ymid + (bds.width / 2).intValue())
+			graphics.drawStringRotated(pt, font, name, -1.57079633) // 90 degrees CCW
+			
+			graphics.setClip(null) // restore old clipping region
+		}
 		graphics.drawRectangle(r)
 	}
 }

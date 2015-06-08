@@ -64,6 +64,11 @@ mvcGroups {
 		controller="psicat.dialogs.ExportTabularWizardController"
 		view="psicat.dialogs.ExportTabularWizardView"
 	}
+	ExportStratColumnWizard {
+		model="psicat.dialogs.ExportStratColumnWizardModel"
+		controller="psicat.dialogs.ExportStratColumnWizardController"
+		view="psicat.dialogs.ExportStratColumnWizardView"
+	}
 	ImportImageWizard {
 		model="psicat.dialogs.ImportImageWizardModel"
 		controller="psicat.dialogs.ImportImageWizardController"
@@ -78,5 +83,20 @@ mvcGroups {
 		model="psicat.dialogs.ImportLegacyWizardModel"
 		controller="psicat.dialogs.ImportLegacyWizardController"
 		view="psicat.dialogs.ImportLegacyWizardView"
+	}
+	ChooseSchemesDialog {
+		model="psicat.dialogs.ChooseSchemesDialogModel"
+		controller="psicat.dialogs.ChooseSchemesDialogController"
+		view="psicat.dialogs.ChooseSchemesDialogView"
+	}
+	ChooseSectionMetadata {
+		model="psicat.dialogs.ChooseSectionMetadataModel"
+		controller="psicat.dialogs.ChooseSectionMetadataController"
+		view="psicat.dialogs.ChooseSectionMetadataView"
+	}
+	FindReplace {
+		model="psicat.dialogs.FindReplaceModel"
+		controller="psicat.dialogs.FindReplaceController"
+		view="psicat.dialogs.FindReplaceView"
 	}
 }

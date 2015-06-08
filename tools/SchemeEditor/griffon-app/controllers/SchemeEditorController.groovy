@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import groovy.lang.GroovyClassLoader
+
 import java.awt.Image
 import java.io.File;
 import java.util.zip.ZipFile
@@ -33,10 +33,11 @@ class SchemeEditorController implements ListSelectionListener {
     def view
     
     private SchemeHelper helper
-    private File currentDir = new File(".")
+    static File currentOpenDir = new File(System.getProperty("user.home"))
+	static File currentSaveDir = new File(System.getProperty("user.home"))
 
     void mvcGroupInit(Map args) {
-    	helper = new SchemeHelper(new GroovyClassLoader(Thread?.currentThread()?.getContextClassLoader()))
+    	helper = new SchemeHelper()
     	
 		// load our standard images
     	["rsrc:/org/psicat/resources/lithologies/scheme.xml", "rsrc:/org/psicat/resources/symbols/scheme.xml"].each { path ->
@@ -60,27 +61,27 @@ class SchemeEditorController implements ListSelectionListener {
      * Exit the application
      */
     def exit = { evt = null ->
-    	app.shutdown()
+		app.shutdown()
     }
-    
+
     /**
      * Create a new scheme file
      */
     def newScheme = { evt = null -> 
-    	model.schemeFile = null
+    	updateSchemeFile(null)
     	setScheme(null)
     }
-
+	
     /**
      * Open an existing scheme file.
      */
     def open = { evt = null ->
-	    def fc = new JFileChooser(currentDir)
+	    def fc = new JFileChooser(currentOpenDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
 	    if (fc.showOpenDialog(app.windowManager.windows[0]) == JFileChooser.APPROVE_OPTION) {
-	       currentDir = fc.currentDirectory
-	       model.schemeFile = fc.selectedFile
+	       currentOpenDir = fc.currentDirectory
+	       updateSchemeFile(fc.selectedFile)
 	       
 	       // parse our file
 	       doOutside {
@@ -129,6 +130,16 @@ class SchemeEditorController implements ListSelectionListener {
     	}
     }
     
+	/**
+	 * Update model.schemeFile reference and mainView's title bar
+	 */
+	def updateSchemeFile(file) {
+		model.schemeFile = file
+		def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}"
+		def fileName = file
+		view.mainView.title = baseTitle + (fileName ? " - [$fileName]" : "") 
+	}
+	
     /**
      * Save the scheme.
      */
@@ -147,30 +158,60 @@ class SchemeEditorController implements ListSelectionListener {
      * Save the scheme, prompting the user for a filename.
      */
     def saveAs = { evt = null ->
-	    def fc = new JFileChooser(currentDir)
+	    def fc = new JFileChooser(currentSaveDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
-	    if (fc.showDialog(app.windowManager.windows[0], "Save" ) == JFileChooser.APPROVE_OPTION) {
-	       currentDir = fc.currentDirectory
-	       model.schemeFile = fc.selectedFile
-	       helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
-	                           entries:model.schemeEntries], model.schemeFile)
-	       JOptionPane.showMessageDialog(app.windowManager.windows[0], "${view.schemeName.text} saved!", 
-	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+	    if (fc.showDialog(app.windowManager.windows[0], "Save") == JFileChooser.APPROVE_OPTION) {
+			currentSaveDir = fc.currentDirectory
+			updateSchemeFile(fc.selectedFile)
+			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
+				entries:model.schemeEntries], model.schemeFile)
+			JOptionPane.showMessageDialog(app.windowManager.windows[0], "${view.schemeName.text} saved!", 
+				"Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
 	    }
     }
+	
+	def exportPaginatedCatalog = { evt = null -> exportCatalog(true) }
+	def exportOnePageCatalog = { evt = null -> exportCatalog(false) }
+	
+	/**
+	 * Export the current scheme's entries as a PDF "catalog" 
+	 */
+	def exportCatalog(paginate) {
+		def fc = new JFileChooser(currentSaveDir)
+		fc.fileSelectionMode = JFileChooser.FILES_ONLY
+		fc.selectedFile = new File("${view.schemeName.text}")
+		fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.pdf'], description:'PDF Files (*.pdf)'))
+		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
+			currentSaveDir = fc.currentDirectory
+			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
+			def isLithology = (view.schemeType.selectedItem == "lithology")
+			helper.exportCatalog(paginate, destFile, model.schemeEntries, isLithology, view.schemeName.text, view.schemeId.text)
+		}
+	}
     
+	// If empty, populate Code field based on Name. Don't force user to devise and type a code!
+	def fillCode = { evt = null ->
+   		if (view.entryCode.text.length() == 0) {
+			def code = view.entryName.text.toLowerCase()
+			code = code.replace(" ", ",")
+			view.entryCode.text = code
+   		}
+	}
+	
     def entryChanged = { evt = null ->
-    	if (!model.ignoreEvents) {
-    		model.entryDirty = true
+		if (!model.ignoreEvents) {
+			model.entryDirty = true
     		model.entryValid = (view.entryName.text && view.entryCode.text)
-    	}
-    }
+		}
+	}
     
     def addEntry = { evt = null ->
     	def e = [name:'New Entry']
     	model.schemeEntries << e
     	setEntry(e)
+		view.entryName.requestFocus()
+		view.entryName.selectAll() // Windows: must explicitly select text
     }
     
     def saveEntry = { evt = null ->
@@ -180,11 +221,25 @@ class SchemeEditorController implements ListSelectionListener {
     	model.entry.group = view.entryGroup.text
     	model.entry.color = model.entryColor
     	model.entry.image = model.entryImage
+		
+		// brg 6/10/2014: SortedList doesn't resort when elements already present in the list are
+		// updated. Must explicitly get old entry and reset it to force resort.
+		def idx = view.schemeEntries.selectedIndex
+		def newEntry = model.schemeEntries.get(idx)
+		model.schemeEntries.set(idx, newEntry)
+		view.schemeEntries.selectedIndex = model.schemeEntries.indexOf(newEntry)
+		view.schemeEntries.ensureIndexIsVisible(view.schemeEntries.selectedIndex)		
     	view.schemeEntries.repaint()
+		
     	model.entryDirty = false
     	model.entryValid = (view.entryName.text && view.entryCode.text)
     	model.ignoreEvents = false;
     }
+	
+	def saveAndAddEntry = { evt = null ->
+		saveEntry()
+		addEntry()
+	}
     
     def revertEntry = { evt = null ->
     	setEntry(model?.entry)
@@ -192,8 +247,16 @@ class SchemeEditorController implements ListSelectionListener {
     
     def removeEntry = { evt = null ->
     	if (model?.entry) {
-    		model.schemeEntries.remove(model?.entry)
-    		setEntry(null)
+			def index = model.schemeEntries.indexOf(model?.entry)
+			model.schemeEntries.remove(index)
+
+			// select next entry
+			def selectEntry = null
+			if (model.schemeEntries.size() > 0) {
+				def newIndex = (index < model.schemeEntries.size()) ? index : index - 1
+				selectEntry = model.schemeEntries.get(newIndex)
+			}
+    		setEntry(selectEntry)
     	}
     }
     
@@ -227,8 +290,6 @@ class SchemeEditorController implements ListSelectionListener {
     	def color = JColorChooser.showDialog(app.windowManager.windows[0], "Choose Color", view.preview.color)
     	if (color) {
     		model.entryColor = "${color.red},${color.green},${color.blue}"
-    	} else {
-    		model.entryColor = null
     	}
     	entryChanged()
     	updatePreview()
@@ -239,8 +300,6 @@ class SchemeEditorController implements ListSelectionListener {
     			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 		if (option == JOptionPane.OK_OPTION) {
 			model.entryImage = view.standardImages.selectedValue?.image
-		} else {
-			model.entryImage = null
 		}
     	view.imageFilter.text = ""
     	entryChanged()
@@ -270,11 +329,11 @@ class SchemeEditorController implements ListSelectionListener {
     }
     
     def customImage = { evt = null ->
-	    def fc = new JFileChooser(currentDir)
+	    def fc = new JFileChooser(currentOpenDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
-	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff'], description: 'Images'))
+	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: helper.IMAGE_EXTENSIONS, description: 'Images'))
 	    if ( fc.showDialog(app.windowManager.windows[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
-	    	currentDir = fc.currentDirectory
+	    	currentOpenDir = fc.currentDirectory
 	    	def f = fc.selectedFile
 	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm())]
 	    	model.standardImages << m
@@ -287,23 +346,6 @@ class SchemeEditorController implements ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
     	setEntry(view.schemeEntries.selectedValue)
 	}
-    
-    /**
-	 * Resolve a string into a URL, with special support for rsrc:/ paths.
-	 */
-    private URL resolve(path) {
-    	if (path) {
-    		if (path.startsWith("rsrc:/")) {
-				return getClass()?.getResource(path.substring(5)) ?: classloader?.getResource(path.substring(6))
-    		} else if (path.contains(":/")) {
-    			return new URL(path)
-    		} else {
-    			return new File(path).toURL()
-    		}
-    	} else {
-    		return null
-    	}
-    }
 }
 
 class CustomFileFilter extends FileFilter {

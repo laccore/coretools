@@ -24,6 +24,7 @@ import org.andrill.coretools.scene.event.Feedback
 import org.andrill.coretools.scene.event.EventPolicy.Type
 import org.andrill.coretools.scene.event.DefaultFeedback
 import org.andrill.coretools.scene.event.SceneEvent
+import org.andrill.coretools.geology.models.Length
 
 /**
  * An event policy for moving geology-related models.
@@ -45,8 +46,8 @@ class MovePolicy extends GeologyPolicy {
 	}
 
 	Command getCommand(SceneEvent e, Object target) {
-		def dx = phys(e.x - e.dragX)
-		def dy = round(phys(e.y)) - round(phys(e.dragY))
+		def dx = new Length(phys(e.x - e.dragX), track.units)
+		def dy = new Length(round(phys(e.y)) - round(phys(e.dragY)), track.units)
 		
 		def commands = []
 		buildCommand(Cursor.N_RESIZE_CURSOR, target, dy, commands)
@@ -63,7 +64,7 @@ class MovePolicy extends GeologyPolicy {
 	protected void buildCommand(handle, model, delta, commands) {
 		def p = getHandleProperty(handle, model)
 		if (p) {
-			def val = model."${p.name}" + delta
+			def val = (model."${p.name}" + delta) as String
 			def c = p.getCommand(val as String)
 			if (c) { commands << c }
 		}

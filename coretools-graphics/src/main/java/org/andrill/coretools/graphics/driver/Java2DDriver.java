@@ -23,6 +23,7 @@ import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.TexturePaint;
@@ -287,9 +288,25 @@ public class Java2DDriver implements Driver {
 	 * {@inheritDoc}
 	 */
 	public void drawImage(final Rectangle2D rect, final URL image) {
+		drawImageScaled(rect, image, true);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void embedImage(final Rectangle2D rect, final URL image) {
+		drawImageScaled(rect, image, false);
+	}
+	
+	// Internal draw method to accommodate drawImage and embedImage
+	protected void drawImageScaled(final Rectangle2D rect, final URL image, final boolean scaleToRect) {
 		prepareDraw();
-		Future<BufferedImage> future = cache.get(image, new Dimension((int) rect.getWidth(), (int) rect.getHeight()),
-		        interactive);
+		Future<BufferedImage> future = null;
+		if (scaleToRect) {
+			future = cache.get(image, new Dimension((int) rect.getWidth(), (int) rect.getHeight()), interactive);
+		} else {
+			future = cache.get(image, interactive);
+		}
 		if ((interactive == null) || future.isDone()) {
 			try {
 				BufferedImage bi = future.get();
@@ -310,6 +327,7 @@ public class Java2DDriver implements Driver {
 			drawImageLoading(rect, image);
 		}
 	}
+	
 
 	protected void drawImageError(final Rectangle2D r, final URL orig) {
 		if (imageError == null) {
@@ -390,6 +408,17 @@ public class Java2DDriver implements Driver {
 		prepareDraw();
 		g2d.setFont(font);
 		g2d.drawString(string, (int) point.getX(), (int) point.getY() + font.getSize());
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public void drawStringRotated(Point2D point, Font font, String string, double theta) {
+		AffineTransform oldTransform = g2d.getTransform();
+		g2d.translate(point.getX(), point.getY());
+		g2d.rotate(theta);
+		drawString(new Point(0, 0), font, string);
+		g2d.setTransform(oldTransform);
 	}
 
 	private void fill(final Shape s) {

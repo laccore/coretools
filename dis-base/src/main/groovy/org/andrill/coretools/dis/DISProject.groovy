@@ -80,6 +80,9 @@ class DISProject extends AbstractProject implements ModelContainer.Listener {
 	}
 	
 	@Override
+	protected void delete(String name) { } // brg: satisfy AbstractProject interface (stub since DIS unused at present) 
+	
+	@Override
 	protected ModelContainer open(String name) {
 		ModelContainer container = Platform.getService(ModelContainer.class)
 		def section = sections[name]

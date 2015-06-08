@@ -49,31 +49,52 @@ class SectionComboTests extends GroovyTestCase {
 		GH.destroyMVCGroup(app, 'SectionCombo')
 	}
 	
-	void testExportAll() {
+	void testAll() {
 		view.section.selectedIndex = 0
-		assert controller.selection == 'All sections' 
+		assert controller.selection == model.allSectionsText //'All sections' 
 		def containers = controller.containers
 		assert containers
 		assert containers.size() == 1
 		assert containers[project.name].models.size() == 4
+		
+		def copyContainers = controller.copyContainers()
+		assert copyContainers
+		assert copyContainers.size() == 1
+		assert copyContainers[project.name].models.size() == 4
+		
+		// ensure our copied model really is a copy (Groovy uses Object.is() rather than ==)
+		assert !copyContainers[project.name].models[0].is(containers[project.name].models[0])
 	}
 	
-	void testExportEach() {
+	void testEach() {
 		view.section.selectedIndex = 1
-		assert controller.selection == 'Each section' 
+		assert controller.selection == model.eachSectionText //'Each section' 
 		def containers = controller.containers
 		assert containers
 		assert containers.size() == 2
 		assert containers['Section 1'].models.size() == 2
 		assert containers['Section 2'].models.size() == 2
+		
+		def copyContainers = controller.copyContainers()
+		assert copyContainers
+		assert copyContainers.size() == 2
+		assert copyContainers['Section 1'].models.size() == 2
+		assert copyContainers['Section 2'].models.size() == 2
+		assert !copyContainers['Section 1'].models[0].is(containers['Section 1'].models[0])
 	}
 	
-	void testExportOne() {
+	void testOne() {
 		view.section.selectedIndex = 2
 		assert controller.selection == 'Section 1' 
 		def containers = controller.containers
 		assert containers
 		assert containers.size() == 1
 		assert containers['Section 1'].models.size() == 2
+		
+		def copyContainers = controller.copyContainers()
+		assert copyContainers
+		assert copyContainers.size() == 1
+		assert copyContainers['Section 1'].models.size() == 2
+		assert !copyContainers['Section 1'].models[0].is(containers['Section 1'].models[0])
 	}
 }

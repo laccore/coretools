@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 import java.awt.Color
+import java.awt.Font
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.Image
-import java.util.zip.ZipEntry
+import java.awt.image.BufferedImage
+import java.awt.TexturePaint
+import java.util.jar.JarFile
+import java.util.zip.ZipFileimport java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import javax.imageio.ImageIOimport javax.swing.Icon
+import javax.imageio.ImageIO
+import javax.swing.Icon
 import javax.swing.ImageIcon
-import groovy.lang.GroovyClassLoaderimport groovy.xml.MarkupBuilder
+
+import groovy.xml.MarkupBuilder
+
+import com.lowagie.text.Document
+import com.lowagie.text.DocumentException
+import com.lowagie.text.Rectangle
+import com.lowagie.text.pdf.PdfContentByte
+import com.lowagie.text.pdf.PdfWriter
 
 public class SchemeHelper {
-	private GroovyClassLoader classloader		/**	 * Create a new SchemeHelper	 */	public SchemeHelper(classloader) {		this.classloader = classloader	}
+	public IMAGE_EXTENSIONS = ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff']
+		/**	 * Create a new SchemeHelper	 */	public SchemeHelper() { }
 
 	/**
 	 * Parse a color from a RGB tuple, e.g. '100,100,100'.
@@ -32,7 +47,7 @@ public class SchemeHelper {
 			def rgb = color.split(",")
 			return new Color(rgb[0] as int, rgb[1] as int, rgb[2] as int)
 		} else {
-			return null
+			return Color.WHITE // default to white for null Color as we do in PSICAT
 		}
     }
 	
@@ -63,21 +78,88 @@ public class SchemeHelper {
 	 * Resolve a string into a URL, with special support for rsrc:/ paths.
 	 */
     URL resolve(path) {
+		def url = null
 		if (path) {
     		if (path.startsWith("rsrc:/")) {
-    			return getClass()?.getResource(path.substring(5)) ?: classloader?.getResource(path.substring(6))
+				url =  getClass()?.getResource(path.substring(5))
+				if (url == null) {
+					File cacheFile = new File(cacheDir, path.substring(path.lastIndexOf('/') + 1))
+					if (cacheFile.exists()) {
+						url = cacheFile.toURL()
+					}
+				}
     		} else if (path.contains(":/")) {
-    			return new URL(path)
+				url =  new URL(path)
     		} else {
-    			return new File(path).toURL()
+				url = new File(path).toURL()
     		}
-    	} else {
-    		return null
     	}
-    }		/**	 * Adds a file to the search path	 */	def add(url) {		classloader.addURL(url)	}
+		return url
+    }
+
+	// 12/17/2014 brg: Abandoning use of adding scheme files to classloader as a 
+	// means of caching images. Saving a scheme already in the classloader caused two
+	// problems: 1) certain images suddenly stopped loading and 2) (sometimes) crashes
+	// on OSX. We now cache images as files in a temp directory, which has proven more
+	// reliable so far (despite my crude implementation).
+    private cacheDir = null
 	
 	/**
-	 * Read a scheme a stream.
+	 * Adds a file to the cache
+	 */
+	def add(url) {		initCacheDir()
+		ZipFile jar = new ZipFile(url.getPath())
+		jar.entries().each {
+			def dotIndex = it.name.lastIndexOf('.')
+			if (dotIndex != -1) {
+				def ext = it.name.substring(dotIndex).toLowerCase()
+				if (IMAGE_EXTENSIONS.contains(ext)) {
+					def fname = it.name.substring(it.name.lastIndexOf("/") + 1)
+					File outFile = new File(cacheDir, fname)
+					InputStream fis = jar.getInputStream(jar.getEntry(it.name))
+					FileOutputStream fos = new FileOutputStream(outFile)
+					while (fis.available() > 0) { fos.write(fis.read()); }
+					fis.close()
+					fos.close()
+				}
+			}
+		}
+	}
+	
+	/**
+	 *  Adds a file stream to the cache
+	 */
+	def addToCache(instream, name) {
+		initCacheDir()
+		File outFile = new File(cacheDir, name)
+		if (outFile.exists()) return
+		FileOutputStream fos = new FileOutputStream(outFile)
+		while (instream.available() > 0) { fos.write(instream.read()) }
+		instream.close()
+		fos.close()
+	}
+	
+	def isCached(name) {
+		initCacheDir()
+		File f = new File(cacheDir, name)
+		return f.exists()
+	}
+	
+	def initCacheDir() {
+		if (!cacheDir) {
+			try {
+				def baseDir = new File(System.getProperty("java.io.tmpdir"))
+				String baseName = "schemeEditor-" + System.currentTimeMillis()
+				cacheDir = new File(baseDir, baseName)
+				cacheDir.mkdir()
+			} catch (IllegalStateException e) {
+				System.out.println("failed to create temp directory")
+			}
+		}
+	}
+	
+	/**
+	 * Read a scheme from a stream.
 	 */
 	def read(stream) {
 		def scheme = [ id:"", name:"", type:"", entries:[] ]
@@ -124,6 +206,10 @@ public class SchemeHelper {
 							url.withInputStream { stream ->
 								zip << stream
 							}
+							
+							if (!isCached(f))
+								url.withInputStream { stream -> addToCache(stream, f) }
+							
 							zip.closeEntry()
 							images << f
 						}
@@ -150,11 +236,18 @@ public class SchemeHelper {
 				zip.closeEntry()
 				zip.close()
 			}
-
+			
 			// all's gone well, dump contents of tmp into destination file - File.renameTo()
 			// is notoriously unreliable and isn't working on Win7.
 			def inStream = new FileInputStream(tmp)
-			def outStream = new FileOutputStream(file)
+			
+			// add .jar extension if necessary
+			def outFile = file
+			if (!file.name.endsWith(".jar")) {
+				outFile = new File(file.parentFile, file.name + ".jar")
+			}
+			
+			def outStream = new FileOutputStream(outFile)
 			byte[] buf = new byte[1024]
 			int len = 0
 			while ((len = inStream.read(buf)) > 0) { outStream.write(buf, 0, len) }
@@ -164,5 +257,150 @@ public class SchemeHelper {
 		} catch (e) {
 			e.printStackTrace()
 		}
+	}
+	
+	def wrap(text, fontMetrics, maxWidth) {
+		def lines = []
+		def width = 0
+		def curLine = ""
+		text.split(" ").each { word ->
+			def wordWidth = fontMetrics.stringWidth(word + " ") 
+			if (width + wordWidth > maxWidth) {
+				lines << curLine
+				curLine = word + " "
+				width = wordWidth
+			} else {
+				curLine += (word + " ")
+				width += wordWidth
+			}
+		}
+		lines << curLine
+	}
+	
+	// assuming 8.5 x 11" for pagination
+	def exportCatalog(paginate, destFile, schemeEntries, isLithology, schemeName, schemeId) {
+		final int TITLE_HEIGHT = 20
+		final int MARGIN = 36 // 1/2"
+		final int SYMBOL_LARGE = 32
+		final int SYMBOL_SMALL = 16
+		final int INTERSYMBOL_PADDING = 8
+		final int SYMBOL_IMAGES_WIDTH = SYMBOL_LARGE + INTERSYMBOL_PADDING + SYMBOL_SMALL
+
+		final int entryPadding = 5
+		final int entryWidth = isLithology ? 130 : 260
+		final int entryHeight = isLithology ? 170 : 40
+		final int textWidth = isLithology ? entryWidth : (entryWidth - SYMBOL_IMAGES_WIDTH) // symbol: subtract large and small image width plus 5pix padding 
+
+		final int width = 612 // 8.5" wide
+		final int entriesPerRow = (width / entryWidth)
+		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryHeight) + TITLE_HEIGHT // 11" high if paginated
+    	
+        Document document = new Document(new Rectangle(width, height))
+        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(destFile))
+        document.open();
+        PdfContentByte content = writer.getDirectContent();
+		
+		def g2 = null
+		def template = null
+		def lastPage = false
+		
+		int startIdx = 0
+		int entriesPerPage = paginate ? (((height - MARGIN * 2) / entryHeight) * entriesPerRow).intValue() : schemeEntries.size()
+		
+		while (!lastPage) {
+			// start a page
+			if (g2 != null) g2.dispose()
+			if (template != null) {
+				content.addTemplate(template, 0, 0)
+				document.newPage()
+			}
+			template = content.createTemplate(width, height)
+			g2 = content.createGraphics(width, height)
+			g2.translate(MARGIN, MARGIN)
+			
+			// draw title
+			g2.setFont(new Font("SansSerif", Font.PLAIN, 14))
+			def dateStr = new Date().toString()
+			def titleStr = "$schemeName ($schemeId)"
+			g2.drawString(titleStr, 0, 0)
+	
+			// draw tiles
+			g2.setFont(new Font("SansSerif", Font.PLAIN, 10))
+			def fontMetrics = g2.fontMetrics
+			def letterHeight = fontMetrics.height
+			def row = 0, col = 0
+
+			int endIdx = startIdx + entriesPerPage - 1
+			if (endIdx >= schemeEntries.size() - 1) {
+				endIdx = schemeEntries.size() - 1
+				lastPage = true
+			}
+			
+			def entries = schemeEntries[startIdx..endIdx]
+			startIdx += entriesPerPage
+			
+			entries.eachWithIndex { entry, index ->
+				def x = col * (entryWidth + entryPadding)
+				def y = TITLE_HEIGHT + row * (entryHeight)
+	
+				def color = entry.color ?: Color.white
+				
+				if (isLithology) {
+					g2.setPaint(parseColor(entry.color))
+					g2.fillRect(x.intValue(), y.intValue(), entryWidth, entryWidth)
+				}
+				
+				if (entry.image) {
+					def image = null
+					try {
+						image = ImageIO.read(resolve(entry.image))
+					} catch (IOException e) {
+						println "Couldn't load image ${entry.image}"
+					}
+
+					if (image) {
+						if (isLithology) {
+							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
+							g2.fillRect(x, y, entryWidth, entryWidth)
+						} else {
+							// PSICAT diagram output-sized image
+							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
+							g2.fillRect(x, y, SYMBOL_LARGE, SYMBOL_LARGE)
+							
+							def space = SYMBOL_LARGE + INTERSYMBOL_PADDING
+							
+							// in-PSICAT-sized image (smaller)
+							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x + space, y, (image.width / 2).intValue(), (image.height / 2).intValue())))
+							g2.fillRect(x + space, y, SYMBOL_SMALL, SYMBOL_SMALL)
+						}
+					} else {
+						println "no image found for ${entry.name}"
+					}
+				}
+				
+				// draw entry name, wrapped if needed			
+				g2.setPaint(Color.BLACK)
+				def nameLines = wrap(entry.name, fontMetrics, textWidth)
+				nameLines.eachWithIndex { line, curLine ->
+					if (isLithology)
+						g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
+					else
+						g2.drawString(line, x + 16 + 40 + entryPadding, y + letterHeight * (1 + curLine))
+				}
+	
+				// advance column and row
+				col++
+				if (col >= entriesPerRow) {
+					row++
+					col = 0
+				}
+			}
+		}
+		
+		if (g2 != null) {
+			g2.dispose();
+			content.addTemplate(template, 0, 0)	
+		}
+        document.close();
 	}
 }

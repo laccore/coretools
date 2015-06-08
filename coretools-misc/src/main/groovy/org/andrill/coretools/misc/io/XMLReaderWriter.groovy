@@ -41,6 +41,27 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
     }
 	
 	String getFormat() { "xml" }
+	
+	// 1/20/2015 brg: Escape any character that isn't low ASCII as their decimal numeric
+	// character reference for XML output. MarkupBuilder only escapes the five standard
+	// XML entities. Write the result string using mkp.yieldUnescaped - otherwise, MarkupBuilder
+	// will escape the '&' in each decimal numeric character reference e.g. &#8220 -> &amp;#8220,
+	// which is read as "&#8220;" instead of yielding the expected character. Thus we also
+	// escape XML entities [' " < > &] here.
+	def escapeHTML(String s) {
+		StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c > 127 || c == '"' || c == '\'' || c == '<' || c == '>' || c == '&') {
+				out.append("&#");
+				out.append((int) c);
+				out.append(';');
+			} else {
+				out.append(c);
+			}
+		}
+		return out.toString();
+	}
 	 
 	void read(final ModelContainer container, final InputStream stream) {
 		long start = System.currentTimeMillis()
@@ -55,9 +76,7 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 				// brg 3/11/2014: This is a sinful violation of Josh's design, but I'm struggling to find
 				// an elegant, design-friendly solution to the need for project-relative image URLs
 				if (type.equals("Image") && p.@name.text().equals("path")) {
-					//println "project path = ${container.project.path.toString()}"
 					data["path"] = new URL(container.project.path.toString() + p.text().substring(6)) // strip off "file:/"
-					//println "full image path = ${data.path}" 
 				} else {
 					data[p?.@name.text()] = p.text()
 				}
@@ -72,9 +91,9 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 				logger.warn("Unable to create model for type {}", type)
 			}
 		}
-		logger.info("Read {} XML models in {} ms", count, (System.currentTimeMillis() - start))
+		logger.debug("Read {} XML models in {} ms", count, (System.currentTimeMillis() - start))
 	}
-		
+	
 	void write(final ModelContainer container, final OutputStream stream) {
 		def xml = new MarkupBuilder(new PrintWriter(stream))
 		xml.container {
@@ -83,13 +102,17 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 					m.modelData.each { k,v ->
 						if (m.modelType.equals("Image") && k.equals("path")) {
 							// brg 3/11/2014: strip down URL to image directory
-							//println "image URL = ${v.toString()}"
 							def imageFile = v.substring(v.lastIndexOf('/') + 1)
 							def localURL = new URL("file:/images/${imageFile}")  
-							//println "fixed-up URL = ${localURL}"
 							property(name: k, localURL)
 						} else {
-							property(name: k, v)
+							if (k.equals("description")) {
+								property(name: k) {
+									xml.mkp.yieldUnescaped(escapeHTML(v))
+								}
+							} else {
+								property(name: k, v)
+							}
 						}
 					}
 				}

@@ -83,6 +83,17 @@ public interface Driver {
 	 *            the image.
 	 */
 	void drawImage(Rectangle2D rect, URL image);
+	
+	/**
+	 * For use in non-raster output: embed the full-resolution image, scaled to
+	 * fit the specified rectangle.
+	 * 
+	 * @param rect
+	 *            the rectangle.
+	 * @param image
+	 *            the image.
+	 */
+	void embedImage(Rectangle2D rect, URL image);
 
 	/**
 	 * Draws a line.
@@ -137,6 +148,20 @@ public interface Driver {
 	 *            the string.
 	 */
 	void drawString(Point2D point, Font font, String string);
+
+	/**
+	 * Draws a string, rotated by the specified angle.
+	 * 
+	 * @param point
+	 *            the point,
+	 * @param font
+	 *            the font.
+	 * @param string
+	 *            the string.
+	 * @param theta
+	 *            the angle of rotation, in radians.
+	 */
+	void drawStringRotated(Point2D point, Font font, String string, double theta);
 
 	/**
 	 * Fills an arc.

@@ -52,6 +52,18 @@ actions {
 		enabled: bind { model.schemeValid },
 		closure: controller.saveAs
 	)
+	action(
+		id: 'exportOnePageCatalogAction',
+		name: 'Export Catalog...',
+		enabled: bind { model.schemeValid },
+		closure: controller.exportOnePageCatalog
+	)
+	action(
+		id: 'exportPaginatedCatalogAction',
+		name: 'Export Paginated Catalog...',
+		enabled: bind { model.schemeValid },
+		closure: controller.exportPaginatedCatalog
+	)
 	action( id: 'updateSchemeAction',
 		closure: controller.schemeChanged
 	)
@@ -65,6 +77,11 @@ actions {
 		name:'Remove',
 		enabled: bind { model.entry != null },
 		closure: controller.removeEntry
+	)
+	action( id:'saveAndAddEntryAction',
+		name:'Update and Add',
+		enabled: bind { model.entry != null && model.entryDirty && model.entryValid },
+		closure: controller.saveAndAddEntry
 	)
 	action( id:'saveEntryAction',
 		name:'Update',

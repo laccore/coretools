@@ -16,13 +16,12 @@ repositories {
 
 // add any dependencies you want downloaded as part of the bootstrap process
 dependencies {
-	compile 'com.lowagie:itext:2.1.7'
 	compile 'org.apache.xmlgraphics:batik-awt-util:1.7'
 	compile 'org.apache.xmlgraphics:batik-util:1.7'
 	compile 'org.apache.xmlgraphics:batik-svggen:1.7'
 	compile 'net.sourceforge.jexcelapi:jxl:2.6.3'
 	compile 'com.miglayout:miglayout:3.7'
-	compile 'net.java.dev.glazedlists:glazedlists_java15:1.7.0'
+	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
 	compile 'org.slf4j:slf4j-log4j12:1.5.8'
     compile 'log4j:log4j:1.2.16'
     compile 'xalan:xalan:2.7.1'

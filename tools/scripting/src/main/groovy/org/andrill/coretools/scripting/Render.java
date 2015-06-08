@@ -120,11 +120,11 @@ public class Render {
 		// render the format
 		String format = options.valueOf("format").toString().toLowerCase();
 		if ("pdf".equals(format)) {
-			RenderUtils.renderPDF(scene, paper, start, end, pageSize, renderHeader, renderFooter, out);
+			RenderUtils.renderPDF(scene, paper, start, end, pageSize, renderHeader, renderFooter, "", out);
 		} else if ("svg".equals(format)) {
-			RenderUtils.renderSVG(scene, paper, start, end, pageSize, renderHeader, renderFooter, out);
+			RenderUtils.renderSVG(scene, paper, start, end, pageSize, renderHeader, renderFooter, "", out);
 		} else if (Arrays.asList("jpeg", "png", "bmp").contains(format)) {
-			RenderUtils.renderRaster(scene, paper, start, end, pageSize, renderHeader, renderFooter, out);
+			RenderUtils.renderRaster(scene, paper, start, end, pageSize, renderHeader, renderFooter, "", out);
 		} else {
 			System.err.println("Unrecognized output format: " + format);
 		}

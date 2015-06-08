@@ -27,11 +27,13 @@ import org.andrill.coretools.model.edit.EditableProperty;
  */
 public abstract class AbstractWidget implements Widget {
 	private static final String LABEL_KEY = "label";
+	private static final String UNIT_LABEL_KEY = "unitLabel"; // label right of edit text, useful for e.g. fixed units
 
 	protected Set<Listener> listeners = new CopyOnWriteArraySet<Listener>();
 	protected EditableProperty property;
 	protected boolean readOnly;
 	protected String label = null;
+	protected String unitLabel = null;
 
 	/**
 	 * Create a new {@link AbstractWidget}.
@@ -90,6 +92,13 @@ public abstract class AbstractWidget implements Widget {
 			}
 		}
 		return label;
+	}
+	
+	public String getUnitLabel() {
+		if (property.getWidgetProperties().containsKey(UNIT_LABEL_KEY)) {
+			unitLabel = property.getWidgetProperties().get(UNIT_LABEL_KEY);
+		}
+		return unitLabel;
 	}
 
 	/**

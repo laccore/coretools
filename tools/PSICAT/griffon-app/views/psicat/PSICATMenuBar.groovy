@@ -19,10 +19,16 @@ import static griffon.util.GriffonApplicationUtils.*
 
 menuBar(id: 'menuBar') {
 	menu(text: 'File', mnemonic: 'F') {
-		menuItem(newProjectAction)
-		menuItem(newSectionAction)
+		menu(text: 'New') {
+			menuItem(newProjectAction)
+			menuItem(importImageAction)
+			menuItem(newSectionAction)
+		}
 		menuItem(openProjectAction)
-		menuItem(openDISAction)
+		menuItem(closeProjectAction)
+		// brg 4/6/2014: Changes to scheme handling likely mean DIS projects are going to misbehave,
+		// don't allow them for now.
+		//menuItem(openDISAction)
 		separator()
 		menuItem(closeAction)
 		menuItem(closeAllAction)
@@ -30,14 +36,18 @@ menuBar(id: 'menuBar') {
 		menuItem(saveAction)
 		menuItem(saveAllAction)
 		separator()
-		menu(text: 'Import', enabled: bind { model.project != null }) {
-			menuItem(importImageAction)
-			menuItem(importTabularAction)
-			menuItem(importLegacyAction)
-		}
+		menuItem(deleteSectionAction)
+		separator()
+		// brg 2/18/2015: hide for now: tabular format changed, no need for legacy import at present
+//		menu(text: 'Import', enabled: bind { model.project != null }) {
+//			menuItem(importImageAction)
+//			menuItem(importTabularAction)
+//			menuItem(importLegacyAction)
+//		}
 		menu(text: 'Export', enabled: bind { model.project != null }) {
 			menuItem(exportTabularAction)
 			menuItem(exportDiagramAction)
+			menuItem(exportStratColumnAction)
 		}
 		//menuItem(exportProjectAction)
 		if (!isMacOSX) {
@@ -47,15 +57,21 @@ menuBar(id: 'menuBar') {
 	}
 
 	menu(text: 'Edit', mnemonic: 'E') {
-		menuItem(deleteAction)
 		menuItem(undoAction)
 		menuItem(redoAction)
+		menuItem(deleteAction)
+		menuItem(splitAction)
+		separator()
+		menuItem(findAndReplaceAction)
+		separator()
+		menuItem(grainSizeScaleAction)
+		menuItem(chooseSchemesAction)
 	}
 
 
 	menu(text: 'View', mnemonic:'V') {
-		menuItem(rotateAction)
-		separator()
+		//menuItem(rotateAction)
+		//separator()
 		menuItem(zoomInAction)
 		menuItem(zoomOutAction)
 		menu(text: 'Zoom Level', enabled: bind { model.scene != null }) {
@@ -77,7 +93,7 @@ menuBar(id: 'menuBar') {
 
 	menu(text: 'Help', mnemonic:'H') {
 		menuItem(aboutAction)
-		menuItem(documentationAction)
-		menuItem(feedbackAction)
+		//menuItem(documentationAction)
+		//menuItem(feedbackAction)
 	}
 }

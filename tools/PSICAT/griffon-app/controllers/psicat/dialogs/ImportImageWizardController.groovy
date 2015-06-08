@@ -68,7 +68,7 @@ class ImportImageWizardController {
 			view.fileCountLabel.mouseExited = { ToolTipManager.sharedInstance().setDismissDelay(defaultDismissTimeout) }
 		}
 
-    	if (Dialogs.showCustomDialog("Import Images", view.root, app.appFrames[0])) {
+    	if (Dialogs.showCustomDialog("Import Images", view.root, app.windowManager.windows[0])) {
 			def images = compileImages()
 			if (images.size() == 0) {
 				throw new RuntimeException('No images found')

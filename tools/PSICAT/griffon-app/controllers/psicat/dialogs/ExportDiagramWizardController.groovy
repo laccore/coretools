@@ -145,7 +145,7 @@ class ExportDiagramWizardController {
 	}
 	
     def show() { 
-		Dialogs.showCustomOneButtonDialog(model.title, view.root, app.appFrames[0])
+		Dialogs.showCustomOneButtonDialog(model.title, view.root, app.windowManager.windows[0])
 		return ''
 	}
 }

@@ -505,13 +505,13 @@ class ExportStratColumnWizardController {
 
     def actions = [
 		'chooseMetadata': { evt = null ->
-			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
+			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.windowManager.windows[0])
 			if (file) {
 				model.metadataPath = file.absolutePath
 			}
 		},
 		'chooseExport': { evt = null ->
-			def file = Dialogs.showSaveDialog('Export Strat Column', CustomFileFilter.PDF, '.pdf', app.appFrames[0])
+			def file = Dialogs.showSaveDialog('Export Strat Column', CustomFileFilter.PDF, '.pdf', app.windowManager.windows[0])
 			if (file) {
 				model.exportPath = file.absolutePath
 			}
@@ -522,6 +522,6 @@ class ExportStratColumnWizardController {
     ]
 
     def show() {
-    	Dialogs.showCustomOneButtonDialog("Export Strat Column", view.root, app.appFrames[0])
+    	Dialogs.showCustomOneButtonDialog("Export Strat Column", view.root, app.windowManager.windows[0])
     }
 }

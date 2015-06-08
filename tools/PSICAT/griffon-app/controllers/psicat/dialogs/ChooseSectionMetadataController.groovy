@@ -29,12 +29,12 @@ class ChooseSectionMetadataController {
 	
 	def getFile() { model.metadataFile }
 	
-	def show() { Dialogs.showCustomDialog("Choose Section Metadata File", view.root, app.appFrames[0]) }
+	def show() { Dialogs.showCustomDialog("Choose Section Metadata File", view.root, app.windowManager.windows[0]) }
 	
 	def actions = [
 		'browse': { evt = null ->
 			def csvFilter = new CustomFileFilter(description: "CSV Files (*.csv)", extensions: [".csv"])
-			def file = Dialogs.showOpenDialog("Select Section Metadata File", csvFilter, app.appFrames[0])
+			def file = Dialogs.showOpenDialog("Select Section Metadata File", csvFilter, app.windowManager.windows[0])
 			if (file) { model.metadataFile = file }
 		}
 	]

@@ -108,7 +108,7 @@ class FindReplaceController {
     ]	
 
     def show() {
-		def saveChanges = JOptionPane.showOptionDialog(app.appFrames[0], view.root, "Find and Replace", JOptionPane.OK_CANCEL_OPTION,
+		def saveChanges = JOptionPane.showOptionDialog(app.windowManager.windows[0], view.root, "Find and Replace", JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE, null, ['Save Changes and Close', 'Cancel Changes and Close'].toArray(), null) == JOptionPane.OK_OPTION
 		if (saveChanges) {
 			model.containersToSave.each { 

@@ -254,11 +254,11 @@ class PSICATController {
 		'deleteSection': { evt = null ->
 			def sections = getSelectedSections()
 			if (sections.size() == 0) {
-				Dialogs.showErrorDialog("Delete Section(s)", "No sections selected", app.appFrames[0])
+				Dialogs.showErrorDialog("Delete Section(s)", "No sections selected", app.windowManager.windows[0])
 				return
 			}
 			def msg = sections.size() > 1 ? "Delete ${sections.size()} selected sections?" : "Delete section ${sections[0]}?"
-			def ret = JOptionPane.showConfirmDialog(app.appFrames[0], msg, "PSICAT", JOptionPane.YES_NO_OPTION)
+			def ret = JOptionPane.showConfirmDialog(app.windowManager.windows[0], msg, "PSICAT", JOptionPane.YES_NO_OPTION)
 			if (ret == JOptionPane.YES_OPTION) {
 				sections.each { sectionName ->
 					def indexToClose = model.openDiagrams.findIndexOf { it.model.id == sectionName }
@@ -384,14 +384,14 @@ JRE Home: ${System.getProperty("java.home")}
 			}
 		},
 		'grainSizeScale': { evt = null ->
-			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", getGrainSizeCode())
+			def result = JOptionPane.showInputDialog(app.windowManager.windows[0], "Current grain size scale:", getGrainSizeCode())
 			if (result) {
 				try {
 					def testScale = new Scale(result)
 					model.project.configuration.grainSizeScale = result
 					model.project.saveConfiguration()
 				} catch (NumberFormatException e) {
-					Dialogs.showErrorDialog("Invalid Grain Size Scale", "Invalid grain size scale: ${e.message}", app.appFrames[0])
+					Dialogs.showErrorDialog("Invalid Grain Size Scale", "Invalid grain size scale: ${e.message}", app.windowManager.windows[0])
 				}
 			}
 		},

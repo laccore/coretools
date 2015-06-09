@@ -27,6 +27,8 @@ import psicat.util.Dialogs
 	@Bindable def metadataPath = null
 	@Bindable def exportPath = null
 	@Bindable boolean drawLegend = true
-	@Bindable boolean drawSectionNames = false
+	@Bindable boolean drawSectionNames = true
+	@Bindable boolean drawSymbols = true
+	@Bindable boolean drawGrainSize = true
 	@Bindable boolean drawDms = false
 }

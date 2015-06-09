@@ -132,7 +132,7 @@ class ExportStratColumnWizardController {
 	
 	// for given section, collect properties and occurrences for each Interval
 	def buildIntervalDrawData(sectionName, occMap) {
-		def occCount = occMap[sectionName]?.size()
+		def occCount = occMap[sectionName]?.size() ?: 0
 		def intervals = []
 		def section = model.project.openContainer(sectionName)
 		def modelIterator = section.iterator()
@@ -147,7 +147,7 @@ class ExportStratColumnWizardController {
 				// gather occurrences whose top depth is within this interval
 				def occs = occMap[sectionName]
 				def intervalOccs = occs?.findAll { it.top?.to('m').value >= top && it.top?.to('m').value <= base }
-				occCount -= intervalOccs.size()
+				occCount -= intervalOccs?.size() ?: 0
 				
 				intervals << ['top':top, 'base':base, 'model':mod, 'gsTop':gsTop, 'gsBase':gsBase, 'occs':intervalOccs]
 			}
@@ -401,11 +401,20 @@ class ExportStratColumnWizardController {
 		try {
 			sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath, model.project)
 		} catch (e) {
-			Dialogs.showErrorDialog("Export Error", "Couldn't parse metadata file: does it meet all requirements?")
+			Dialogs.showErrorDialog("Export Error", "Couldn't parse metadata file: ${e.getMessage()}")
 			resetProgress()
 			return
 		}
-		def occMap = prepareMetadata(sortedMetadata)
+		
+		if (sortedMetadata.size() == 0) {
+			Dialogs.showErrorDialog("Export Error", "Couldn't find any project sections that match metadata sections.")
+			resetProgress()
+			return
+		}
+		
+		def occMap = [:]
+		if (model.drawSymbols)
+			occMap = prepareMetadata(sortedMetadata)
 		
 		// determine depth to pixel scaling
 		def totalIntervalLength = sortedMetadata[-1].base// - sortedMetadata[0].top
@@ -421,7 +430,8 @@ class ExportStratColumnWizardController {
 		PdfContentByte cb = writer.getDirectContent()
 		Graphics2D g2 = cb.createGraphics(PAGE_WIDTH, PAGE_HEIGHT)
 		
-		drawGrainSizeScale(g2)
+		if (model.drawGrainSize)
+			drawGrainSizeScale(g2)
 		drawRuler(g2, totalIntervalLength)
 		
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
@@ -467,8 +477,8 @@ class ExportStratColumnWizardController {
 					def y = new BigDecimal(t * scaleFactor).intValue() + ybase
 					def bot = new BigDecimal(b * scaleFactor).intValue() + ybase
 					def height = bot - y
-					def xur = xbase + gsoff(curint.gsTop)
-					def xlr = xbase + gsoff(curint.gsBase)
+					def xur = xbase + (model.drawGrainSize ? gsoff(curint.gsTop) : STRAT_WIDTH)
+					def xlr = xbase + (model.drawGrainSize ? gsoff(curint.gsBase) : STRAT_WIDTH)
 
 					// In cases where the physical gap between sections resolves to less
 					// than one pixel, fill that gap by extending the base of the last

@@ -28,8 +28,7 @@ class GeoUtils {
 		try {
 			reader = new CSVReader(new FileReader(metadataFile));
 		} catch (e) {
-			println "Parsing CSV failed"
-			throw e
+			throw new Exception("Couldn't parse metadata file: ${e.getMessage()}", e)
 		}
 		def entries = reader.readAll()
 		entries.eachWithIndex { row, index ->
@@ -41,8 +40,7 @@ class GeoUtils {
 					top = row[1] as BigDecimal
 					base = row[2] as BigDecimal
 				} catch (e) {
-					println "failed to parse top or bottom to BigDecimal"
-					throw e
+					throw new Exception("Couldn't parse value in row ${index + 1}: ${e.toString()}", e)
 				}
 				def secdata = ['section':projSection, 'top':top, 'base':base]
 				metadata.add(secdata)

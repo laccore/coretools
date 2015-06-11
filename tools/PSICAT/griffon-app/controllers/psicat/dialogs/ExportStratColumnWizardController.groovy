@@ -107,6 +107,7 @@ class ExportStratColumnWizardController {
 		lines << curLine
 	}
 
+	// collect symbols (Occurrences) in each section
 	def prepareMetadata(sortedMetadata) {
 		def occs = [:]
 		sortedMetadata.each {
@@ -148,6 +149,15 @@ class ExportStratColumnWizardController {
 				def occs = occMap[sectionName]
 				def intervalOccs = occs?.findAll { it.top?.to('m').value >= top && it.top?.to('m').value <= base }
 				occCount -= intervalOccs?.size() ?: 0
+				
+				if (model.aggregateSymbols) {
+					def usedEntries = new HashSet()
+					def aggregatedOccs = []
+					intervalOccs.each { it ->
+						if (usedEntries.add(it.scheme.toString())) { aggregatedOccs << it }
+					}
+					intervalOccs = aggregatedOccs
+				}
 				
 				intervals << ['top':top, 'base':base, 'model':mod, 'gsTop':gsTop, 'gsBase':gsBase, 'occs':intervalOccs]
 			}

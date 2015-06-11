@@ -29,6 +29,7 @@ import psicat.util.Dialogs
 	@Bindable boolean drawLegend = true
 	@Bindable boolean drawSectionNames = true
 	@Bindable boolean drawSymbols = true
+	@Bindable boolean aggregateSymbols = true
 	@Bindable boolean drawGrainSize = true
 	@Bindable boolean drawDms = false
 }

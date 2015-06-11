@@ -94,6 +94,7 @@ menuBar(id: 'menuBar') {
 
 	menu(text: 'Help', mnemonic:'H') {
 		menuItem(aboutAction)
+		menuItem(updateAction)
 		//menuItem(documentationAction)
 		//menuItem(feedbackAction)
 	}

@@ -25,6 +25,7 @@ dependencies {
 	compile 'org.slf4j:slf4j-log4j12:1.5.8'
     compile 'log4j:log4j:1.2.16'
     compile 'xalan:xalan:2.7.1'
+    compile 'org.json:json:20140107'
 
 	compile project(":coretools")
     compile project(":coretools-model")

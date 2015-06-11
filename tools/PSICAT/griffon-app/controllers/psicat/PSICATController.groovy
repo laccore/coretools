@@ -15,10 +15,14 @@
  */
 package psicat
 
+import java.awt.Desktop
+
 import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 
 import javax.swing.JOptionPane
+
+import org.json.JSONObject
 
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
@@ -155,6 +159,55 @@ class PSICATController {
 	List getSelectedSections() {
 		def project = getMVC('project').view
 		return project.sections.selectedValues as List
+	}
+	
+	def getLatestVersion() {
+		def urlStr = 'https://api.github.com/repos/laccore/coretools/releases/latest'
+		def reader = null
+		def jsonObj = null
+		try {
+			reader = new BufferedReader(new InputStreamReader(new URL(urlStr).openStream()))
+			def jsonResponse = ''
+			def inputLine = null
+			while ((inputLine = reader.readLine()) != null) {
+				jsonResponse += inputLine
+			}
+			// brg 6/10/2015: Our ancient version of Griffon (0.2) is based on a version of Groovy
+			// (1.6.4) in which griffon.json.JsonSlurper didn't exist (introduced in 1.8). Using
+			// org.json library for now.
+			jsonObj = new JSONObject(jsonResponse)
+		} catch (IOException ioe) {
+			Dialogs.showErrorDialog("Error", "Latest version data unavailable")
+		} finally {
+			if (reader) reader.close()
+		}
+		
+		return jsonObj
+	}
+	
+	// is version1 >= version2?
+	boolean isLatestVersion(version1, version2) {
+		def latest = null
+		
+		def v1 = version1.split('\\.')
+		def v2 = version2.split('\\.')
+
+		int index = 0
+		def comp = 0
+		while (index < v1.size() && index < v2.size()) {
+			comp = Integer.parseInt(v1[index]) <=> Integer.parseInt(v2[index])
+			if (comp != 0) {
+				latest = (comp == 1) // implies v1 > v2, thus result = true
+				break
+			}
+			index++
+		}
+		
+		// if equivalent up to this point, longer version is greater
+		if (latest == null)
+			latest = v1.size() >= v2.size()
+			
+		latest
 	}
 
 	// our action implementations
@@ -376,6 +429,22 @@ JRE Home: ${System.getProperty("java.home")}
 		},
 		'auditProject': { evt = null ->
 			withMVC('AuditProject', project: model.project) { mvc -> mvc.controller.show() }
+		},
+		'versionCheck': { evt = null ->
+			def jsonObj = getLatestVersion()
+			if (jsonObj) {
+				def cur = app.applicationProperties['app.version']
+				def latest = jsonObj.getString("tag_name")
+				if (isLatestVersion(cur, latest)) {
+					Dialogs.showMessageDialog("Up To Date", "PSICAT $cur is up to date.")
+				} else {
+					if (JOptionPane.showConfirmDialog(null, "PSICAT $latest is available, open download page in default browser?",
+						"New Version Available", JOptionPane.YES_NO_OPTION) == 0)
+					{
+						Desktop.getDesktop().browse(new URI(jsonObj.getString("html_url")))
+					}
+				}
+			}
 		},
 		'mUnits':  { evt = null -> setUnits('m') },
 		'cmUnits': { evt = null -> setUnits('cm') },

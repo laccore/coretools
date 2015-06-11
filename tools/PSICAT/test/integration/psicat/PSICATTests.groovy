@@ -36,4 +36,14 @@ class PSICATTests extends GroovyTestCase {
 		assert view
 		assert controller
 	}
+	
+	void testVersionCompare() {
+		assert controller.isLatestVersion("2", "2")
+		assert controller.isLatestVersion("2", "1")
+		assert controller.isLatestVersion("1.0.0", "1.0.0")
+		assert controller.isLatestVersion("1.0.1", "1.0.0")
+		assert controller.isLatestVersion("1.0.1", "1.0")
+		assert controller.isLatestVersion("1.0.1", "1.0.0.0")
+		assert controller.isLatestVersion("1.2.3.0", "1.2.3")
+	}
 }

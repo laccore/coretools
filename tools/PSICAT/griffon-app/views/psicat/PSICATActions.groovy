@@ -168,6 +168,12 @@ actions {
 		shortDescription: 'About PSICAT'
 	)
 	action(
+		id: 'updateAction',
+		name: 'Check for Updates...',
+		closure: controller.actions['versionCheck'],
+		shortDescription: 'Check for a more recent version of PSICAT'
+	)
+	action(
 		id: 'documentationAction',
 		name: 'User Guide',
 		closure: controller.actions['documentation'],

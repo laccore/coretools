@@ -276,21 +276,26 @@ class ExportStratColumnWizardController {
 			occheight = 1
 		def occwidth = (occheight < occEntry.image.height) ? (occEntry.image.width * (occheight / occEntry.image.height)).intValue() : occEntry.image.width
 
-		def occpoly = new Polygon()
-		occpoly.addPoint(x, y)
-		occpoly.addPoint(x + occwidth, y)
-		occpoly.addPoint(x + occwidth, y + occheight)
-		occpoly.addPoint(x, y + occheight)
+		// 6/10/2015 brg: swear I tried this simple approach before but abandoned it for some reason.
+		// No problems now, looks slightly better than texpoly method (smoother, and no weird artifacting
+		// at edges) and results in a smaller file to boot. Leaving in for now.
+		graphics.drawImage(occEntry.image, x, y, occwidth, occheight, null)
 		
-		def rect = new java.awt.geom.Rectangle2D.Double(x, y, occwidth, occheight)
-		
-		// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
-		// brg 2/20/2015: shelved
-		//g2.setColor(Color.WHITE)
-		//g2.fillRect(lx, ty, occwidth, occheight)
-		
-		graphics.setPaint(new TexturePaint(occEntry.image, rect))
-		graphics.fill(occpoly)
+//		def occpoly = new Polygon()
+//		occpoly.addPoint(x, y)
+//		occpoly.addPoint(x + occwidth, y)
+//		occpoly.addPoint(x + occwidth, y + occheight)
+//		occpoly.addPoint(x, y + occheight)
+//		
+//		def rect = new java.awt.geom.Rectangle2D.Double(x, y, occwidth, occheight)
+//		
+//		// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
+//		// brg 2/20/2015: shelved
+//		//g2.setColor(Color.WHITE)
+//		//g2.fillRect(lx, ty, occwidth, occheight)
+//		
+//		graphics.setPaint(new TexturePaint(occEntry.image, rect))
+//		graphics.fill(occpoly)
 		
 		return occwidth
 	}

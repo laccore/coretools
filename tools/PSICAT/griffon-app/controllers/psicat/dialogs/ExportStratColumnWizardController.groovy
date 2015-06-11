@@ -63,6 +63,7 @@ class ExportStratColumnWizardController {
 	def OCCURRENCE_WIDTH = 60 // extra space for occurrences
 	def LEGEND_WIDTH = 130
 	def scaleFactor = 1.0
+	def topDepth = 0.0
 	
 	// track used lithologies and occurrences for legend
 	def noneSchemeEntry = new SchemeEntry("none", "None", null)
@@ -83,6 +84,8 @@ class ExportStratColumnWizardController {
 		scheme == null ? noneSchemeEntry : scheme.getEntry(code)
 	}
 	
+	def depth2pix(depth) { ((depth - topDepth) * scaleFactor).intValue() } 
+
 	def gsoff(grainSize) { (STRAT_WIDTH * model.grainSizeScale.toScreen(grainSize)).intValue()	}
 	
 	// get default grain size - first value in Scale
@@ -169,8 +172,8 @@ class ExportStratColumnWizardController {
 		return intervals.sort { it.top }
 	}
 	
-	void drawRuler(graphics, physHeight) {
-		def logHeight = physHeight * scaleFactor
+	void drawRuler(graphics, top, base) {
+		def physHeight = base - top
 		def xbase = MARGIN + RULER_WIDTH
 		def ybase = CONTENT_Y
 		
@@ -182,19 +185,20 @@ class ExportStratColumnWizardController {
 		graphics.drawLine(xbase, ybase, xbase, ybase + CONTENT_HEIGHT - 1) // minus stroke width to keep out of bottom margin
 		
 		// draw ticks
-		def maxHeightInt = Math.ceil(physHeight).intValue()
-		def curHeight = 0
+		def maxHeightInt = Math.ceil(base).intValue()
+		def topInt = Math.floor(top).intValue()
+		def curHeight = topInt
 		def drawDmTicks = model.drawDms && (scaleFactor > 20.72) // resolution of 4144pix/200m...200m+ cores, no dms 
 		while (curHeight < maxHeightInt) {
 			def bigTick = (curHeight % 5 == 0)
 			def labelTick = (curHeight % 10 == 0 || drawDmTicks) // draw label every meter if dms are being drawn
 			def width = bigTick ? 30 : 15
-			def ytick = Math.ceil(ybase + (curHeight * scaleFactor)).intValue()
+			def ytick = Math.ceil(ybase + ((curHeight - topInt) * scaleFactor)).intValue()
 			graphics.drawLine(xbase - width, ytick, xbase, ytick)
 			
 			if (drawDmTicks) {
 				for (int i = 1; i < 10; i++) {
-					def dmtick = Math.ceil(ybase + (curHeight + (0.1 * i)) * scaleFactor).intValue()
+					def dmtick = Math.ceil(ybase + ((curHeight - topInt) + (0.1 * i)) * scaleFactor).intValue()
 					if (dmtick > PAGE_HEIGHT - MARGIN)
 						break
 					def dmTickWidth = 6
@@ -326,8 +330,8 @@ class ExportStratColumnWizardController {
 		graphics.setFont(new Font("SansSerif", Font.PLAIN, 2))
 		graphics.setPaint(Color.BLACK)
 		
-		def top = (sectionData.top * scaleFactor).intValue() + y
-		def base = (sectionData.base * scaleFactor).intValue() + y
+		def top = depth2pix(sectionData.top) + y
+		def base = depth2pix(sectionData.base) + y
 
 		// center name vertically in section range
 		def centerShift = (((sectionData.base - sectionData.top) / 2.0) * scaleFactor).intValue() + 1
@@ -447,7 +451,8 @@ class ExportStratColumnWizardController {
 		
 		if (model.drawGrainSize)
 			drawGrainSizeScale(g2)
-		drawRuler(g2, totalIntervalLength)
+			
+		drawRuler(g2, topDepth, sortedMetadata[-1].base)
 		
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
 		g2.setStroke(new BasicStroke(0.3F))
@@ -489,8 +494,9 @@ class ExportStratColumnWizardController {
 					logger.info("Interval $intervalIndex: top = ${curint.top}, base = ${curint.base}, t = $t, b = $b")
 					def xbase = MARGIN + RULER_WIDTH
 					def ybase = MARGIN + HEADER_HEIGHT
-					def y = new BigDecimal(t * scaleFactor).intValue() + ybase
-					def bot = new BigDecimal(b * scaleFactor).intValue() + ybase
+					def y = depth2pix(t) + ybase
+					def bot = depth2pix(b) + ybase
+					
 					def height = bot - y
 					def xur = xbase + (model.drawGrainSize ? gsoff(curint.gsTop) : STRAT_WIDTH)
 					def xlr = xbase + (model.drawGrainSize ? gsoff(curint.gsBase) : STRAT_WIDTH)
@@ -504,7 +510,7 @@ class ExportStratColumnWizardController {
 						def nextSec = sortedMetadata[sectionIndex + 1]
 						def pixSize = 1.0 / scaleFactor
 						if (nextSec.top - secdata.base < pixSize) {
-							def nextSecTopY = (nextSec.top * scaleFactor).intValue() + ybase
+							def nextSecTopY = depth2pix(nextSec.top) + ybase
 							logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
 							height = nextSecTopY - y
 						}

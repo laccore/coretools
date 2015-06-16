@@ -24,6 +24,10 @@ import org.andrill.coretools.model.DefaultProject
 import psicat.PSICATController
 
 // setup our pinger
+// brg 6/16/2015: This pings appspot, which seems to be a legacy Google offering,
+// possibly supplanted by the "Google App Engine".  In any case, PSICAT's pings
+// are still being tracked and can be viewed at http://usageping.appspot.com/ .
+// Unclear if Josh wrote UsagePinger, source is nowhere to be found.
 UsagePinger usage = new UsagePinger("psicat", app.applicationProperties['app.version'])
 usage.ping()
 app.config.usage = usage

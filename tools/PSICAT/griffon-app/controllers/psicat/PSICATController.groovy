@@ -428,7 +428,8 @@ JRE Home: ${System.getProperty("java.home")}
 			}
 		},
 		'auditProject': { evt = null ->
-			withMVC('AuditProject', project: model.project) { mvc -> mvc.controller.show() }
+			if (app.views.AuditProject == null)
+				createMVCGroup('AuditProject', project: model.project)
 		},
 		'versionCheck': { evt = null ->
 			def jsonObj = getLatestVersion()

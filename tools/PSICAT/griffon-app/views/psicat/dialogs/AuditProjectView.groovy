@@ -19,27 +19,39 @@ import net.miginfocom.swing.MigLayout
 import psicat.util.*
 
 actions {
-	action(id:'auditAction', name:'Audit', closure: controller.actions.audit)
+	action(id:'auditAction', name:'Audit', closure:controller.actions.audit)
+	action(id:'closeAction', name:'Close', closure:controller.actions.close)
 }
 
-panel(id:'root', layout: new MigLayout('fill, wrap 1'), border: etchedBorder()) {
-	label('Check Project for Selected Problems:', constraints:'gapbottom 10px')
-	checkBox(text:'Undescribed Sections', selected: bind(source:model, sourceProperty:'undescribedSecs', mutual:true))
-	checkBox(text:'Sections With No Defined Intervals', selected: bind(source:model, sourceProperty:'noIntervalSecs', mutual:true))
-	checkBox(text:'"None" Intervals Without Descriptions', selected: bind(source:model, sourceProperty:'emptyUndescribedInts', mutual:true))
-	checkBox(text:'"None" Symbols Without Descriptions', selected: bind(source:model, sourceProperty:'emptyUndescribedSyms', mutual:true))
-	checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
-	checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
-	separator()
-	panel(border: titledBorder('Audit Report Log')) {
-		scrollPane {
-			textArea(id:'logArea', text:'Click "Audit" to check project for selected problems', lineWrap:true, wrapStyleWord:true,
-				columns:50, rows:10, editable:false)
+dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], pack:true, modal:false,
+		resizable:false, windowClosing:controller.actions.close) {
+	vbox {
+		panel(id:'root', layout: new MigLayout('fill, wrap 1'), border: etchedBorder()) {
+			label('Check Project for Selected Problems:', constraints:'gapbottom 10px')
+			checkBox(text:'Undescribed Sections', selected: bind(source:model, sourceProperty:'undescribedSecs', mutual:true))
+			checkBox(text:'Sections With No Defined Intervals', selected: bind(source:model, sourceProperty:'noIntervalSecs', mutual:true))
+			checkBox(text:'"None" Intervals Without Descriptions', selected: bind(source:model, sourceProperty:'emptyUndescribedInts', mutual:true))
+			checkBox(text:'"None" Symbols Without Descriptions', selected: bind(source:model, sourceProperty:'emptyUndescribedSyms', mutual:true))
+			checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
+			checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
+			separator()
+			panel(border: titledBorder('Audit Report Log')) {
+				scrollPane {
+					textArea(id:'logArea', text:'Click "Audit" to check project for selected problems', lineWrap:true, wrapStyleWord:true,
+						columns:50, rows:10, editable:false)
+				}
+			}
+			
+			panel(layout:new MigLayout('', '[grow][]', ''), constraints:'span 2, growx') {
+				progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
+				button(action:auditAction, constraints:'align right')
+			}
+		}
+		panel(layout: new MigLayout('fill')) {
+			button(action:closeAction, constraints:'align center')
 		}
 	}
-	
-	panel(layout:new MigLayout('', '[grow][]', ''), constraints:'span 2, growx') {
-		progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
-		button(action:auditAction, constraints:'align right')
-	}
 }
+
+auditProjectDialog.setLocationRelativeTo(app.appFrames[0])
+auditProjectDialog.show()

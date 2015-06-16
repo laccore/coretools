@@ -139,7 +139,8 @@ class AuditProjectController {
 		'audit': { evt = null ->
 			doOutside { audit() }
 		},
-    ]	
-
-    def show() { Dialogs.showCustomOneButtonDialog("Audit Project", view.root, app.appFrames[0]) }
+		'close': { evt = null ->
+			destroyMVCGroup('AuditProject')
+		}
+    ]
 }

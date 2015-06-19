@@ -462,6 +462,11 @@ class ExportStratColumnWizardController {
 			logger.info("--- ${secdata.section} ---")
 			updateProgress(10 + (sectionIndex / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
 			
+			if (model.drawSectionNames) {
+				def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
+				drawSectionName(g2, secdata, MARGIN + HEADER_HEIGHT, offset)
+			}
+			
 			def intervals = buildIntervalDrawData(secdata.section, occMap)
 			if (intervals.size() > 0) {
 				// determine total length of intervals - assume they are contiguous
@@ -483,11 +488,6 @@ class ExportStratColumnWizardController {
 				}
 				// if interval length < section length, DO NOT expand to fit - leave as is
 				
-				if (model.drawSectionNames) {
-					def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
-					drawSectionName(g2, secdata, MARGIN + HEADER_HEIGHT, offset)
-				}
-
 				intervals.eachWithIndex { curint, intervalIndex ->
 					def t = (curint.top - intTop) * sectionScale + secdata.top
 					def b = (curint.base - intTop) * sectionScale + secdata.top

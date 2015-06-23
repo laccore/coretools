@@ -181,9 +181,9 @@ actions {
 	)
 	action(
 		id: 'feedbackAction',
-		name: 'Report a bug',
+		name: 'Leave Feedback...',
 		closure: controller.actions['feedback'],
-		shortDescription: 'Report a bug or request an enhancement'
+		shortDescription: 'Report a bug, request an enhancement, etc.'
 	)
 	action(
 		id: 'rotateAction',

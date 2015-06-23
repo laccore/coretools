@@ -363,7 +363,7 @@ JRE Home: ${System.getProperty("java.home")}
 			LauncherUtils.openURL('http://dev.psicat.org/documentation/')
 		},
 		'feedback': { evt = null ->
-			LauncherUtils.openURL('http://bitbucket.org/joshareed/coretools/issues/new/')
+			LauncherUtils.openURL('https://docs.google.com/forms/d/1Jn--CnpLSXFeiW3DrULAw25r8IYHF0zshimBx4Utm6c/')
 		},
 		'exportDiagram': { evt = null -> ping('exportDiagram')
 			withMVC('ExportDiagramWizard', project: model.project) { mvc ->

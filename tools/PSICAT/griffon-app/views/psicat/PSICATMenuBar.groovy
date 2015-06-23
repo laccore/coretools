@@ -96,6 +96,6 @@ menuBar(id: 'menuBar') {
 		menuItem(aboutAction)
 		menuItem(updateAction)
 		//menuItem(documentationAction)
-		//menuItem(feedbackAction)
+		menuItem(feedbackAction)
 	}
 }

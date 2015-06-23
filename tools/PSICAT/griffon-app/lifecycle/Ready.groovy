@@ -23,6 +23,8 @@ import org.andrill.coretools.model.DefaultProject
 
 import psicat.PSICATController
 
+
+app.controllers.PSICAT.actions.versionCheckSilent()
 // setup our pinger
 // brg 6/16/2015: This pings appspot, which seems to be a legacy Google offering,
 // possibly supplanted by the "Google App Engine".  In any case, PSICAT's pings

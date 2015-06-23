@@ -160,8 +160,26 @@ class PSICATController {
 		def project = getMVC('project').view
 		return project.sections.selectedValues as List
 	}
+
+	// silent: stifle messages if up-to-date or network error on auto-check at startup
+	def versionCheck(silent) {
+		def jsonObj = getLatestVersion(silent)
+		if (jsonObj) {
+			def cur = app.applicationProperties['app.version']
+			def latest = jsonObj.getString("tag_name")
+			if (isLatestVersion(cur, latest)) {
+				if (!silent) { Dialogs.showMessageDialog("Up To Date", "PSICAT $cur is up to date.", app.appFrames[0]) }
+			} else {
+				if (JOptionPane.showConfirmDialog(null, "PSICAT $latest is available, open download page in default browser?",
+					"New Version Available", JOptionPane.YES_NO_OPTION) == 0)
+				{
+					Desktop.getDesktop().browse(new URI(jsonObj.getString("html_url")))
+				}
+			}
+		}
+	}
 	
-	def getLatestVersion() {
+	def getLatestVersion(silent) {
 		def urlStr = 'https://api.github.com/repos/laccore/coretools/releases/latest'
 		def reader = null
 		def jsonObj = null
@@ -177,7 +195,7 @@ class PSICATController {
 			// org.json library for now.
 			jsonObj = new JSONObject(jsonResponse)
 		} catch (IOException ioe) {
-			Dialogs.showErrorDialog("Error", "Latest version data unavailable")
+			if (!silent) { Dialogs.showErrorDialog("Error", "Latest version data unavailable") }
 		} finally {
 			if (reader) reader.close()
 		}
@@ -431,18 +449,12 @@ JRE Home: ${System.getProperty("java.home")}
 			if (app.views.AuditProject == null)
 				createMVCGroup('AuditProject', project: model.project)
 		},
+		'versionCheckSilent': { evt = null ->
+			versionCheck(true)
+		},
 		'versionCheck': { evt = null ->
-			def jsonObj = getLatestVersion()
-			if (jsonObj) {
-				def cur = app.applicationProperties['app.version']
-				def latest = jsonObj.getString("tag_name")
-				if (isLatestVersion(cur, latest)) {
-					Dialogs.showMessageDialog("Up To Date", "PSICAT $cur is up to date.")
-				} else {
-					if (JOptionPane.showConfirmDialog(null, "PSICAT $latest is available, open download page in default browser?",
-						"New Version Available", JOptionPane.YES_NO_OPTION) == 0)
-					{
-						Desktop.getDesktop().browse(new URI(jsonObj.getString("html_url")))
+			versionCheck(false)
+		},
 					}
 				}
 			}

@@ -17,7 +17,7 @@ import java.util.prefs.Preferences
 import javax.swing.JOptionPane
 import javax.swing.JCheckBox
 
-import com.appspot.usageping.UsagePinger
+import com.brsanthu.googleanalytics.*
 
 import org.andrill.coretools.model.DefaultProject
 
@@ -25,17 +25,20 @@ import psicat.PSICATController
 
 
 app.controllers.PSICAT.actions.versionCheckSilent()
-// setup our pinger
-// brg 6/16/2015: This pings appspot, which seems to be a legacy Google offering,
-// possibly supplanted by the "Google App Engine".  In any case, PSICAT's pings
-// are still being tracked and can be viewed at http://usageping.appspot.com/ .
-// Unclear if Josh wrote UsagePinger, source is nowhere to be found.
-UsagePinger usage = new UsagePinger("psicat", app.applicationProperties['app.version'])
-usage.ping()
-app.config.usage = usage
+
+// load or create unique user ID
+def prefs = Preferences.userNodeForPackage(PSICATController)
+def uuid = prefs.get('psicat.uuid', null)
+if (!uuid) {
+	uuid = UUID.randomUUID().toString()
+	prefs.put('psicat.uuid', uuid)
+}
+
+// track launch
+GoogleAnalytics ga = new GoogleAnalytics("UA-64269312-1")
+ga.post(new PageViewHit("http://www.laccore.org", "launch: UUID=$uuid"))
 
 // prompt to re-open last project
-def prefs = Preferences.userNodeForPackage(PSICATController)
 if (prefs.getBoolean('psicat.promptReopenLastProject', true)) {
 	String name = prefs.get('psicat.lastProjectName', null)
 	String path = prefs.get('psicat.lastProjectPath', null)

@@ -22,10 +22,11 @@ dependencies {
 	compile 'net.sourceforge.jexcelapi:jxl:2.6.3'
 	compile 'com.miglayout:miglayout:3.7'
 	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
-	compile 'org.slf4j:slf4j-log4j12:1.5.8'
+	compile 'org.slf4j:slf4j-log4j12:1.7.5'
     compile 'log4j:log4j:1.2.16'
     compile 'xalan:xalan:2.7.1'
     compile 'org.json:json:20140107'
+    compile 'com.brsanthu:google-analytics-java:1.1.2'
 
 	compile project(":coretools")
     compile project(":coretools-model")

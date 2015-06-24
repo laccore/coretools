@@ -389,7 +389,7 @@ JRE Home: ${System.getProperty("java.home")}
 			}
 		},
 		'exportStratColumn': { evt = null ->
-			withMVC('ExportStratColumnWizard', project: model.project, grainSizeScale: getGrainSize()) { mvc ->
+			withMVC('ExportStratColumnWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},

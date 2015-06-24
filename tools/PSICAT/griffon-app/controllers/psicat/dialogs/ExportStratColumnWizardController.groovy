@@ -72,7 +72,6 @@ class ExportStratColumnWizardController {
 
     void mvcGroupInit(Map args) {
     	model.project = args.project
-		model.grainSizeScale = args.grainSizeScale
     }
 
 	def setScaleFactor(intervalLength) {
@@ -431,6 +430,28 @@ class ExportStratColumnWizardController {
 			return
 		}
 		
+		if (model.drawGrainSize && !model.useProjectGrainSize && !model.alternateGrainSizePath) {
+			Dialogs.showErrorDialog("Export Error", "A default grain size file must be selected.")
+			resetProgress()
+			return
+		}
+
+		// parse alternate grain sizes if necessary...
+		def altGSMap = null
+		if (model.drawGrainSize && !model.useProjectGrainSize) {
+			try {
+				def altGSData = GeoUtils.parseAlternateGrainSizeFile(model.alternateGrainSizePath)
+				model.grainSizeScale = new Scale(altGSData['scale'])
+				altGSMap = altGSData['gs']
+			} catch (e) {
+				Dialogs.showErrorDialog("Export Error", "Couldn't parse default grain size file: ${e.getMessage()}")
+				resetProgress()
+				return
+			}
+		} else { // ...or use project's grain size
+			model.grainSizeScale = app.controllers['PSICAT'].grainSize
+		}
+		
 		def occMap = [:]
 		if (model.drawSymbols)
 			occMap = prepareMetadata(sortedMetadata)
@@ -449,7 +470,7 @@ class ExportStratColumnWizardController {
 		PdfContentByte cb = writer.getDirectContent()
 		Graphics2D g2 = cb.createGraphics(PAGE_WIDTH, PAGE_HEIGHT)
 		
-		if (model.drawGrainSize)
+		if (model.drawGrainSize && model.drawGrainSizeLabels)
 			drawGrainSizeScale(g2)
 			
 		drawRuler(g2, topDepth, sortedMetadata[-1].base)
@@ -497,15 +518,25 @@ class ExportStratColumnWizardController {
 					def y = depth2pix(t) + ybase
 					def bot = depth2pix(b) + ybase
 					
-					def height = bot - y
-					def xur = xbase + (model.drawGrainSize ? gsoff(curint.gsTop) : STRAT_WIDTH)
-					def xlr = xbase + (model.drawGrainSize ? gsoff(curint.gsBase) : STRAT_WIDTH)
-
+					// use alternate grain size if necessary
+					def pattern = curint.model.lithology
+					def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
+					def gsTop = curint.gsTop
+					def gsBase = curint.gsBase
+					if (model.drawGrainSize && !model.useProjectGrainSize) {
+						def altGS = altGSMap[pattern?.toString()] ?: gsdef()
+						gsTop = gsBase = altGS
+					}
+					
+					def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
+					def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
+					
 					// In cases where the physical gap between sections resolves to less
 					// than one pixel, fill that gap by extending the base of the last
 					// interval to match the top of the next section instead of drawing a gap.
 					// Made change after seeing regular 1-pixel gaps between sections in a
 					// 520m strat column (CPCP).
+					def height = bot - y
 					if (intervalIndex == intervals.size() - 1 && sectionIndex < sortedMetadata.size() - 1) {
 						def nextSec = sortedMetadata[sectionIndex + 1]
 						def pixSize = 1.0 / scaleFactor
@@ -516,10 +547,7 @@ class ExportStratColumnWizardController {
 						}
 					}
 					logger.info("y = $y, height = $height")
-					
-					def pattern = curint.model.lithology
-					def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
-					
+
 					drawInterval(g2, entry, xbase, xur, xlr, y, height)
 					drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
 					
@@ -548,6 +576,10 @@ class ExportStratColumnWizardController {
 			if (file) {
 				model.exportPath = file.absolutePath
 			}
+		},
+		'chooseAlternateGrainSize': { evt = null ->
+			def file = Dialogs.showOpenDialog("Choose Default Grain Size File", CustomFileFilter.CSV, app.appFrames[0])
+			if (file) { model.alternateGrainSizePath = file.absolutePath }
 		},
 		'doExport': { evt = null ->
 			doOutside {	export() }

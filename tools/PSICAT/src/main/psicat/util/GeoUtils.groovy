@@ -19,6 +19,7 @@ package psicat.util
 import au.com.bytecode.opencsv.CSVReader
 
 import org.andrill.coretools.geology.models.GeologyModel
+import org.andrill.coretools.geology.ui.Scale
 
 class GeoUtils {
 	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
@@ -40,7 +41,7 @@ class GeoUtils {
 					top = row[1] as BigDecimal
 					base = row[2] as BigDecimal
 				} catch (e) {
-					throw new Exception("Couldn't parse value in row ${index + 1}: ${e.toString()}", e)
+					throw new Exception("parsing error at row ${index + 1}: ${e.toString()}", e)
 				}
 				def secdata = ['section':projSection, 'top':top, 'base':base]
 				metadata.add(secdata)
@@ -48,10 +49,52 @@ class GeoUtils {
 				println "Couldn't find matching PSICAT section for ${section}"
 			}
 		}
+		reader.close()
 		//metadata.each {	println "${it['section']} ${it['top']} ${it['base']} - length = ${it['base'].subtract(it['top'])}" }
 		def sorted = metadata.sort { it.top }
 		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		return sorted
+	}
+	
+	// parse alternate grain size CSV file: row 1 should be a valid Scale string, remaining rows
+	// consist of code and grain size columns. Returns map with 'scale' for scale string, 'gs' map 
+	// of grain size values keyed on code
+	static parseAlternateGrainSizeFile(altGSFile) throws Exception {
+		CSVReader reader = null
+		try {
+			reader = new CSVReader(new FileReader(altGSFile))
+		} catch (e) {
+			throw new Exception("read/parse error: ${e.getMessage()}", e)
+		}
+
+		def result = [:]
+		def gsmap = [:]
+		if (reader) {
+			def entries = reader.readAll()
+			entries.eachWithIndex { row, index ->
+				//println "row ${index + 1}: $row"
+				if (index == 0) { // parse and verify scale
+					try {
+						def testScale = new Scale(row[0])
+					} catch (NumberFormatException e) {
+						throw new Exception("Invalid grain size scale: ${e.getMessage()}", e)
+					}
+					result['scale'] = row[0]
+				} else {
+					def code = row[0]
+					def gs = null
+					try {
+						gs = new BigDecimal(row[1])
+					} catch (e) {
+						throw new Exception("Row ${index + 1}: invalid grain size value '${row[1]}'", e)
+					} 
+					gsmap[code] = gs 
+				}
+			}
+			result['gs'] = gsmap
+			reader.close()
+		}
+		return result
 	}
 	
 	// notify listeners of change by default, but provide option to avoid doing so

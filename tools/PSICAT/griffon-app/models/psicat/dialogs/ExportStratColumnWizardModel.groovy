@@ -26,10 +26,13 @@ import psicat.util.Dialogs
 	def grainSizeScale = null
 	@Bindable def metadataPath = null
 	@Bindable def exportPath = null
+	@Bindable def alternateGrainSizePath = null
 	@Bindable boolean drawLegend = true
 	@Bindable boolean drawSectionNames = true
 	@Bindable boolean drawSymbols = true
 	@Bindable boolean aggregateSymbols = true
 	@Bindable boolean drawGrainSize = true
+	@Bindable boolean drawGrainSizeLabels = true
+	@Bindable boolean useProjectGrainSize = true
 	@Bindable boolean drawDms = false
 }

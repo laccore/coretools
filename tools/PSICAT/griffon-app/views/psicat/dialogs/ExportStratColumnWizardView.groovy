@@ -29,7 +29,10 @@ import psicat.util.*
 actions {
 	action(id: 'chooseMetadata', name:'...', closure: controller.actions.chooseMetadata)
 	action(id: 'chooseExport', name:'...', closure: controller.actions.chooseExport)
-	action(id: 'doExport', name:'Export', enabled:bind {model.metadataPath && model.exportPath}, closure: controller.actions.doExport)
+	action(id: 'chooseAlternateGrainSize', name:'...', enabled: bind { model.drawGrainSize && !model.useProjectGrainSize },
+		closure: controller.actions.chooseAlternateGrainSize)
+	action(id: 'doExport', name:'Export', enabled:bind { model.metadataPath && model.exportPath },
+		closure: controller.actions.doExport)
 }
 
 panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
@@ -44,20 +47,8 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		button(action:chooseMetadata)
 	}
 	
-	panel(border: titledBorder("Export File & Drawing Options"), layout: new MigLayout('','[][grow][]'), constraints:'growx') {
-		label('File:')
-		textField(text: bind(source:model, sourceProperty:'exportPath', mutual:true), constraints:'growx')
-		button(action:chooseExport, constraints:'wrap')
-		hbox(constraints:'growx, span 3, wrap') {
-			checkBox(text:"Draw Legend", selected: bind(source:model, sourceProperty:'drawLegend', mutual:true))
-			checkBox(text:"Draw Section Names", selected:bind(source:model, sourceProperty:'drawSectionNames', mutual:true))
-		}
-		hbox(constraints:'growx, span 3, wrap') {
-			checkBox(text:"Draw Grain Size", selected:bind(source:model, sourceProperty:'drawGrainSize', mutual:true))
-			checkBox(text:"Draw dm Ruler Ticks", selected:bind(source:model, sourceProperty:'drawDms', mutual:true),
-				toolTipText:"If space allows, draw decimeter ticks on ruler", constraints:'growx')
-		}
-		hbox(constraints: 'growx, span 3') {
+	panel(border: titledBorder("Drawing Options"), layout: new MigLayout('','[][grow][]'), constraints:'growx') {
+		hbox(constraints: 'growx, wrap') {
 			checkBox(text:"Draw Symbols in Intervals:", selected:bind(source:model, sourceProperty:'drawSymbols', mutual:true))
 			buttonGroup().with {
 				add radioButton(text:"Aggregated", selected:bind(source:model, sourceProperty:'aggregateSymbols', mutual:true),
@@ -65,6 +56,39 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 				add radioButton(text:"Every Instance", selected:bind { !model.aggregateSymbols }, enabled:bind { model.drawSymbols })
 			}
 		}
+		hbox(constraints:'growx, wrap') {
+			checkBox(text:"Draw Interval Widths Based on:", selected:bind(source:model, sourceProperty:'drawGrainSize', mutual:true), constraints:'wrap')
+			buttonGroup().with {
+				add radioButton(text:"Project Grain Sizes", selected:bind(source:model, sourceProperty:'useProjectGrainSize', mutual:true),
+					enabled:bind { model.drawGrainSize })
+				add radioButton(text:"Default Values", selected:bind { !model.useProjectGrainSize }, enabled:bind { model.drawGrainSize })
+			}
+		}
+		hbox(constraints:'growx, wrap') {
+			hstrut(30)
+			label(text:"File: ", enabled:bind { model.drawGrainSize && !model.useProjectGrainSize })
+			textField(text: bind(source:model, sourceProperty:'alternateGrainSizePath', mutual:true),
+				enabled: bind { model.drawGrainSize && !model.useProjectGrainSize },
+				constraints:'growx')
+			button(action:chooseAlternateGrainSize)
+		}
+		hbox(constraints:'growx,wrap') {
+			hstrut(30)
+			checkBox(text:"Draw Grain Size Scale Labels", enabled: bind { model.drawGrainSize },
+				selected:bind(source:model, sourceProperty:'drawGrainSizeLabels', mutual:true))
+		}
+		hbox(constraints:'growx') {
+			checkBox(text:"Draw Legend", selected: bind(source:model, sourceProperty:'drawLegend', mutual:true))
+			checkBox(text:"Draw Section Names", selected:bind(source:model, sourceProperty:'drawSectionNames', mutual:true))
+			checkBox(text:"Draw dm Ruler Ticks", selected:bind(source:model, sourceProperty:'drawDms', mutual:true),
+				toolTipText:"If space allows, draw decimeter ticks on ruler", constraints:'growx')
+		}
+	}
+	
+	panel(border: titledBorder("Export File"), layout: new MigLayout('','[][grow][]'), constraints:'growx') {
+		label('File:')
+		textField(text: bind(source:model, sourceProperty:'exportPath', mutual:true), constraints:'growx')
+		button(action:chooseExport, constraints:'wrap')
 	}
 	
 	panel(layout: new MigLayout('','[grow][]',''), constraints:'growx') {

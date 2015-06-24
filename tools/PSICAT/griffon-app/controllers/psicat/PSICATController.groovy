@@ -455,10 +455,6 @@ JRE Home: ${System.getProperty("java.home")}
 		'versionCheck': { evt = null ->
 			versionCheck(false)
 		},
-					}
-				}
-			}
-		},
 		'mUnits':  { evt = null -> setUnits('m') },
 		'cmUnits': { evt = null -> setUnits('cm') },
 		'ftUnits': { evt = null -> setUnits('ft') },

@@ -72,8 +72,6 @@ class PSICATController {
 		[model: app.models[id], view: app.views[id], controller: app.controllers[id]]
 	}
 
-	def ping(feature) { app.config?.usage?.ping(feature) }
-
 	boolean canClose(evt) {
 		return model.openDiagrams.inject(true) { flag, cur -> flag &= cur.controller.close() }
 	}
@@ -139,7 +137,6 @@ class PSICATController {
 	}
 
 	void setUnits(units) {
-		ping("usingUnits $units")
 		prefs.put("diagram.units", units)
 		model.activeDiagram.controller.units = units
 		model.status = "Changed units to $units"
@@ -383,7 +380,7 @@ JRE Home: ${System.getProperty("java.home")}
 		'feedback': { evt = null ->
 			LauncherUtils.openURL('https://docs.google.com/forms/d/1Jn--CnpLSXFeiW3DrULAw25r8IYHF0zshimBx4Utm6c/')
 		},
-		'exportDiagram': { evt = null -> ping('exportDiagram')
+		'exportDiagram': { evt = null ->
 			withMVC('ExportDiagramWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}
@@ -393,27 +390,27 @@ JRE Home: ${System.getProperty("java.home")}
 				model.status = mvc.controller.show()
 			}
 		},
-		'exportTabular': { evt = null -> ping('exportTabular')
+		'exportTabular': { evt = null ->
 			withMVC('ExportTabularWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},
-		'exportDIS': { evt = null -> ping('exportDIS')
+		'exportDIS': { evt = null ->
 			withMVC('ExportDISWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},
-		'importImage': { evt = null -> ping('importImage')
+		'importImage': { evt = null ->
 			withMVC('ImportImageWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},
-		'importLegacy': { evt = null -> ping('importLegacy')
+		'importLegacy': { evt = null ->
 			withMVC('ImportLegacyWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}
 		},
-		'importTabular': { evt = null -> ping('importTabular')
+		'importTabular': { evt = null ->
 			withMVC('ImportTabularWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()
 			}

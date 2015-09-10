@@ -41,7 +41,7 @@ menuBar(id: 'menuBar') {
 		// brg 2/18/2015: hide for now: tabular format changed, no need for legacy import at present
 //		menu(text: 'Import', enabled: bind { model.project != null }) {
 //			menuItem(importImageAction)
-//			menuItem(importTabularAction)
+			menuItem(importTabularAction)
 //			menuItem(importLegacyAction)
 //		}
 		menu(text: 'Export', enabled: bind { model.project != null }) {

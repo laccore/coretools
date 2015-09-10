@@ -27,6 +27,8 @@ import org.andrill.coretools.model.ModelManager.Factory;
 class GeologyFactory implements Factory {
 	private static final String[] TYPES = [Annotation.class, Interval.class, Occurrence.class, Unit.class, Image.class, Section.class].collect { it.simpleName } as String[]
 	
+	public GeologyFactory() { }
+	
 	/**
 	 * {@inheritDoc}
 	 */

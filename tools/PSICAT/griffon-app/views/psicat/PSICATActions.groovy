@@ -310,7 +310,7 @@ actions {
 	)
 	action(
 		id: 'importTabularAction',
-		name: 'Tabular Data',
+		name: 'Import Tabular Data...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['importTabular'],
 		shortDescription: 'Import tabular data from Excel'

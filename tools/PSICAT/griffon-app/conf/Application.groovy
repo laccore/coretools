@@ -76,8 +76,8 @@ mvcGroups {
 	}
 	ImportTabularWizard {
 		model="psicat.dialogs.ImportTabularWizardModel"
-		controller="psicat.dialogs.ImportTabularWizardController"
 		view="psicat.dialogs.ImportTabularWizardView"
+		controller="psicat.dialogs.ImportTabularWizardController"
 	}
 	ImportLegacyWizard {
 		model="psicat.dialogs.ImportLegacyWizardModel"

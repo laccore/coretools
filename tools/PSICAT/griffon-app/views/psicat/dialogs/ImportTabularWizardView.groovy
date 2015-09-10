@@ -20,15 +20,30 @@ import psicat.util.*
 
 actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
+	action(id: 'importAction', name:'Import', closure: controller.actions.doImport)
 }
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {	
 	// directory
-	label('File:', constraints: 'split')
+	label('Import File:', constraints: 'split')
 	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
 	button(text:'...', action: browseAction, constraints: 'wrap')
 
-	// section
-	label('Add to:', constraints: 'split')
-	comboBox(id:'section', editable: true, items: model.project.containers, constraints:'growx, wrap')
+	// options
+	checkBox(text: 'Copy Images', selected:bind(source:model, sourceProperty:'copyImages', mutual:true), constraints:'wrap')
+	
+	separator(constraints: 'span, growx, wrap')
+	
+	// progress bar
+	panel(layout:new MigLayout('','[grow][]',''), constraints:'span, growx, wrap') {
+		progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
+		button(id:'importBtn', action: importAction)
+	}
+	
+	panel(border: titledBorder('Import Log')) {
+		scrollPane {
+			textArea(id:'logArea', text:'[Click Import to start]', lineWrap:true, wrapStyleWord:true,
+				columns:50, rows:10, editable:false)
+		}
+	}
 }

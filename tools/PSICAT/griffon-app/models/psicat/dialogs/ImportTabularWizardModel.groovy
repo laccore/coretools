@@ -22,6 +22,7 @@ import psicat.util.Dialogs
 class ImportTabularWizardModel {
 	def project
 	@Bindable String filePath
+	@Bindable boolean copyImages = true
 	
 	File getFile() {
 		if (!filePath) return null

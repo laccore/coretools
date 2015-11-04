@@ -87,6 +87,17 @@ public class TextWidget extends AbstractWidget implements FocusListener, ActionL
 			} else {
 				JTextField widget = new JTextField(property.getValue(), 10);
 				widget.addActionListener(this);
+				
+				// on any change, verify JTextField contents to provide feedback 
+				widget.getDocument().addDocumentListener(new DocumentListener() {
+					private void update(DocumentEvent e) {
+						component.getInputVerifier().verify(component);
+					}
+					public void insertUpdate(DocumentEvent e) { update(e); }
+					public void removeUpdate(DocumentEvent e) { update(e); }
+					public void changedUpdate(DocumentEvent e) { update(e); }
+				});
+				
 				component = widget;
 			}
 			component.setBorder(BorderFactory.createEtchedBorder());

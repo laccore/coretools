@@ -30,6 +30,12 @@ import groovy.lang.MissingPropertyException
 	private static Map CONVERSIONS = ["m":1, "cm":100, "mm":1000, "dm":0.1, "hm":0.01, "km":0.001, "in":39.3700787, "ft":3.2808399, "yd":1.0936133]
 	BigDecimal value
 	String unit
+
+	static boolean validLength(String str) {
+		def numericRegex = "-?\\d*(\\.\\d+)?" // numeric portion
+		def unitRegex = " *(" + CONVERSIONS.keySet().join("|") + "){0,1} *" // optional unit portion with 0+ leading/trailing spaces
+		return str.matches(numericRegex + unitRegex)
+	}
 	
 	Length(BigDecimal value) { 
 		this(value, "m") 

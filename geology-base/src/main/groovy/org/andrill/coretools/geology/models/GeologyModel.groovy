@@ -81,7 +81,7 @@ abstract class GeologyModel implements Model {
 		if (!args?.nullable)	list << { value, obj -> value != null }
 		if (!args?.blank)		list << { value, obj -> value == null || value.trim() != "" }
 		if (this.metaClass.getMetaProperty(name).type == Number.class)		list << { value, obj -> value == null || new BigDecimal(value) }
-		if (this.metaClass.getMetaProperty(name).type == Length.class)		list << { value, obj -> value == null || new Length(value) }
+		if (this.metaClass.getMetaProperty(name).type == Length.class)		list << { value, obj -> value == null || Length.validLength(value) }
 		if (this.metaClass.getMetaProperty(name).type == SchemeRef.class)	list << { value, obj -> value == null || value?.indexOf(':') > -1 }
 		return list
 	}

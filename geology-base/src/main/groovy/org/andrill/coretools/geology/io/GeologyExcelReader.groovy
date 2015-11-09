@@ -28,44 +28,58 @@ import org.andrill.coretools.model.ModelContainer
 
 class GeologyExcelReader {
 	private workbook = null
+	private logger = null
 	private factory = new GeologyFactory()
 		
 	String getFormat() { 'xls' }
 	
 	// read stream, return map of ModelContainers, one for each project-level section to be created
-	def read(stream) {
+	def read(stream, logger) {
 		Workbook workbook = Workbook.getWorkbook(stream)
+		this.logger = logger
 		
 		def modelMap = [:] // all imported models are stored in lists keyed on section ID
 		workbook.sheets.each { parseSheet(it, modelMap) }
 		workbook.close()
 		
-		println "Created ${modelMap.size()} sections"
+		logger.info("Read ${modelMap.size()} sections from file")
 		
 		return modelMap
 	}
 	
 	def parseSheet(sheet, modelMap) {
+		logger.warn("Parsing sheet ${sheet.name}...")
 		def modelType = getModelType(sheet.name)
 		// (avoid certain sheets e.g. Images?)
 		
 		def model = factory.build(modelType, [:])
-		println "Created ${modelType}...seeking columns named ${model.constraints.keySet()}"
+		if (!model) {
+			logger.error("Error: Unknown model type '$modelType'. Valid types are ${GeologyFactory.TYPES}")
+			return
+		}
 		
 		def constraints = model.constraints.keySet()
+		logger.warn("Model type is ${modelType}...seeking columns named $constraints}")
 		
 		// find indices of required colums
-		println "Getting property columns for model type $modelType..."
 		def modelPropIndices = getPropColumns(sheet, constraints)
-		println "Result: ${modelPropIndices}"
+		if (!modelPropIndices) {
+			return
+		}
+		logger.warn("Found required columns: $modelPropIndices")
 		
 		// get section ID column
 		def sectionIDIndex = getColumnIndexByName(sheet, "Section ID")
-		println "SectionID index = $sectionIDIndex"
+		logger.info("SectionID column index = $sectionIDIndex")
 		
 		// create model with each row after header
+		def createCount = 0
 		for (row in 1..<sheet.rows) {
 			def newModel = createModelWithRow(sheet, row, modelType, modelPropIndices)
+			if (!newModel) {
+				logger.error("Error: Couldn't create model from row $row")
+				continue
+			}
 			def sectionID = sheet.getCell(sectionIDIndex, row).contents
 			
 			if (modelMap.containsKey(sectionID)) {
@@ -73,7 +87,10 @@ class GeologyExcelReader {
 			} else {
 				modelMap[sectionID] = [newModel]
 			}
+			createCount++
 		}
+		
+		logger.warn("Found $createCount models of type $modelType")
 	}
 	
 	// create and return model with properties in row's cells
@@ -87,7 +104,7 @@ class GeologyExcelReader {
 				props[key] = value
 		}
 		
-		println "Creating model type $modelType with props $props"
+		logger.debug("Creating model type $modelType with props $props")
 		def newModel = factory.build(modelType, props)
 		
 		return newModel
@@ -107,67 +124,20 @@ class GeologyExcelReader {
 	
 	// return map of property column indexes keyed on property name (e.g. 'top', 'description')
 	private def getPropColumns(sheet, propNames) {
+		def success = true
 		def modelPropIndices = [:]
 		propNames.each { it ->
 			def colIndex = getColumnIndexByName(sheet, it)
 			if (colIndex != -1) {
 				modelPropIndices[it] = colIndex
 			} else {
-				println "   No matching column found for $it"
+				logger.error("Error: No matching column found for $it, can't parse sheet")
+				success = false
 			}
 		}
-		return modelPropIndices
+		success ? modelPropIndices : null
 	}
 	
 	// derive model name from sheet name by stripping trailing 's'
 	private def getModelType(str) { str.endsWith('s') ? str[0..-2] : str }
-	
-	// containers: map of containers keyed on section ID
-	void write(containerMap, stream) {
-		workbook = Workbook.createWorkbook(stream)
-		containerMap.each { sectionID, container ->
-			container.models.each {	addModelData(it, sectionID) }
-		}
-		workbook.write()
-		workbook.close()
-	}
-	
-	def getSchemeEntry(model) {
-		def entry = null
-		def schStr = model.modelType.equals("Interval") ? "lithology" : "scheme"
-		def scheme = model."$schStr"?.scheme
-		def code = model."$schStr"?.code
-		
-		if (scheme && code)
-			entry = schemeManager.getEntry(scheme, code)
-			
-		return entry
-	}
-	
-	boolean modelHasScheme(model) {	return ["Interval", "Occurrence"].contains(model.modelType)	}
-	
-	void createHeaders(model, sheet) {
-		if (!headers[model.modelType]) {
-			def newHeaders = []
-			model.constraints.each { k, v ->
-				newHeaders << k
-			}
-			
-			if (modelHasScheme(model))
-				newHeaders << getSchemeColumnName(model)
-			
-			newHeaders << "Section ID"
-	
-			// add header row with units to sheet
-			newHeaders.eachWithIndex { name, col ->
-				def h = name
-				if (['top', 'base'].contains(name))
-					h += ' (m)'
-				sheet.addCell(new Label(col, 0, h))
-			}
-			
-			headers[model.modelType] = newHeaders
-		}
-	}
-	
 }

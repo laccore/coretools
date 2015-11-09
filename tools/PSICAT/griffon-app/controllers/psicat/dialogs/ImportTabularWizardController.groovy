@@ -20,10 +20,9 @@ import javax.swing.JTextArea
 
 import org.apache.log4j.AppenderSkeleton
 import org.apache.log4j.Level
-import org.apache.log4j.LogManager
+import org.apache.log4j.Logger
+import org.apache.log4j.PatternLayout
 import org.apache.log4j.spi.LoggingEvent
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import org.andrill.coretools.Platform
 import org.andrill.coretools.geology.io.GeologyExcelReader
@@ -33,26 +32,32 @@ import psicat.util.*
 
 class TextAreaAppender extends AppenderSkeleton {
 	private JTextArea area = null
+	private Level minLevel = Level.WARN
 	public TextAreaAppender(JTextArea area) {
 		this.area = area
+		layout = new PatternLayout("%m%n")
 	}
 	public void close() {}
-	public boolean requiresLayout() { return false }
+	public boolean requiresLayout() { return true }
 	protected void append(LoggingEvent event) {
-		if (event.getLevel().isGreaterOrEqual(Level.WARN)) {
-			area.append(event.getMessage().toString())
+		if (event.getLevel().isGreaterOrEqual(minLevel)) {
+			def str = this.layout.format(event)
+			area.append(str)
 		}
 	}
+	public setLevel(level) { this.minLevel = level }
 }
 
 class ImportTabularWizardController {
     def model
     def view
 
-	private Logger logger = LoggerFactory.getLogger(ImportTabularWizardController.class)
+	private Logger logger = Logger.getLogger(ImportTabularWizardController.class)
+	private appender = null
 	
     void mvcGroupInit(Map args) {
-		LogManager.getRootLogger().addAppender(new TextAreaAppender(view.logArea))
+		appender = new TextAreaAppender(view.logArea)
+		logger.addAppender(appender)
 	}
 
     def actions = [
@@ -83,22 +88,27 @@ class ImportTabularWizardController {
 	
 	private def importTabular() {
 		if (model.file) {
-			view.logArea.setText('')
-			updateProgress("Reading Tabular Data...", 0)
-			def containerMap = model.file.withInputStream { stream -> (Platform.getService(GeologyExcelReader.class)).read(stream) }
-			createSections(containerMap)
+			def startTime = System.currentTimeMillis()
+			view.logArea.setText('Import started...\n')
+			updateProgress("Reading Tabular Data...", -1)
+			def containerMap = model.file.withInputStream { stream -> (Platform.getService(GeologyExcelReader.class)).read(stream, logger) }
+			def sectionCount = createSections(containerMap)
 			if (model.copyImages)
 				copyImages(containerMap)
 			updateProgress("Import complete", 100)
+			
+			def elapsedTime = (System.currentTimeMillis() - startTime) / 1000.0
+			view.logArea.append("Import complete: created $sectionCount sections, elapsed time ${elapsedTime}s")
 		} else {
 			Dialogs.showErrorDialog("Import Error", "An import file must be selected")
 		}
 	}
 	
 	private def createSections(containerMap) {
+		def createCount = 0
 		def mapSize = containerMap.size()
 		containerMap.eachWithIndex { sectionID, modelList, index ->
-			updateProgress("Creating sections ($index/$mapSize)", (index/mapSize).intValue())
+			updateProgress("Creating sections ($index/$mapSize)", (index/mapSize * 100).intValue())
 			if (!model.project.containers.contains(sectionID)) {
 				def container = null
 				try {
@@ -106,18 +116,20 @@ class ImportTabularWizardController {
 					// and view (section list) get out of sync, causing all manner of problems
 					edt { container = model.project.createContainer(sectionID) }
 				} catch (Exception e) {
-					logger.error("ERROR: Container $sectionID already exists, skipping\n")
+					logger.error("ERROR: Container $sectionID already exists, skipping")
 				}
 				
 				if (container) {
 					container.addAll(modelList)
 					edt { model.project.saveContainer(container) } // see brg 9/9/2015
-					logger.info("Saved new section $sectionID\n")
+					createCount++
+					logger.info("Saved new section $sectionID")
 				}
 			} else {
-				logger.warn("Container $sectionID already exists, skipping\n")
+				logger.warn("Container $sectionID already exists, skipping")
 			}
 		}
+		return createCount
 	}
 	
 	private def copyImages(containerMap) {
@@ -126,21 +138,21 @@ class ImportTabularWizardController {
 			imageModels.addAll(modelList.findAll { it instanceof Image })
 		}
 		def imageCount = imageModels.size()
-		logger.info("found $imageCount Images to copy\n")
+		logger.info("found $imageCount Images to copy")
 		
 		imageModels.eachWithIndex { image, index ->
-			updateProgress("Copying images ($index/$imageCount)", (index/imageCount).intValue())
+			updateProgress("Copying images ($index/$imageCount)", (index/imageCount * 100).intValue())
 			def imageFile = null
 			try {
 				imageFile = new File(image.path.toURI())
 			} catch (Exception e) {
-				logger.warn("Couldn't get File for ${image.path}: $e\n")
+				logger.warn("Couldn't get File for ${image.path}: $e")
 			}
 			if (imageFile && imageFile.exists()) {
 				ProjectLocal.copyImageFile(imageFile, model.project.path)
-				logger.info("Copying ${image.path} to project\n")
+				logger.info("Copying ${image.path} to project")
 			} else {
-				logger.warn("Image file ${image.path} does not exist, skipping\n")
+				logger.warn("Image file ${image.path} does not exist, skipping")
 			}
 		}
 	}

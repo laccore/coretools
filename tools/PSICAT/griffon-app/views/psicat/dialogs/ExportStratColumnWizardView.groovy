@@ -49,6 +49,13 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 	
 	panel(border: titledBorder("Drawing Options"), layout: new MigLayout('','[][grow][]'), constraints:'growx') {
 		hbox(constraints: 'growx, wrap') {
+			label(text:"Start Depth: ")
+			textField(text: bind(source:model, sourceProperty:'startDepth', mutual:true), constraints:'growx')
+			hstrut(20)
+			label(text:"End Depth: ")
+			textField(text: bind(source:model, sourceProperty:'endDepth', mutual:true), constraints:'growx')
+		}
+		hbox(constraints: 'growx, wrap') {
 			checkBox(text:"Draw Symbols in Intervals:", selected:bind(source:model, sourceProperty:'drawSymbols', mutual:true))
 			buttonGroup().with {
 				add radioButton(text:"Aggregated", selected:bind(source:model, sourceProperty:'aggregateSymbols', mutual:true),

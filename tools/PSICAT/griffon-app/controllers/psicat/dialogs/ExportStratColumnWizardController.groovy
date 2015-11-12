@@ -64,6 +64,7 @@ class ExportStratColumnWizardController {
 	def LEGEND_WIDTH = 130
 	def scaleFactor = 1.0
 	def topDepth = 0.0
+	def bottomDepth = 15.0
 	
 	// track used lithologies and occurrences for legend
 	def noneSchemeEntry = new SchemeEntry("none", "None", null)
@@ -110,9 +111,9 @@ class ExportStratColumnWizardController {
 	}
 
 	// collect symbols (Occurrences) in each section
-	def prepareMetadata(sortedMetadata) {
+	def prepareMetadata() {
 		def occs = [:]
-		sortedMetadata.each {
+		model.sortedMetadata.each {
 			def secOccs = []
 			def section = null
 			try {
@@ -409,32 +410,56 @@ class ExportStratColumnWizardController {
 		usedOccs.clear()
 	}
 	
+	void errbox(title, message) {
+		Dialogs.showErrorDialog(title, message, view.root)
+		resetProgress()
+	}
+	
+	boolean parseMetadata(metadataPath) {
+		// create depth-sorted list of section/top/base vals
+		def metadata = null
+		try {
+			metadata = GeoUtils.parseMetadataFile(metadataPath, model.project)
+		} catch (e) {
+			errbox("Export Error", "Couldn't parse metadata file: ${e.getMessage()}")
+			return false
+		}
+		if (metadata.size() == 0) {
+			errbox("Export Error", "Couldn't find any project sections that match metadata sections.")
+			return false
+		}
+		
+		// metadata looks okay, update start and end depth fields
+		model.sortedMetadata = metadata
+		model.startDepth = metadata[0].top
+		model.endDepth = metadata[-1].base
+		
+		return true
+	}
+	
 	void export() {
 		preExport()
-		
-		updateProgress(10, "Preparing data...")
-		
-		// create depth-sorted list of section/top/base vals
-		def sortedMetadata = null
-		try {
-			sortedMetadata = GeoUtils.parseMetadataFile(model.metadataPath, model.project)
-		} catch (e) {
-			Dialogs.showErrorDialog("Export Error", "Couldn't parse metadata file: ${e.getMessage()}")
-			resetProgress()
-			return
-		}
-		
-		if (sortedMetadata.size() == 0) {
-			Dialogs.showErrorDialog("Export Error", "Couldn't find any project sections that match metadata sections.")
-			resetProgress()
-			return
-		}
-		
+
 		if (model.drawGrainSize && !model.useProjectGrainSize && !model.alternateGrainSizePath) {
-			Dialogs.showErrorDialog("Export Error", "A default grain size file must be selected.")
-			resetProgress()
+			errbox("Export Error", "A default grain size file must be selected.")
 			return
 		}
+		
+		// determine depth to pixel scaling
+		try {
+			topDepth = model.startDepth as BigDecimal
+			bottomDepth = model.endDepth as BigDecimal
+		} catch (Exception e) {
+			errbox("Export Error", "Invalid top or bottom depth.")
+			return
+		}
+		if (bottomDepth <= topDepth) {
+			errbox("Export Error", "Bottom depth must be greater than top depth.")
+			return
+		}
+		def totalIntervalLength = bottomDepth - topDepth //model.endDepth - model.startDepth
+		setScaleFactor(totalIntervalLength)
+		logger.info("Content height = ${CONTENT_HEIGHT}, works out to $scaleFactor pix/m, or ${1.0/scaleFactor} m/pix")
 
 		// parse alternate grain sizes if necessary...
 		def altGSMap = null
@@ -444,22 +469,18 @@ class ExportStratColumnWizardController {
 				model.grainSizeScale = new Scale(altGSData['scale'])
 				altGSMap = altGSData['gs']
 			} catch (e) {
-				Dialogs.showErrorDialog("Export Error", "Couldn't parse default grain size file: ${e.getMessage()}")
-				resetProgress()
+				errbox("Export Error", "Couldn't parse default grain size file: ${e.getMessage()}")
 				return
 			}
 		} else { // ...or use project's grain size
 			model.grainSizeScale = app.controllers['PSICAT'].grainSize
 		}
 		
+		updateProgress(10, "Preparing data...")
+		
 		def occMap = [:]
 		if (model.drawSymbols)
-			occMap = prepareMetadata(sortedMetadata)
-		
-		// determine depth to pixel scaling
-		def totalIntervalLength = sortedMetadata[-1].base// - sortedMetadata[0].top
-		setScaleFactor(totalIntervalLength)
-		logger.info("Content height = ${CONTENT_HEIGHT}, works out to $scaleFactor pix/m, or ${1.0/scaleFactor} m/pix")
+			occMap = prepareMetadata()
 		
 		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
@@ -473,88 +494,93 @@ class ExportStratColumnWizardController {
 		if (model.drawGrainSize && model.drawGrainSizeLabels)
 			drawGrainSizeScale(g2)
 			
-		drawRuler(g2, topDepth, sortedMetadata[-1].base)
+		drawRuler(g2, topDepth, bottomDepth)
 		
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
 		g2.setStroke(new BasicStroke(0.3F))
 		
 		// draw each section's lithologies, occurrences and grain sizes
-		sortedMetadata.eachWithIndex { secdata, sectionIndex ->
-			logger.info("--- ${secdata.section} ---")
-			updateProgress(10 + (sectionIndex / sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
-			
-			if (model.drawSectionNames) {
-				def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
-				drawSectionName(g2, secdata, MARGIN + HEADER_HEIGHT, offset)
-			}
-			
-			def intervals = buildIntervalDrawData(secdata.section, occMap)
-			if (intervals.size() > 0) {
-				// determine total length of intervals - assume they are contiguous
-				def minDepth = intervals.min { it.top }
-				def maxDepth = intervals.max { it.base }
-				def intTop = minDepth.top
-				def intLength = maxDepth.base - minDepth.top
-				logger.info("interval top = ${minDepth.top}, base = ${maxDepth.base}, intervalLength = $intLength")
-				def mdLength = secdata.base - secdata.top
-				logger.info("metadata top = ${secdata.top}, base = ${secdata.base} len: $mdLength")
+		model.sortedMetadata.eachWithIndex { secdata, sectionIndex ->
+			if (secdata.top < topDepth || secdata.base > bottomDepth) {
+				logger.info("Skipping ${secdata.section} [${secdata.top} - ${secdata.base} outside of depth range [$topDepth - $bottomDepth]") 
+			} else {
+				logger.info("--- ${secdata.section} ---")
+				updateProgress(10 + (sectionIndex / model.sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
 				
-				// if interval length > section length, compress
-				def sectionScale = 1.0
-				if (intLength > mdLength) {
-					sectionScale = mdLength/intLength
-					logger.info("must compress by factor of $sectionScale")
-				} else {
-					logger.info("intLength <= mdLength: diff = ${mdLength - intLength}")
+				if (model.drawSectionNames) {
+					def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
+					drawSectionName(g2, secdata, MARGIN + HEADER_HEIGHT, offset)
 				}
-				// if interval length < section length, DO NOT expand to fit - leave as is
 				
-				intervals.eachWithIndex { curint, intervalIndex ->
-					def t = (curint.top - intTop) * sectionScale + secdata.top
-					def b = (curint.base - intTop) * sectionScale + secdata.top
-					logger.info("Interval $intervalIndex: top = ${curint.top}, base = ${curint.base}, t = $t, b = $b")
-					def xbase = MARGIN + RULER_WIDTH
-					def ybase = MARGIN + HEADER_HEIGHT
-					def y = depth2pix(t) + ybase
-					def bot = depth2pix(b) + ybase
+				def intervals = buildIntervalDrawData(secdata.section, occMap)
+				if (intervals.size() > 0) {
+					// determine total length of intervals - assume they are contiguous
+					def minDepth = intervals.min { it.top }
+					def maxDepth = intervals.max { it.base }
+					def intTop = minDepth.top
+					def intLength = maxDepth.base - minDepth.top
+					logger.info("interval top = ${minDepth.top}, base = ${maxDepth.base}, intervalLength = $intLength")
+					def mdLength = secdata.base - secdata.top
+					logger.info("metadata top = ${secdata.top}, base = ${secdata.base} len: $mdLength")
 					
-					// use alternate grain size if necessary
-					def pattern = curint.model.lithology
-					def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
-					def gsTop = curint.gsTop
-					def gsBase = curint.gsBase
-					if (model.drawGrainSize && !model.useProjectGrainSize) {
-						def altGS = altGSMap[pattern?.toString()] ?: gsdef()
-						gsTop = gsBase = altGS
+					// if interval length > section length, compress
+					def sectionScale = 1.0
+					if (intLength > mdLength) {
+						sectionScale = mdLength/intLength
+						logger.info("must compress by factor of $sectionScale")
+					} else {
+						logger.info("intLength <= mdLength: diff = ${mdLength - intLength}")
 					}
+					// if interval length < section length, DO NOT expand to fit - leave as is
 					
-					def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
-					def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
-					
-					// In cases where the physical gap between sections resolves to less
-					// than one pixel, fill that gap by extending the base of the last
-					// interval to match the top of the next section instead of drawing a gap.
-					// Made change after seeing regular 1-pixel gaps between sections in a
-					// 520m strat column (CPCP).
-					def height = bot - y
-					if (intervalIndex == intervals.size() - 1 && sectionIndex < sortedMetadata.size() - 1) {
-						def nextSec = sortedMetadata[sectionIndex + 1]
-						def pixSize = 1.0 / scaleFactor
-						if (nextSec.top - secdata.base < pixSize) {
-							def nextSecTopY = depth2pix(nextSec.top) + ybase
-							logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
-							height = nextSecTopY - y
+					intervals.eachWithIndex { curint, intervalIndex ->
+						def t = (curint.top - intTop) * sectionScale + secdata.top
+						def b = (curint.base - intTop) * sectionScale + secdata.top
+						logger.info("Interval $intervalIndex: top = ${curint.top}, base = ${curint.base}, t = $t, b = $b")
+						def xbase = MARGIN + RULER_WIDTH
+						def ybase = MARGIN + HEADER_HEIGHT
+						def y = depth2pix(t) + ybase
+						def bot = depth2pix(b) + ybase
+						
+						// use alternate grain size if necessary
+						def pattern = curint.model.lithology
+						def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
+						def gsTop = curint.gsTop
+						def gsBase = curint.gsBase
+						if (model.drawGrainSize && !model.useProjectGrainSize) {
+							def altGS = altGSMap[pattern?.toString()] ?: gsdef()
+							logger.info("current lith = [$pattern], [$altGS]")
+							gsTop = gsBase = altGS
 						}
+						
+						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
+						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
+						
+						// In cases where the physical gap between sections resolves to less
+						// than one pixel, fill that gap by extending the base of the last
+						// interval to match the top of the next section instead of drawing a gap.
+						// Made change after seeing regular 1-pixel gaps between sections in a
+						// 520m strat column (CPCP).
+						def height = bot - y
+						if (intervalIndex == intervals.size() - 1 && sectionIndex < model.sortedMetadata.size() - 1) {
+							def nextSec = model.sortedMetadata[sectionIndex + 1]
+							def pixSize = 1.0 / scaleFactor
+							if (nextSec.top - secdata.base < pixSize) {
+								def nextSecTopY = depth2pix(nextSec.top) + ybase
+								logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
+								height = nextSecTopY - y
+							}
+						}
+						logger.info("y = $y, height = $height")
+	
+						drawInterval(g2, entry, xbase, xur, xlr, y, height)
+						drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
+						
+						usedLiths << entry
 					}
-					logger.info("y = $y, height = $height")
-
-					drawInterval(g2, entry, xbase, xur, xlr, y, height)
-					drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
-					
-					usedLiths << entry
-				}
-			} else { logger.warn("Couldn't create intervals for section ${secdata.section}") }
-		} // sortedMetadata.eachWithIndex
+				} else { logger.warn("Couldn't create intervals for section ${secdata.section}") }
+			} // if (secdata.base < topDepth || secdata.top > bottomDepth)
+		} // model.sortedMetadata.eachWithIndex
 
 		if (model.drawLegend) drawLegend(g2)
 
@@ -567,7 +593,7 @@ class ExportStratColumnWizardController {
     def actions = [
 		'chooseMetadata': { evt = null ->
 			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
-			if (file) {
+			if (file && parseMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
 				model.metadataPath = file.absolutePath
 			}
 		},

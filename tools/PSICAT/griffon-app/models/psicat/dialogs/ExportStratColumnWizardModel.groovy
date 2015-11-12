@@ -24,8 +24,11 @@ import psicat.util.Dialogs
 @Bindable class ExportStratColumnWizardModel {
 	def project = null
 	def grainSizeScale = null
+	def sortedMetadata = null
 	@Bindable def metadataPath = null
 	@Bindable def exportPath = null
+	@Bindable def startDepth = 0.0
+	@Bindable def endDepth = 15.0
 	@Bindable def alternateGrainSizePath = null
 	@Bindable boolean drawLegend = true
 	@Bindable boolean drawSectionNames = true

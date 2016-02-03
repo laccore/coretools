@@ -90,6 +90,11 @@ menuBar(id: 'menuBar') {
 			radioButtonMenuItem(ftUnitsAction, selected: bind { model.diagramState.units == 'ft'})
 			radioButtonMenuItem(inUnitsAction, selected: bind { model.diagramState.units == 'in'})
 		}
+		menu(text:"Font Size") {
+			menuItem(smallFontSizeAction)
+			menuItem(mediumFontSizeAction)
+			menuItem(largeFontSizeAction)
+		}
 	}
 
 	menu(text: 'Help', mnemonic:'H') {

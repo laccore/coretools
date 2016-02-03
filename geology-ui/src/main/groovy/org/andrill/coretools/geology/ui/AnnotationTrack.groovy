@@ -29,7 +29,10 @@ import org.andrill.coretools.graphics.GraphicsContext
 class AnnotationTrack extends GeologyTrack {
 	private static final int PADDING = 3
 	private static final DecimalFormat DEC = new DecimalFormat("0.00")
-	def getAnnotFont() { new Font("SanSerif", Font.PLAIN, 9) }
+	def getAnnotFont() {
+		def fontsize = getParameter("font-size", "11")
+		new Font("SanSerif", Font.PLAIN, Integer.parseInt(fontsize))
+	}
 	def getHeader() { "Description" }
 	def getFooter() { "Description" }
 	def getWidth()  { return 128 }

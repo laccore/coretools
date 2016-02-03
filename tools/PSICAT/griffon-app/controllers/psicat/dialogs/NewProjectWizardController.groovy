@@ -47,6 +47,7 @@ class NewProjectWizardController {
 			Project project = new DefaultProject(model.file)
 			project.name = model.name ?: model.file.name
 			project.origin = model.originTop ? 'top' : 'base'
+			project.fontSize = '11' // default to medium font size - no GUI for now
 			project.saveConfiguration()
 			return project	
 		} else {

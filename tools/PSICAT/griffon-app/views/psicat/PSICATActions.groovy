@@ -281,6 +281,24 @@ actions {
 		shortDescription: 'Set preferred units to feet'
 	)
 	action(
+		id: 'smallFontSizeAction',
+		name: 'Small',
+		enabled: bind { model.project != null },
+		closure: controller.actions['smallFontSize']
+	)
+	action(
+		id: 'mediumFontSizeAction',
+		name: 'Medium',
+		enabled: bind { model.project != null },
+		closure: controller.actions['mediumFontSize']
+	)
+	action(
+		id: 'largeFontSizeAction',
+		name: 'Large',
+		enabled: bind { model.project != null },
+		closure: controller.actions['largeFontSize']
+	)
+	action(
 		id: 'exportDiagramAction',
 		name: 'Diagram...',
 		enabled: bind { model.project != null },

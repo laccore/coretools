@@ -30,6 +30,7 @@ import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.edit.CommandStack
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.ui.AnnotationTrack
 import org.andrill.coretools.scene.Scene
 import org.andrill.coretools.scene.Selection
 import org.andrill.coretools.ui.ScenePanel.Orientation
@@ -131,6 +132,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	// set the orientation
     	setOrientation(prefs.get('diagram.orientation', 'vertical') == 'vertical')
     	setUnits(model.units)
+		setFontSize(project.configuration.fontSize ?: '11') // annotation track font size - default to medium
     	
     	return true
     }
@@ -155,6 +157,11 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	}
     	return true
     }
+	
+	void setFontSize(fontsize) {
+		def annotTrack = model.scene.tracks.find { it instanceof AnnotationTrack }
+		if (annotTrack) { annotTrack.setParameter("font-size", fontsize) }
+	}
 
     void setOrientation(vertical) {
     	// set the orientation

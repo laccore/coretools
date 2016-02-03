@@ -136,6 +136,13 @@ class PSICATController {
         view.propertiesPanel.scene = model?.activeDiagram?.model?.scene
 	}
 
+	void setFontSize(fontsize) {
+		model.openDiagrams.each { it.controller.fontSize = fontsize }
+		model.project.configuration.fontSize = fontsize
+		model.project.saveConfiguration()
+		model.status = "Set fontsize to $fontsize"
+	}
+	
 	void setUnits(units) {
 		prefs.put("diagram.units", units)
 		model.activeDiagram.controller.units = units
@@ -459,6 +466,9 @@ JRE Home: ${System.getProperty("java.home")}
 		'openDIS': { evt = null ->
 			def file = Dialogs.showOpenDialog("Open DIS Project", new CustomFileFilter(extensions: ['_dis.xml'], description: 'DIS files'), app.appFrames[0])
 			if (file && canClose(evt)) { openProject(new DISProject(file)) }
-		}
+		},
+		'smallFontSize': { evt = null -> setFontSize('9') },
+		'mediumFontSize': { evt = null -> setFontSize('11') },
+		'largeFontSize': { evt = null -> setFontSize('14') }
 	]
 }

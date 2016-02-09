@@ -138,7 +138,7 @@ class PSICATController {
 
 	void setFontSize(fontsize) {
 		model.openDiagrams.each { it.controller.fontSize = fontsize }
-		model.project.configuration.fontSize = fontsize
+		model.project.fontSize = fontsize
 		model.project.saveConfiguration()
 		model.status = "Set fontsize to $fontsize"
 	}

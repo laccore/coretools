@@ -132,7 +132,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	// set the orientation
     	setOrientation(prefs.get('diagram.orientation', 'vertical') == 'vertical')
     	setUnits(model.units)
-		setFontSize(project.configuration.fontSize ?: '11') // annotation track font size - default to medium
+		setFontSize(project.configuration.fontSize) // annotation track font size
     	
     	return true
     }

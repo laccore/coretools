@@ -46,6 +46,7 @@ import com.google.common.collect.MapMaker;
  */
 public class DefaultProject extends AbstractProject {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProject.class);
+	private static final String FONTSIZE_PROP = "font-size";
 	private static final String ORIGIN_PROP = "origin";
 	private static final String NAME_PROP = "name";
 	private static final String DEFAULT_DATA_FORMAT = "xml";
@@ -139,6 +140,10 @@ public class DefaultProject extends AbstractProject {
 		return f.getName().replaceFirst("[.][^.]+$", "");
 	}
 
+	public String getFontSize() {
+		return getProperty(FONTSIZE_PROP, "11");
+	}
+	
 	@Override
 	public String getName() {
 		return getProperty(NAME_PROP, fileName(directory));
@@ -350,6 +355,10 @@ public class DefaultProject extends AbstractProject {
 	@Override
 	public void setName(final String name) {
 		configuration.put(NAME_PROP, name);
+	}
+	
+	public void setFontSize(final String fontsize){
+		configuration.put(FONTSIZE_PROP, fontsize);
 	}
 
 	/**

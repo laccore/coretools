@@ -117,7 +117,8 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     	// set our properties and listeners
 		scene.models = models
-    	scene.origin = (project.configuration.origin ?: 'top' == 'top') ? Scene.Origin.TOP : Scene.Origin.BASE
+		def originTop = (project.configuration.origin == null || project.configuration.origin == 'top')
+    	scene.origin = originTop ? Scene.Origin.TOP : Scene.Origin.BASE
     	scene.commandStack = model.commandStack
     	scene.addSelectionListener(this)
     	scene.models.addListener(this)

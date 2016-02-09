@@ -87,15 +87,34 @@ class CreatePolicy extends GeologyPolicy {
 			val1 = phys(e.dragY)
 			val2 = phys(e.y)
 		}
+
+		// validate contiguous linked objects (Intervals, Units), preventing creation
+		// of inverted and zero-length objects, or an object overlapping existing objects.
+		def originTop = track.scene.origin == Origin.TOP
+		if (linked) {
+			if (val1 >= val2) return null;
+			def overlap = false;
+			track.models.each {
+				def newmin = Math.min(val1, val2)
+				def newmax = Math.max(val1, val2)
+				def modmin = Math.min(it.top.value, it.base.value)
+				def modmax = Math.max(it.top.value, it.base.value)
+				// is new top or base inside object, or is object encompassed by new top and base?
+				if ((newmin > modmin && newmin < modmax) || (newmax > modmin && newmax < modmax) || (newmax > modmax && newmin < modmin))
+					overlap = true;
+			}
+			if (overlap) return null;
+		}
 	 
 		// set the top/base
-		if (track.scene.origin == Origin.TOP) {
+		if (originTop) {
 			obj.top = "${round(Math.min(val1, val2))} ${track.units}"
 			obj.base = "${round(Math.max(val1, val2))} ${track.units}"
 		} else {
 			obj.base = "${round(Math.min(val1, val2))} ${track.units}"
 			obj.top = "${round(Math.max(val1, val2))} ${track.units}"
 		}
+		
 		return new CreateCommand(obj, track.scene.models)
 	}
 }

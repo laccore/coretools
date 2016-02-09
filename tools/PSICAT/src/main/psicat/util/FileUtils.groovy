@@ -38,7 +38,7 @@ public class FileUtils {
 	}
 	
 	static String removeExtension(final File f) {
-		return f.getName().replaceFirst("[.][^.]+$", "");
+		return f.getName().replaceFirst('[.][^.]+$', "");
 	}
 	
 	private FileUtils() {

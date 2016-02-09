@@ -46,6 +46,12 @@ class ImportImageWizardController {
 		browse: { evt = null ->
 			def selectedFiles = Dialogs.showOpenMultipleDialog("Select Image(s) to Import", CustomFileFilter.IMAGES, app.appFrames[0])
 			if (selectedFiles) {
+				def nonDupFiles = cullDuplicateImages(selectedFiles)
+				def culledCount = selectedFiles.size() - nonDupFiles.size()
+				if (culledCount > 0)
+					Dialogs.showMessageDialog("Duplicate images removed", "Of the ${selectedFiles.size()} selected images, $culledCount are duplicates of existing images and will not be loaded.", app.appFrames[0])
+
+				selectedFiles = nonDupFiles
 				def comparator = new AlphanumComparator.StringAlphanumComparator()
 				def sortedFiles = new SortedList(new BasicEventList(), {a, b -> comparator.compare(a.name, b.name)} as Comparator)
 				selectedFiles.each { sortedFiles << it }
@@ -88,6 +94,10 @@ class ImportImageWizardController {
 			}
 		}
     }
+	
+	private def cullDuplicateImages(images) {
+		images.findAll { !model.project.containers.contains(FileUtils.removeExtension(it)) }
+	}
 	
 	private def createImages(images, section) {
 		def container = model.project.openContainer(section)

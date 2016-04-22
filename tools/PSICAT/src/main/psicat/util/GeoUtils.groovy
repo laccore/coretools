@@ -16,10 +16,16 @@
 
 package psicat.util
 
+import java.util.List;
+
 import au.com.bytecode.opencsv.CSVReader
 
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.ui.Scale
+
+import org.andrill.coretools.Platform
+import org.andrill.coretools.model.ModelContainer
+import org.andrill.coretools.model.DefaultModelManager
 
 class GeoUtils {
 	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
@@ -54,6 +60,55 @@ class GeoUtils {
 		def sorted = metadata.sort { it.top }
 		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		return sorted
+	}
+	
+	static def makeSectionName(csvrow, secIndex, expName) {
+		def site = csvrow[0]
+		def hole = csvrow[1]
+		def core = csvrow[2]
+		def tool = csvrow[3]
+		def sec = csvrow[secIndex]
+		return "$expName-$site$hole-$core$tool-$sec"
+	}
+	
+	// parse required data from SIT table
+	static parseSITFile(sitFile, project) throws Exception {
+		def sitIntervals = []
+		CSVReader reader = null
+		try {
+			reader = new CSVReader(new FileReader(sitFile))
+		} catch (e) {
+			throw new Exception("read/parse error: ${e.getMessage()}", e)
+		}
+
+		reader.readAll().eachWithIndex { row, index ->
+			if (index > 0) { // skip header row
+				def startSecDepth, endSecDepth, startMbsf, endMbsf, startMcd, endMcd
+				try {
+					startSecDepth = row[5] as BigDecimal
+					endSecDepth = row[9] as BigDecimal
+					startMbsf = row[6] as BigDecimal
+					endMbsf = row[10] as BigDecimal
+					startMcd = row[7] as BigDecimal
+					endMcd = row[11] as BigDecimal
+				} catch (e) {
+					throw new Exception("Couldn't convert text to number at row ${index + 1}: ${e.toString()}", e)
+				}
+				
+				//println "Interval $index:"
+				def startSec = GeoUtils.makeSectionName(row, 4, "TDP-TOW15")
+				//println "   Start section: $startSec at depth $startSecDepth"
+				def endSec = GeoUtils.makeSectionName(row, 8, "TDP-TOW15")
+				//println "   End section: $endSec at depth $endSecDepth"
+				
+				def sitrow = ['startSec':startSec, 'endSec':endSec, 'startMbsf':startMbsf, 'endMbsf':endMbsf,
+					'startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth]
+				sitIntervals.add(sitrow)
+			}
+		}
+			
+		println "Parsed SIT file: ${sitIntervals.size()} intervals, from ${sitIntervals[0]} to \n ${sitIntervals[-1]}"
+		return sitIntervals
 	}
 	
 	// parse alternate grain size CSV file: row 1 should be a valid Scale string, remaining rows
@@ -95,6 +150,42 @@ class GeoUtils {
 			reader.close()
 		}
 		return result
+	}
+
+	/**
+	 * Creates a new container with copies of all input containers' models
+	 * (model data only). The copies can be freely manipulated without fear of
+	 * corrupting the "true" set of models maintained in the project or
+	 * disrupting listeners dependent on model/container association.
+	 */
+	static copyContainer(container) {
+		def modelManager = Platform.getService(DefaultModelManager.class)
+		def copy = Platform.getService(ModelContainer.class)
+		container.models.each { m ->
+			copy.add(modelManager.build(m.modelType, m.modelData))
+		}
+		//container.project = model.project // need project for e.g. grain size
+		//container.models.sort { it.top }
+		
+		return copy
+	}
+	
+	static zeroBaseContainer(container) {
+		if (container.models.size() > 0) {
+			GeoUtils.zeroBase(container.models)
+		}
+	}
+	
+	static zeroBase(modelList) {
+		def minDepth = null
+		modelList.each {
+			if (!minDepth || it.top.compareTo(minDepth) == -1)
+				minDepth = it.top
+		}
+		modelList.each { m ->
+			m.top -= minDepth
+			m.base -= minDepth
+		}
 	}
 	
 	// notify listeners of change by default, but provide option to avoid doing so

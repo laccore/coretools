@@ -46,8 +46,11 @@ def mainWidth = prefs.getDouble('psicat.mainViewWidth', 800.0) as Integer
 def mainHeight = prefs.getDouble('psicat.mainViewHeight', 600.0) as Integer
 def xpos = prefs.getDouble('psicat.mainViewX', 50.0) as Integer
 def ypos = prefs.getDouble('psicat.mainViewY', 50.0) as Integer
+
+def subversion = app.applicationProperties['app.subversion'] ?: ""
+
 // build our application
-application(title:"PSICAT ${app.applicationProperties['app.version']}", id:'mainView', size:[mainWidth,mainHeight],
+application(title:"PSICAT ${app.applicationProperties['app.version']} $subversion", id:'mainView', size:[mainWidth,mainHeight],
 			location:[xpos,ypos],
 			layout: new MigLayout('fill'), 
 			defaultCloseOperation: 0,

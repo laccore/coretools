@@ -23,7 +23,7 @@ actions {
 	action(id: 'exportAction', name:'Export', closure: controller.actions.export)
 }
 
-def section = buildMVCGroup('SectionCombo', 'exportDiagramSections', project: model.project, allSections:false).view.root
+def section = buildMVCGroup('SectionCombo', 'exportDiagramSections', project: model.project, allSections:true).view.root
 
 def prefixToolTip = "Optional: prefix output files' names with specified text, e.g. 'my_[section_name].pdf'"
 

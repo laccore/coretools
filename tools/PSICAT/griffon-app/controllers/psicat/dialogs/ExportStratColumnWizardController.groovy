@@ -322,8 +322,10 @@ class ExportStratColumnWizardController {
 			graphics.fill(lithpoly)
 		}
 		
-		graphics.setPaint(Color.BLACK) // section outline
-		graphics.draw(lithpoly)
+		if (model.drawIntervalBorders) {
+			graphics.setPaint(Color.BLACK)
+			graphics.draw(lithpoly)
+		}
 	}
 	
 	def drawSectionName(graphics, sectionData, y, offset) {

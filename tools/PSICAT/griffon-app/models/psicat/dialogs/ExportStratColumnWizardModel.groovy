@@ -32,6 +32,7 @@ import psicat.util.Dialogs
 	@Bindable def alternateGrainSizePath = null
 	@Bindable boolean drawLegend = true
 	@Bindable boolean drawSectionNames = true
+	@Bindable boolean drawIntervalBorders = false
 	@Bindable boolean drawSymbols = true
 	@Bindable boolean aggregateSymbols = true
 	@Bindable boolean drawGrainSize = true

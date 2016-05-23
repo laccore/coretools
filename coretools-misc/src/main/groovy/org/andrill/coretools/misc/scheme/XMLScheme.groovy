@@ -45,18 +45,20 @@ public class XMLScheme implements Scheme {
 	/**
 	 * {@inheritDoc}
 	 */
-	public SchemeEntry getEntry(String code) {
+	public SchemeEntry getEntry(String code, fuzzyCompare=false) {
 		def c = code.trim().toLowerCase()
 		def match = entryList.find { it.code == c }
 		if (match) { return match }
 
 		// fuzzy compare
-		int score = THRESHOLD
-		entryList.each {
-			int s = compare(c, it?.code)
-			if (s > score) {
-				score = s
-				match = it
+		if (fuzzyCompare) {
+			int score = THRESHOLD
+			entryList.each {
+				int s = compare(c, it?.code)
+				if (s > score) {
+					score = s
+					match = it
+				}
 			}
 		}
 		return match

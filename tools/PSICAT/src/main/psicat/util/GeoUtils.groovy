@@ -62,17 +62,21 @@ class GeoUtils {
 		return sorted
 	}
 	
-	static def makeSectionName(csvrow, secIndex, expName) {
+	static def makeSectionName(csvrow, secIndex, expName=null) {
 		def site = csvrow[0]
 		def hole = csvrow[1]
 		def core = csvrow[2]
 		def tool = csvrow[3]
 		def sec = csvrow[secIndex]
-		return "$expName-$site$hole-$core$tool-$sec"
+		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
 	}
 	
 	// parse required data from SIT table
-	static parseSITFile(sitFile, project) throws Exception {
+	// sitFile - source Splice Interval Table CSV file
+	// project - destination project
+	// expName - optional name of expedition, prepended to sitFile's section names
+	// to find matching sections in PSICAT
+	static parseSITFile(sitFile, project, expName) throws Exception {
 		def sitIntervals = []
 		CSVReader reader = null
 		try {
@@ -96,9 +100,9 @@ class GeoUtils {
 				}
 				
 				//println "Interval $index:"
-				def startSec = GeoUtils.makeSectionName(row, 4, "TDP-TOW15")
+				def startSec = GeoUtils.makeSectionName(row, 4, expName)
 				//println "   Start section: $startSec at depth $startSecDepth"
-				def endSec = GeoUtils.makeSectionName(row, 8, "TDP-TOW15")
+				def endSec = GeoUtils.makeSectionName(row, 8, expName)
 				//println "   End section: $endSec at depth $endSecDepth"
 				
 				def sitrow = ['startSec':startSec, 'endSec':endSec, 'startMbsf':startMbsf, 'endMbsf':endMbsf,

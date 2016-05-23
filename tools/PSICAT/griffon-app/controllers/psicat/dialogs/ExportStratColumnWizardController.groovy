@@ -336,16 +336,23 @@ class ExportStratColumnWizardController {
 	}
 	
 	// convenience method for "classic" strat column generation, where sectionData is a map with top, base, and section (section name)
-	def drawSectionName(graphics, sectionData, y, offset) {
-		drawSectionName(graphics, sectionData.top, sectionData.base, sectionData.section, y, offset)
+	def drawSectionName(graphics, sectionData, y, offset, trimExpName=null) {
+		drawSectionName(graphics, sectionData.top, sectionData.base, sectionData.section, y, offset, trimExpName)
 	}
 	
-	def drawSectionName(graphics, sectop, secbase, secname, y, offset) {
+	def drawSectionName(graphics, sectop, secbase, secname, y, offset, trimExpName=null) {
 		graphics.setFont(new Font("SansSerif", Font.PLAIN, 2))
 		graphics.setPaint(Color.BLACK)
 		
 		def top = depth2pix(sectop) + y
 		def base = depth2pix(secbase) + y
+		
+		if (trimExpName) {
+			def trimIndex = secname.indexOf(trimExpName)
+			if (trimIndex != -1)
+				secname = secname.substring(trimIndex + trimExpName.length())
+			graphics.setFont(new Font("SansSerif", Font.PLAIN, 4)) // use bigger font, more space!
+		}
 
 		// center name vertically in section range
 		def centerShift = (((secbase - sectop) / 2.0) * scaleFactor).intValue() + 1
@@ -570,7 +577,7 @@ class ExportStratColumnWizardController {
 	boolean parseSIT(sitPath) {
 		def sitdata = null
 		try {
-			sitdata = GeoUtils.parseSITFile(sitPath, model.project)
+			sitdata = GeoUtils.parseSITFile(sitPath, model.project, "TDP-TOW15")//"HSPDP-CHB14")
 		} catch (e) {
 			errbox("Export Error", "Couldn't parse SIT file: ${e.getMessage()}")
 			return false
@@ -606,8 +613,10 @@ class ExportStratColumnWizardController {
 				
 				// find max base of models - start next section from that depth
 				//maxBase = models.max { it.base }
-				maxBase = getMaxBase(models)
-				intervalModels[secname] = models
+				if (models.size() > 0) {
+					maxBase = getMaxBase(models)
+					intervalModels[secname] = models
+				}
 			}
 			
 			// compress models to fit drilled interval if necessary
@@ -717,7 +726,7 @@ class ExportStratColumnWizardController {
 						def minTop = modelList.min { it.top.value }
 						def maxBase = modelList.max { it.base.value }
 						def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
-						drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, secname, MARGIN + HEADER_HEIGHT, offset)
+						drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, secname, MARGIN + HEADER_HEIGHT, offset, "TDP-TOW15-")//"HSPDP-CHB14-")
 					}
 					
 					// modelList now contains Intervals and Occurrences - need to separate the two
@@ -766,6 +775,7 @@ class ExportStratColumnWizardController {
 						logger.info("y = $y, height = $height")
 	
 						drawInterval(g2, entry, xbase, xur, xlr, y, height)
+						if (!entry) println "### ERROR No lithology entry for $mod"
 						usedLiths << entry
 						
 						if (model.drawSymbols) {
@@ -893,8 +903,12 @@ class ExportStratColumnWizardController {
 		'chooseMetadata': { evt = null ->
 			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
 			//if (file && parseMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
-			if (file && parseSIT(file.absolutePath)) { // immediately verify and parse file (if valid)
-				model.metadataPath = file.absolutePath
+			doOutside {
+				updateProgress(100, "Parsing...")
+				if (file && parseSIT(file.absolutePath)) { // immediately verify and parse file (if valid)
+					model.metadataPath = file.absolutePath
+				}
+				resetProgress()
 			}
 		},
 		'chooseExport': { evt = null ->

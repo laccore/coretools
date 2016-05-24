@@ -219,7 +219,7 @@ class ExportStratColumnWizardController {
 		
 		// draw depth of final tick
 		def roundedBase = base.setScale(3, BigDecimal.ROUND_HALF_UP)
-		def baseYPos = Math.ceil(ybase + base * scaleFactor).intValue()
+		def baseYPos = Math.ceil(ybase + physHeight * scaleFactor).intValue()
 		graphics.drawLine(xbase - 30, baseYPos, xbase, baseYPos)
 		def baseLabelWidth = graphics.fontMetrics.stringWidth("$roundedBase")
 		graphics.drawString("$roundedBase", xbase - Math.ceil(baseLabelWidth).intValue(), baseYPos + 8) // draw below final tick

@@ -108,68 +108,6 @@ class ExportStratColumnWizardController {
 		}
 		lines << curLine
 	}
-
-	// collect symbols (Occurrences) in each section
-	def prepareMetadata() {
-		def occs = [:]
-		model.sortedMetadata.each {
-			def secOccs = []
-			def section = null
-			try {
-				section = model.project.openContainer(it.section)
-			} catch (IllegalArgumentException iae) {
-				logger.warn("Metadata section ${it.section} could not be found")
-				return
-			}
-
-			def modelIterator = section.iterator()
-			while (modelIterator.hasNext()) {
-				GeologyModel mod = modelIterator.next()
-				if (mod.modelType.equals("Occurrence")) { secOccs << mod }
-			}
-			occs[it.section] = secOccs
-			model.project.closeContainer(section)
-		}
-		return occs
-	}
-	
-	// for given section, collect properties and occurrences for each Interval
-	def buildIntervalDrawData(sectionName, occMap) {
-		def occCount = occMap[sectionName]?.size() ?: 0
-		def intervals = []
-		def section = model.project.openContainer(sectionName)
-		def modelIterator = section.iterator()
-		while (modelIterator.hasNext()) {
-			GeologyModel mod = modelIterator.next()
-			if (mod.modelType.equals("Interval")) {
-				def top = mod.top.to('m').value // ensure we're working in meters
-				def base = mod.base.to('m').value
-				def gsTop = mod.grainSizeTop ?: gsdef()
-				def gsBase = mod.grainSizeBase ?: gsdef()
-				
-				// gather occurrences whose top depth is within this interval
-				def occs = occMap[sectionName]
-				def intervalOccs = occs?.findAll { it.top?.to('m').value >= top && it.top?.to('m').value <= base }
-				occCount -= intervalOccs?.size() ?: 0
-				
-				if (model.aggregateSymbols) {
-					def usedEntries = new HashSet()
-					def aggregatedOccs = []
-					intervalOccs.each { it ->
-						if (usedEntries.add(it.scheme.toString())) { aggregatedOccs << it }
-					}
-					intervalOccs = aggregatedOccs
-				}
-				
-				intervals << ['top':top, 'base':base, 'model':mod, 'gsTop':gsTop, 'gsBase':gsBase, 'occs':intervalOccs]
-			}
-		}
-		model.project.closeContainer(section)
-		
-		if (occCount > 0) logger.warn("${sectionName}: ${occCount} occurrences left over")
-		
-		return intervals.sort { it.top }
-	}
 	
 	void drawRuler(graphics, top, base) {
 		def physHeight = base - top
@@ -421,29 +359,6 @@ class ExportStratColumnWizardController {
 		resetProgress()
 	}
 	
-	boolean parseMetadata(metadataPath) {
-		// create depth-sorted list of section/top/base vals
-		def metadata = null
-		try {
-			metadata = GeoUtils.parseMetadataFile(metadataPath, model.project)
-		} catch (e) {
-			errbox("Export Error", "Couldn't parse metadata file: ${e.getMessage()}")
-			return false
-		}
-		if (metadata.size() == 0) {
-			errbox("Export Error", "Couldn't find any project sections that match metadata sections.")
-			return false
-		}
-		
-		// metadata looks okay, update start and end depth fields
-		model.sortedMetadata = metadata
-		model.startDepth = metadata[0].top
-		model.endDepth = metadata[-1].base
-		
-		return true
-	}
-
-	
 	// return list of section names, starting with startSec, ending with endSec,
 	// and including any sections that fall between the two
 	def getSectionsInInterval(startSec, endSec) {
@@ -644,7 +559,6 @@ class ExportStratColumnWizardController {
 				println "offset models = $models"
 				
 				// find max base of models - start next section from that depth
-				//maxBase = models.max { it.base }
 				if (models.size() > 0) {
 					maxBase = getMaxBase(models)
 					intervalModels[secname] = models
@@ -652,7 +566,6 @@ class ExportStratColumnWizardController {
 			}
 			
 			// compress models to fit drilled interval if necessary
-			//def drilledLength = sd.endMbsf - sd.startMbsf
 			def drilledLength = sd.endMcd - sd.startMcd
 			def scalingFactor = drilledLength / maxBase.value
 			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
@@ -716,12 +629,6 @@ class ExportStratColumnWizardController {
 		}
 		
 		updateProgress(10, "Preparing data...")
-		
-//		def occMap = [:]
-//		if (model.drawSymbols)
-//			occMap = prepareMetadata() // TODO: rename prepareMetadata(), terrible name (try "gatherOccurences()"?)
-		
-		//sortedMetadata.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		
 		// create PDF
 		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))
@@ -839,89 +746,6 @@ class ExportStratColumnWizardController {
 				}
 			}
 		}
-		
-		// draw each section's lithologies, occurrences and grain sizes
-//		model.sortedMetadata.eachWithIndex { secdata, sectionIndex ->
-//			if (secdata.top < topDepth || secdata.base > bottomDepth) {
-//				logger.info("Skipping ${secdata.section} [${secdata.top} - ${secdata.base} outside of depth range [$topDepth - $bottomDepth]") 
-//			} else {
-//				logger.info("--- ${secdata.section} ---")
-//				updateProgress(10 + (sectionIndex / model.sortedMetadata.size() * 90).intValue(), "Writing ${secdata.section}")
-//				
-//				if (model.drawSectionNames) {
-//					def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
-//					drawSectionName(g2, secdata, MARGIN + HEADER_HEIGHT, offset)
-//				}
-//				
-//				def intervals = buildIntervalDrawData(secdata.section, occMap)
-//				if (intervals.size() > 0) {
-//					// determine total length of intervals - assume they are contiguous
-//					def minDepth = intervals.min { it.top }
-//					def maxDepth = intervals.max { it.base }
-//					def intTop = minDepth.top
-//					def intLength = maxDepth.base - minDepth.top
-//					logger.info("interval top = ${minDepth.top}, base = ${maxDepth.base}, intervalLength = $intLength")
-//					def mdLength = secdata.base - secdata.top
-//					logger.info("metadata top = ${secdata.top}, base = ${secdata.base} len: $mdLength")
-//					
-//					// if interval length > section length, compress
-//					def sectionScale = 1.0
-//					if (intLength > mdLength) {
-//						sectionScale = mdLength/intLength
-//						logger.info("must compress by factor of $sectionScale")
-//					} else {
-//						logger.info("intLength <= mdLength: diff = ${mdLength - intLength}")
-//					}
-//					// if interval length < section length, DO NOT expand to fit - leave as is
-//					
-//					intervals.eachWithIndex { curint, intervalIndex ->
-//						def t = (curint.top - intTop) * sectionScale + secdata.top
-//						def b = (curint.base - intTop) * sectionScale + secdata.top
-//						logger.info("Interval $intervalIndex: top = ${curint.top}, base = ${curint.base}, t = $t, b = $b")
-//						def xbase = MARGIN + RULER_WIDTH
-//						def ybase = MARGIN + HEADER_HEIGHT
-//						def y = depth2pix(t) + ybase
-//						def bot = depth2pix(b) + ybase
-//						
-//						// use alternate grain size if necessary
-//						def pattern = curint.model.lithology
-//						def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
-//						def gsTop = curint.gsTop
-//						def gsBase = curint.gsBase
-//						if (model.drawGrainSize && !model.useProjectGrainSize) {
-//							def altGS = altGSMap[pattern?.toString()] ?: gsdef()
-//							logger.info("current lith = [$pattern], [$altGS]")
-//							gsTop = gsBase = altGS
-//						}
-//						
-//						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
-//						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
-//						
-//						// In cases where the physical gap between sections resolves to less
-//						// than one pixel, fill that gap by extending the base of the last
-//						// interval to match the top of the next section instead of drawing a gap.
-//						// Made change after seeing regular 1-pixel gaps between sections in a
-//						// 520m strat column (CPCP).
-//						def height = bot - y
-//						if (intervalIndex == intervals.size() - 1 && sectionIndex < model.sortedMetadata.size() - 1) {
-//							def nextSec = model.sortedMetadata[sectionIndex + 1]
-//							def pixSize = 1.0 / scaleFactor
-//							if (nextSec.top - secdata.base < pixSize) {
-//								def nextSecTopY = depth2pix(nextSec.top) + ybase
-//								logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
-//								height = nextSecTopY - y
-//							}
-//						}
-//						logger.info("y = $y, height = $height")
-//	
-//						drawInterval(g2, entry, xbase, xur, xlr, y, height)
-//						drawOccurrences(g2, curint, height, Math.max(xur, xlr), y)
-//						
-//						usedLiths << entry
-//					}
-//				} else { logger.warn("Couldn't create intervals for section ${secdata.section}") }
-//			} // if (secdata.base < topDepth || secdata.top > bottomDepth)
-//		} // model.sortedMetadata.eachWithIndex
 
 		if (model.drawLegend) drawLegend(g2)
 

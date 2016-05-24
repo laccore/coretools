@@ -44,6 +44,20 @@ import org.andrill.coretools.model.scheme.SchemeManager
 
 import psicat.util.*
 
+class IntervalDrawData {
+	public sectionName
+	public top
+	public base
+	public models
+	
+	public IntervalDrawData(sectionName, top, base, models) {
+		this.sectionName = sectionName
+		this.top = top
+		this.base = base
+		this.models = models
+	}
+}
+
 class ExportStratColumnWizardController {
     def model
     def view
@@ -251,8 +265,8 @@ class ExportStratColumnWizardController {
 			graphics.fill(lithpoly)
 		}
 		
-		graphics.setPaint(Color.BLACK) // section outline
-		graphics.draw(lithpoly)
+		//graphics.setPaint(Color.BLACK) // section outline
+		//graphics.draw(lithpoly)
 	}
 	
 	// convenience method for "classic" strat column generation, where sectionData is a map with top, base, and section (section name)
@@ -481,6 +495,15 @@ class ExportStratColumnWizardController {
 		}
 	}
 	
+	def getMinTop(modelList) {
+		def min = null
+		modelList.each {
+			if (!min || it.top.compareTo(min) == -1)
+				min = it.top
+		}
+		return min
+	}
+	
 	def getMaxBase(modelList) {
 		def max = null
 		modelList.each {
@@ -513,7 +536,7 @@ class ExportStratColumnWizardController {
 			def drilledLength = it.base - it.top
 			compressModels(models, drilledLength)
 			
-			def intervalModels = ["${it.section}": models]
+			def intervalModels = [new IntervalDrawData(it.section, it.top, it.base, models)]
 			intervalsToDraw.add(['top':it.top, 'base':it.base, 'siIntervals':intervalModels])
 		}
 		
@@ -541,7 +564,7 @@ class ExportStratColumnWizardController {
 		def sitMetadata = [] // list of maps of stuff
 		sitdata.eachWithIndex { sd, sitIndex ->
 			println "\n--- Interval $sitIndex ---"
-			def intervalModels = [:]
+			def intervalModels = []
 			
 			// get names of sections
 			def sections = getSectionsInInterval(sd.startSec, sd.endSec)
@@ -563,8 +586,9 @@ class ExportStratColumnWizardController {
 				
 				// find max base of models - start next section from that depth
 				if (models.size() > 0) {
+					def minTop = getMinTop(models)
 					maxBase = getMaxBase(models)
-					intervalModels[secname] = models
+					intervalModels.add(new IntervalDrawData(secname, sd.startMcd + minTop, sd.startMcd + maxBase, models))
 				}
 			}
 			
@@ -648,33 +672,34 @@ class ExportStratColumnWizardController {
 		// fudgy 0.3 gives decent line visibility without obscuring narrow intervals when zoomed way out
 		g2.setStroke(new BasicStroke(0.3F))
 		
-		// TODO: we've already done much of the work the existing process does below - scaling, zero-basing, etc.
-		// sitdata should be a map with interval name(?), mbsf range, and list of already-prepared Intervals
 		def offsetSectionName = false
 		model.sortedMetadata.eachWithIndex { sitdata, sitIndex ->
-			// want to imitate this stuff
 			if (sitdata.top < topDepth || sitdata.base > bottomDepth) {
 				logger.info("Skipping ${sitdata.section} [${sitdata.top} - ${sitdata.base} outside of depth range [$topDepth - $bottomDepth]")
 			} else {
-				// TODO? Also draw lines and a name indicating splice Interval?
 				logger.info("--- Interval $sitIndex ---")
 				
+				def nextTop = sitIndex + 1 < model.sortedMetadata.size() ? model.sortedMetadata[sitIndex + 1].top : null 
+				
 				// now grab intervals and draw them - curint is simply the Model that is an Interval
-				sitdata.siIntervals.eachWithIndex { secname, modelList, sectionIndex ->
-					logger.info("- ${secname} -")
+				sitdata.siIntervals.eachWithIndex { intervalDrawData, sectionIndex ->
+					logger.info("- ${intervalDrawData.sectionName} -")
 					//updateProgress(10 + (sectionIndex / model.sortedMetadata.size() * 90).intValue(), "Writing ${secname}")
+					def modelList = intervalDrawData.models
 					
 					if (model.drawSectionNames) {
-						def minTop = modelList.min { it.top.value }
-						def maxBase = modelList.max { it.base.value }
-						drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, secname, MARGIN + HEADER_HEIGHT, offsetSectionName, "PLJ-JUN15-")
+						//def minTop = modelList.min { it.top.value }
+						//def maxBase = modelList.max { it.base.value }
+						//drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName, "PLJ-JUN15-")
+						drawSectionName(g2, intervalDrawData.top, intervalDrawData.base, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName, "PLJ-JUN15-")
 						offsetSectionName = !offsetSectionName
 					}
-					
+										
 					// modelList now contains Intervals and Occurrences - need to separate the two
-					def intervals = modelList.findAll { it.modelType.equals("Interval") }
+					def rawIntervals = modelList.findAll { it.modelType.equals("Interval") }
+					def intervals = rawIntervals.sort { a, b -> a.base.compareTo(b.base) } // ensure max base is last in list so minimum gap is filled below
 					def occs = modelList.findAll { it.modelType.equals("Occurrence") }
-					
+
 					intervals.eachWithIndex { mod, intervalIndex ->
 						def t = sitdata.top + mod.top.value //(curint.top - intTop) * sectionScale + secdata.top
 						def b = sitdata.top + mod.base.value //(curint.base - intTop) * sectionScale + secdata.top
@@ -696,26 +721,36 @@ class ExportStratColumnWizardController {
 							gsTop = gsBase = altGS
 						}
 						
-						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
-						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
-						
 						// In cases where the physical gap between sections resolves to less
 						// than one pixel, fill that gap by extending the base of the last
 						// interval to match the top of the next section instead of drawing a gap.
 						// Made change after seeing regular 1-pixel gaps between sections in a
 						// 520m strat column (CPCP).
 						def height = bot - y
-//						if (intervalIndex == modelList.size() - 1 && intervalIndex < model.sortedMetadata.size() - 1) {
-//							def nextSec = model.sortedMetadata[sectionIndex + 1]
-//							def pixSize = 1.0 / scaleFactor
-//							if (nextSec.top - secdata.base < pixSize) {
-//								def nextSecTopY = depth2pix(nextSec.top) + ybase
-//								logger.info("nextSec top ${nextSec.top} - curSec base ${secdata.base} < 1px ($pixSize)")
-//								height = nextSecTopY - y
-//							}
-//						}
+						if (intervalIndex == intervals.size() - 1) {
+							def nextSecTopY = null
+							def pixSize = 1.0 / scaleFactor
+							if (sectionIndex < sitdata.siIntervals.size() - 1) {
+								def nextSec = sitdata.siIntervals[sectionIndex + 1]
+								if (nextSec.top - sitdata.base < pixSize) {
+									nextSecTopY = depth2pix(nextSec.top) + ybase
+									logger.info("nextSec top ${nextSec.top} - curSec base ${sitdata.base} < 1px ($pixSize)")
+								}
+							} else if (nextTop) {
+								logger.info("\n==> next top ${nextTop} - curSec base $b < 1px ($pixSize)???\n==>")
+								if (Math.abs(nextTop - b) < pixSize) {
+									nextSecTopY = depth2pix(nextTop) + ybase
+									logger.info("\n====>\n====> next metadata interval top ${nextTop} - curSec base $b < 1px ($pixSize)\n====>\n")
+									//height = nextSecTopY - y
+								}
+							}
+							if (nextSecTopY) 
+								height = nextSecTopY - y
+						}
 						logger.info("y = $y, height = $height")
-	
+
+						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
+						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
 						drawInterval(g2, entry, xbase, xur, xlr, y, height)
 						if (!entry) println "### ERROR No lithology entry for $mod"
 						usedLiths << entry
@@ -745,7 +780,7 @@ class ExportStratColumnWizardController {
 								}
 							}
 						}
-					}
+					} // intervals.eachWithIndex()
 				}
 			}
 		}

@@ -466,6 +466,21 @@ class ExportStratColumnWizardController {
 		}
 	}
 	
+	def compressModels(models, drilledLength) {
+		def maxBase = getMaxBase(models)
+		def scalingFactor = 1.0
+		if (maxBase.value > 0.0) // avoid divide by zero
+			scalingFactor = drilledLength / maxBase.value
+		println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
+		if (scalingFactor < 1.0) {
+			println "   Downscaling models..."
+			scaleModels(models, scalingFactor)
+			println "   Downscaled: $models"
+		} else {
+			println "   Scaling factor >= 1.0, leaving models as-is"
+		}
+	}
+	
 	def getMaxBase(modelList) {
 		def max = null
 		modelList.each {
@@ -495,20 +510,8 @@ class ExportStratColumnWizardController {
 			def models = getTrimmedModels(it.section, null, null) // no min/max
 			
 			// compress models to fit drilled interval if necessary
-			//def drilledLength = sd.endMbsf - sd.startMbsf
 			def drilledLength = it.base - it.top
-			def maxBase = getMaxBase(models)
-			def scalingFactor = 1.0
-			if (maxBase.value > 0.0) // avoid divide by zero
-				scalingFactor = drilledLength / maxBase.value
-			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
-			if (scalingFactor < 1.0) {
-				println "   Downscaling models..."
-				scaleModels(models, scalingFactor)
-				println "   Downscaled: $models"
-			} else {
-				println "   Scaling factor >= 1.0, leaving models as-is"
-			}
+			compressModels(models, drilledLength)
 			
 			def intervalModels = ["${it.section}": models]
 			intervalsToDraw.add(['top':it.top, 'base':it.base, 'siIntervals':intervalModels])

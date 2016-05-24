@@ -27,8 +27,6 @@ import java.awt.image.BufferedImage;
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import au.com.bytecode.opencsv.CSVReader
-
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Image;
@@ -294,22 +292,6 @@ class ExportStratColumnWizardController {
 		// at edges) and results in a smaller file to boot. Leaving in for now.
 		graphics.drawImage(occEntry.image, x, y, occwidth, occheight, null)
 		
-//		def occpoly = new Polygon()
-//		occpoly.addPoint(x, y)
-//		occpoly.addPoint(x + occwidth, y)
-//		occpoly.addPoint(x + occwidth, y + occheight)
-//		occpoly.addPoint(x, y + occheight)
-//		
-//		def rect = new java.awt.geom.Rectangle2D.Double(x, y, occwidth, occheight)
-//		
-//		// draw white rectangle to avoid grain size scale lines showing in transparent regions of occurrence image
-//		// brg 2/20/2015: shelved
-//		//g2.setColor(Color.WHITE)
-//		//g2.fillRect(lx, ty, occwidth, occheight)
-//		
-//		graphics.setPaint(new TexturePaint(occEntry.image, rect))
-//		graphics.fill(occpoly)
-		
 		return occwidth
 	}
 	
@@ -351,6 +333,9 @@ class ExportStratColumnWizardController {
 			def trimIndex = secname.indexOf(trimExpName)
 			if (trimIndex != -1)
 				secname = secname.substring(trimIndex + trimExpName.length())
+			def underscoreIndex = secname.indexOf("_")
+			if (underscoreIndex != -1)
+				secname = secname.substring(0, underscoreIndex)
 			graphics.setFont(new Font("SansSerif", Font.PLAIN, 4)) // use bigger font, more space!
 		}
 
@@ -457,6 +442,7 @@ class ExportStratColumnWizardController {
 		
 		return true
 	}
+
 	
 	// return list of section names, starting with startSec, ending with endSec,
 	// and including any sections that fall between the two
@@ -573,7 +559,53 @@ class ExportStratColumnWizardController {
 		}
 		return max
 	}
-	
+
+	boolean parseSectionMetadata(secMetadataPath) {
+		def metadata = null
+		try {
+			metadata = GeoUtils.parseMetadataFile(secMetadataPath, model.project)
+		} catch (e) {
+			errbox("Export Error", "Couldn't parse metadata file: ${e.getMessage()}")
+			return false
+		}
+		
+		if (metadata.size() == 0) {
+			errbox("Export Error", "Couldn't find any project sections that match metadata sections.")
+			return false
+		}
+		
+		def intervalsToDraw = []
+		metadata.each {
+			// gather and zero base models for each section
+			def models = getTrimmedModels(it.section, null, null) // no min/max
+			
+			// compress models to fit drilled interval if necessary
+			//def drilledLength = sd.endMbsf - sd.startMbsf
+			def drilledLength = it.base - it.top
+			def maxBase = getMaxBase(models)
+			def scalingFactor = 1.0
+			if (maxBase.value > 0.0) // avoid divide by zero
+				scalingFactor = drilledLength / maxBase.value
+			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
+			if (scalingFactor < 1.0) {
+				println "   Downscaling models..."
+				scaleModels(models, scalingFactor)
+				println "   Downscaled: $models"
+			} else {
+				println "   Scaling factor >= 1.0, leaving models as-is"
+			}
+			
+			def intervalModels = ["${it.section}": models]
+			intervalsToDraw.add(['top':it.top, 'base':it.base, 'siIntervals':intervalModels])
+		}
+		
+		model.sortedMetadata = intervalsToDraw.sort { it.top }
+		model.startDepth = intervalsToDraw[0].top
+		model.endDepth = intervalsToDraw[-1].base
+				
+		return true
+	}
+		
 	boolean parseSIT(sitPath) {
 		def sitdata = null
 		try {
@@ -633,7 +665,6 @@ class ExportStratColumnWizardController {
 			} else {
 				println "   Scaling factor >= 1.0, leaving models as-is"
 			}
-			//def spliceIntervalMap = ['top':sd.startMbsf, 'base':sd.endMbsf, 'siIntervals':intervalModels]
 			def spliceIntervalMap = ['top':sd.startMcd, 'base':sd.endMcd, 'siIntervals':intervalModels]
 			sitMetadata.add(spliceIntervalMap)
 		}
@@ -709,6 +740,7 @@ class ExportStratColumnWizardController {
 		
 		// TODO: we've already done much of the work the existing process does below - scaling, zero-basing, etc.
 		// sitdata should be a map with interval name(?), mbsf range, and list of already-prepared Intervals
+		def offsetSectionName = false
 		model.sortedMetadata.eachWithIndex { sitdata, sitIndex ->
 			// want to imitate this stuff
 			if (sitdata.top < topDepth || sitdata.base > bottomDepth) {
@@ -725,8 +757,8 @@ class ExportStratColumnWizardController {
 					if (model.drawSectionNames) {
 						def minTop = modelList.min { it.top.value }
 						def maxBase = modelList.max { it.base.value }
-						def offset = (sectionIndex % 2 == 1) // stagger adjacent section lines
-						drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, secname, MARGIN + HEADER_HEIGHT, offset, "TDP-TOW15-")//"HSPDP-CHB14-")
+						drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, secname, MARGIN + HEADER_HEIGHT, offsetSectionName, "PLJ-JUN15-")
+						offsetSectionName = !offsetSectionName
 					}
 					
 					// modelList now contains Intervals and Occurrences - need to separate the two
@@ -905,7 +937,8 @@ class ExportStratColumnWizardController {
 			//if (file && parseMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
 			doOutside {
 				updateProgress(100, "Parsing...")
-				if (file && parseSIT(file.absolutePath)) { // immediately verify and parse file (if valid)
+				//if (file && parseSIT(file.absolutePath)) { // immediately verify and parse file (if valid)
+				if (file && parseSectionMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
 					model.metadataPath = file.absolutePath
 				}
 				resetProgress()

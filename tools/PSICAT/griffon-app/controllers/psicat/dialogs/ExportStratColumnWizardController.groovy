@@ -128,23 +128,22 @@ class ExportStratColumnWizardController {
 		def xbase = MARGIN + RULER_WIDTH
 		def ybase = CONTENT_Y
 		
+		// top depth label
 		graphics.setFont(new Font("SansSerif", Font.PLAIN, 9))
-		graphics.drawString("meters", xbase - graphics.fontMetrics.stringWidth("meters"), ybase - 15)
-		
-		// vertical line at right edge of ruler area
-		graphics.setStroke(new BasicStroke(1));
-		graphics.drawLine(xbase, ybase, xbase, ybase + CONTENT_HEIGHT - 1) // minus stroke width to keep out of bottom margin
+		def roundedTop = top.setScale(3, BigDecimal.ROUND_HALF_UP) 
+		def topDepthString = "${top} meters"
+		graphics.drawString(topDepthString, xbase - graphics.fontMetrics.stringWidth(topDepthString), ybase - 5)
 		
 		// draw ticks
 		def maxHeightInt = Math.ceil(base).intValue()
 		def topInt = Math.floor(top).intValue()
-		def curHeight = topInt
+		def curHeight = topInt + (topInt < top ? 1 : 0)
 		def drawDmTicks = model.drawDms && (scaleFactor > 20.72) // resolution of 4144pix/200m...200m+ cores, no dms 
 		while (curHeight < maxHeightInt) {
 			def bigTick = (curHeight % 5 == 0)
 			def labelTick = (curHeight % 10 == 0 || drawDmTicks) // draw label every meter if dms are being drawn
 			def width = bigTick ? 30 : 15
-			def ytick = Math.ceil(ybase + ((curHeight - topInt) * scaleFactor)).intValue()
+			def ytick = ybase + depth2pix(curHeight)
 			graphics.drawLine(xbase - width, ytick, xbase, ytick)
 			
 			if (drawDmTicks) {
@@ -157,7 +156,8 @@ class ExportStratColumnWizardController {
 				}
 			}
 			
-			if (labelTick) {
+			// don't label tick if it's < 1m below topmost depth tick to avoid overlap
+			if (labelTick && (curHeight - roundedTop > 1.0)) {
 				def label = "$curHeight"
 				def labelWidth = graphics.fontMetrics.stringWidth(label) + 20 // + 20 to prevent overlap with small ticks
 				// 1.4 is the fudgiest of fudge factors, but the numbers are nicely placed now.
@@ -173,6 +173,10 @@ class ExportStratColumnWizardController {
 		graphics.drawLine(xbase - 30, baseYPos, xbase, baseYPos)
 		def baseLabelWidth = graphics.fontMetrics.stringWidth("$roundedBase")
 		graphics.drawString("$roundedBase", xbase - Math.ceil(baseLabelWidth).intValue(), baseYPos + 8) // draw below final tick
+		
+		// right border of ruler
+		graphics.setStroke(new BasicStroke(1));
+		graphics.drawLine(xbase, ybase, xbase, baseYPos)
 	}
 	
 	void drawGrainSizeScale(graphics) {
@@ -184,8 +188,8 @@ class ExportStratColumnWizardController {
 		graphics.setFont(new Font("SansSerif", Font.BOLD, 9))
 		def labelHeight = graphics.fontMetrics.height
 		
-		// horizontal line over strat column
-		graphics.drawLine(xmin, CONTENT_Y, xmax, CONTENT_Y)
+		// horizontal line over strat column - also first tick of ruler, thus - 30 to draw a "big tick"
+		graphics.drawLine(xmin - 30, CONTENT_Y, xmax, CONTENT_Y)
 		
 		// vertical grain size separator ticks
 		def labelCount = model.grainSizeScale.labels.size()
@@ -248,7 +252,7 @@ class ExportStratColumnWizardController {
 	}
 	
 	// draw lithology pattern for interval
-	def drawInterval(graphics, schemeEntry, x, xur, xlr, y, height) {
+	def drawInterval(graphics, schemeEntry, x, xur, xlr, y, height, outline=false) {
 		def lithpoly = new Polygon()
 		lithpoly.addPoint(x, y)
 		lithpoly.addPoint(xur, y)
@@ -265,8 +269,10 @@ class ExportStratColumnWizardController {
 			graphics.fill(lithpoly)
 		}
 		
-		//graphics.setPaint(Color.BLACK) // section outline
-		//graphics.draw(lithpoly)
+		if (outline) {
+			graphics.setPaint(Color.BLACK) // section outline
+			graphics.draw(lithpoly)
+		}
 	}
 	
 	// convenience method for "classic" strat column generation, where sectionData is a map with top, base, and section (section name)
@@ -342,7 +348,7 @@ class ExportStratColumnWizardController {
 		def lithDim = 30
 		def liths = usedLiths.toArray().sort { it.name }
 		liths.each {
-			drawInterval(graphics, it, xbase, xbase + lithDim, xbase + lithDim, y, lithDim)
+			drawInterval(graphics, it, xbase, xbase + lithDim, xbase + lithDim, y, lithDim, true)
 			drawLegendText(graphics, legendFont, it.name, xbase, y, lithDim)
 			y += lithDim + 5
 		}
@@ -481,17 +487,19 @@ class ExportStratColumnWizardController {
 	}
 	
 	def compressModels(models, drilledLength) {
-		def maxBase = getMaxBase(models)
-		def scalingFactor = 1.0
-		if (maxBase.value > 0.0) // avoid divide by zero
-			scalingFactor = drilledLength / maxBase.value
-		println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
-		if (scalingFactor < 1.0) {
-			println "   Downscaling models..."
-			scaleModels(models, scalingFactor)
-			println "   Downscaled: $models"
-		} else {
-			println "   Scaling factor >= 1.0, leaving models as-is"
+		if (models.size() > 0) {
+			def maxBase = getMaxBase(models)
+			def scalingFactor = 1.0
+			if (maxBase.value > 0.0) // avoid divide by zero
+				scalingFactor = drilledLength / maxBase.value
+			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
+			if (scalingFactor < 1.0) {
+				println "   Downscaling models..."
+				scaleModels(models, scalingFactor)
+				println "   Downscaled: $models"
+			} else {
+				println "   Scaling factor >= 1.0, leaving models as-is"
+			}
 		}
 	}
 	
@@ -550,7 +558,7 @@ class ExportStratColumnWizardController {
 	boolean parseSIT(sitPath) {
 		def sitdata = null
 		try {
-			sitdata = GeoUtils.parseSITFile(sitPath, model.project, "TDP-TOW15")//"HSPDP-CHB14")
+			sitdata = GeoUtils.parseSITFile(sitPath, model.project, "MEXI-CHA16")//PLJ-JUN15")
 		} catch (e) {
 			errbox("Export Error", "Couldn't parse SIT file: ${e.getMessage()}")
 			return false
@@ -588,7 +596,7 @@ class ExportStratColumnWizardController {
 				if (models.size() > 0) {
 					def minTop = getMinTop(models)
 					maxBase = getMaxBase(models)
-					intervalModels.add(new IntervalDrawData(secname, sd.startMcd + minTop, sd.startMcd + maxBase, models))
+					intervalModels.add(new IntervalDrawData(secname, sd.startMcd + minTop.value, sd.startMcd + maxBase.value, models))
 				}
 			}
 			
@@ -598,9 +606,9 @@ class ExportStratColumnWizardController {
 			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
 			if (scalingFactor < 1.0) {
 				println "   Downscaling models..."
-				intervalModels.each { secname, modelList ->
-					scaleModels(modelList, scalingFactor)
-					println "   Downscaled: $modelList"
+				intervalModels.each { idd ->
+					scaleModels(idd.models, scalingFactor)
+					println "   Downscaled: $idd.models"
 				}
 			} else {
 				println "   Scaling factor >= 1.0, leaving models as-is"
@@ -688,10 +696,7 @@ class ExportStratColumnWizardController {
 					def modelList = intervalDrawData.models
 					
 					if (model.drawSectionNames) {
-						//def minTop = modelList.min { it.top.value }
-						//def maxBase = modelList.max { it.base.value }
-						//drawSectionName(g2, minTop.top.value + sitdata.top, maxBase.base.value + sitdata.top, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName, "PLJ-JUN15-")
-						drawSectionName(g2, intervalDrawData.top, intervalDrawData.base, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName, "PLJ-JUN15-")
+						drawSectionName(g2, intervalDrawData.top, intervalDrawData.base, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName, "MEXI-CHA16-")
 						offsetSectionName = !offsetSectionName
 					}
 										
@@ -701,8 +706,8 @@ class ExportStratColumnWizardController {
 					def occs = modelList.findAll { it.modelType.equals("Occurrence") }
 
 					intervals.eachWithIndex { mod, intervalIndex ->
-						def t = sitdata.top + mod.top.value //(curint.top - intTop) * sectionScale + secdata.top
-						def b = sitdata.top + mod.base.value //(curint.base - intTop) * sectionScale + secdata.top
+						def t = sitdata.top + mod.top.value
+						def b = sitdata.top + mod.base.value
 
 						logger.info("   Interval $intervalIndex: top = ${mod.top}, base = ${mod.base}, t = $t, b = $b")
 						def xbase = MARGIN + RULER_WIDTH
@@ -713,6 +718,10 @@ class ExportStratColumnWizardController {
 						// use alternate grain size if necessary
 						def pattern = mod.lithology
 						def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
+						if (pattern && !entry) {
+							logger.info("no scheme entry found for $pattern, mapping to None lithology")
+							entry = noneSchemeEntry
+						}
 						def gsTop = mod.grainSizeTop ?: gsdef() // TODO: gsdef() check here for missing grain sizes
 						def gsBase = mod.grainSizeBase ?: gsdef()
 						if (model.drawGrainSize && !model.useProjectGrainSize) {
@@ -792,18 +801,28 @@ class ExportStratColumnWizardController {
 
 		updateProgress(100, "Export complete!")
 	}
-
+	
     def actions = [
 		'chooseMetadata': { evt = null ->
 			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
 			//if (file && parseMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
 			doOutside {
-				updateProgress(100, "Parsing...")
-				//if (file && parseSIT(file.absolutePath)) { // immediately verify and parse file (if valid)
-				if (file && parseSectionMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
-					model.metadataPath = file.absolutePath
+				if (file) {
+					try {
+						def mdType = GeoUtils.identifyMetadataFile(file.absolutePath)
+						if (mdType == GeoUtils.SectionMetadataFile)
+							parseSectionMetadata(file.absolutePath)
+						else if (mdType == GeoUtils.SpliceIntervalFile)
+							parseSIT(file.absolutePath)
+						else {
+							errbox("Unrecognized Metadata", "Couldn't identify metadata file")
+							return
+						}
+						model.metadataPath = file.absolutePath
+					} catch (Exception e) {
+						errbox("Parsing error", "Error: ${e.message}")
+					}
 				}
-				resetProgress()
 			}
 		},
 		'chooseExport': { evt = null ->

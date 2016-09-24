@@ -20,6 +20,9 @@ import java.util.List;
 
 import au.com.bytecode.opencsv.CSVReader
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.ui.Scale
 
@@ -28,19 +31,42 @@ import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.DefaultModelManager
 
 class GeoUtils {
-	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
-	static parseMetadataFile(metadataFile, project) throws Exception {
-		def metadata = []
+	private static Logger logger = LoggerFactory.getLogger(GeoUtils.class)	
+	
+	static final UnknownFile = 0;
+	static final SectionMetadataFile = 1;
+	static final SpliceIntervalFile = 2;
+	
+	static int identifyMetadataFile(mdFile) throws Exception {
+		def type = UnknownFile
+		CSVReader reader = openMetadataFile(mdFile)
+		def firstRow = reader.readNext()
+		reader.close()
+		if (firstRow.length == 3)
+			type = SectionMetadataFile
+		else if (firstRow.length == 15)
+		 	type = SpliceIntervalFile
+		return type
+	}
+	
+	static openMetadataFile(mdFile) throws Exception {
 		CSVReader reader = null
 		try {
-			reader = new CSVReader(new FileReader(metadataFile));
+			reader = new CSVReader(new FileReader(mdFile));
 		} catch (e) {
 			throw new Exception("Couldn't parse metadata file: ${e.getMessage()}", e)
 		}
+		return reader
+	}
+	
+	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
+	static parseMetadataFile(metadataFile, project) throws Exception {
+		def metadata = []
+		CSVReader reader = openMetadataFile(metadataFile)
 		def entries = reader.readAll()
 		entries.eachWithIndex { row, index ->
 			def section = row[0]
-			def projSection = project.containers.find { it.startsWith(section) } 
+			def projSection = GeoUtils.findSection(project, section)
 			if (projSection) {
 				def top = null, base = null
 				try {
@@ -51,8 +77,6 @@ class GeoUtils {
 				}
 				def secdata = ['section':projSection, 'top':top, 'base':base]
 				metadata.add(secdata)
-			} else {
-				println "Couldn't find matching PSICAT section for ${section}"
 			}
 		}
 		reader.close()
@@ -60,6 +84,12 @@ class GeoUtils {
 		def sorted = metadata.sort { it.top }
 		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
 		return sorted
+	}
+	
+	static def findSection(project, sectionName) {
+		def projSection = project.containers.find { it.startsWith(sectionName) }
+		if (!projSection) logger.warn("Couldn't find matching PSICAT section for ${sectionName}")
+		return projSection 
 	}
 	
 	static def makeSectionName(csvrow, secIndex, expName=null) {
@@ -78,13 +108,7 @@ class GeoUtils {
 	// to find matching sections in PSICAT
 	static parseSITFile(sitFile, project, expName) throws Exception {
 		def sitIntervals = []
-		CSVReader reader = null
-		try {
-			reader = new CSVReader(new FileReader(sitFile))
-		} catch (e) {
-			throw new Exception("read/parse error: ${e.getMessage()}", e)
-		}
-
+		CSVReader reader = openMetadataFile(sitFile)
 		reader.readAll().eachWithIndex { row, index ->
 			if (index > 0) { // skip header row
 				def startSecDepth, endSecDepth, startMbsf, endMbsf, startMcd, endMcd
@@ -105,13 +129,15 @@ class GeoUtils {
 				def endSec = GeoUtils.makeSectionName(row, 8, expName)
 				//println "   End section: $endSec at depth $endSecDepth"
 				
-				def sitrow = ['startSec':startSec, 'endSec':endSec, 'startMbsf':startMbsf, 'endMbsf':endMbsf,
-					'startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth]
-				sitIntervals.add(sitrow)
+				if (GeoUtils.findSection(project, startSec) && GeoUtils.findSection(project, endSec)) {
+					def sitrow = ['startSec':startSec, 'endSec':endSec, 'startMbsf':startMbsf, 'endMbsf':endMbsf,
+						'startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth]
+					sitIntervals.add(sitrow)
+				}
 			}
 		}
 			
-		println "Parsed SIT file: ${sitIntervals.size()} intervals, from ${sitIntervals[0]} to \n ${sitIntervals[-1]}"
+		logger.info("Parsed SIT file: ${sitIntervals.size()} intervals, from ${sitIntervals[0]} to \n ${sitIntervals[-1]}")
 		return sitIntervals
 	}
 	

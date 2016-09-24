@@ -805,8 +805,12 @@ class ExportStratColumnWizardController {
     def actions = [
 		'chooseMetadata': { evt = null ->
 			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
-			//if (file && parseMetadata(file.absolutePath)) { // immediately verify and parse file (if valid)
 			doOutside {
+				doLater {
+					view.progressDialog.setLocationRelativeTo(view.root)
+					view.progressDialog.setVisible(true)
+				}
+
 				if (file) {
 					try {
 						def mdType = GeoUtils.identifyMetadataFile(file.absolutePath)
@@ -815,6 +819,7 @@ class ExportStratColumnWizardController {
 						else if (mdType == GeoUtils.SpliceIntervalFile)
 							parseSIT(file.absolutePath)
 						else {
+							doLater { view.progressDialog.setVisible(false) }
 							errbox("Unrecognized Metadata", "Couldn't identify metadata file")
 							return
 						}
@@ -823,6 +828,7 @@ class ExportStratColumnWizardController {
 						errbox("Parsing error", "Error: ${e.message}")
 					}
 				}
+				doLater { view.progressDialog.setVisible(false) }
 			}
 		},
 		'chooseExport': { evt = null ->

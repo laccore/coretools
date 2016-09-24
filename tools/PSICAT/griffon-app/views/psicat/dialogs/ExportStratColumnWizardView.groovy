@@ -103,3 +103,11 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		button(action:doExport)
 	}
 }
+
+dialog(id:'progressDialog', layout:new MigLayout("insets 10"), owner:app.appFrames[0], pack:true, modal:true, undecorated:true) {
+	vbox {
+		label("Parsing metadata...")
+		vstrut(5)
+		progressBar(indeterminate:true)
+	}
+}

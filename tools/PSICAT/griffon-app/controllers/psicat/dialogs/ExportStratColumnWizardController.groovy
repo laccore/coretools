@@ -686,13 +686,13 @@ class ExportStratColumnWizardController {
 				logger.info("Skipping ${sitdata.section} [${sitdata.top} - ${sitdata.base} outside of depth range [$topDepth - $bottomDepth]")
 			} else {
 				logger.info("--- Interval $sitIndex ---")
+				updateProgress(10 + (sitIndex / model.sortedMetadata.size() * 90).intValue(), "Exporting data...")
 				
 				def nextTop = sitIndex + 1 < model.sortedMetadata.size() ? model.sortedMetadata[sitIndex + 1].top : null 
 				
 				// now grab intervals and draw them - curint is simply the Model that is an Interval
 				sitdata.siIntervals.eachWithIndex { intervalDrawData, sectionIndex ->
 					logger.info("- ${intervalDrawData.sectionName} -")
-					//updateProgress(10 + (sectionIndex / model.sortedMetadata.size() * 90).intValue(), "Writing ${secname}")
 					def modelList = intervalDrawData.models
 					
 					if (model.drawSectionNames) {

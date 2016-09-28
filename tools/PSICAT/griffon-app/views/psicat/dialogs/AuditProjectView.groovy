@@ -21,10 +21,11 @@ import psicat.util.*
 actions {
 	action(id:'auditAction', name:'Audit', closure:controller.actions.audit)
 	action(id:'closeAction', name:'Close', closure:controller.actions.close)
+	action(id:'exportLogAction', name:'Export Log to File...', closure:controller.actions.exportLog)
 }
 
 dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], pack:true, modal:false,
-		resizable:false, windowClosing:controller.actions.close) {
+		resizable:true, windowClosing:controller.actions.close) {
 	vbox {
 		panel(id:'root', layout: new MigLayout('fill, wrap 1'), border: etchedBorder()) {
 			label('Check Project for Selected Problems:', constraints:'gapbottom 10px')
@@ -35,14 +36,15 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 			checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
 			checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
 			separator()
-			panel(border: titledBorder('Audit Report Log')) {
+			panel(border: titledBorder('Audit Report Log'), layout:new MigLayout('wrap, insets 5')) {
 				scrollPane {
 					textArea(id:'logArea', text:'Click "Audit" to check project for selected problems', lineWrap:true, wrapStyleWord:true,
 						columns:50, rows:10, editable:false)
 				}
+				button(action:exportLogAction, constraints:'align right')
 			}
 			
-			panel(layout:new MigLayout('', '[grow][]', ''), constraints:'span 2, growx') {
+			panel(layout:new MigLayout('insets 5', '[grow][]', ''), constraints:'span 2, growx') {
 				progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
 				button(action:auditAction, constraints:'align right')
 			}

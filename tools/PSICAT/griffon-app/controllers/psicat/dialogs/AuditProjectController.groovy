@@ -47,6 +47,16 @@ class AuditProjectController {
 		lines << "   - $str"
 	}
 	
+	void exportLog() {
+		def file = Dialogs.showSaveDialog("Save Audit Log", null, ".txt", view.auditProjectDialog)
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(file));
+			view.logArea.write(out)
+		} catch (Exception e) {
+			Dialogs.showErrorDialog("Save Log Failed", "Log could not be saved: ${e.message}", view.auditProjectDialog)
+		}
+	}
+	
 	void audit() {
 		view.progress.string = "Auditing Project..."
 		view.progress.indeterminate = true
@@ -141,6 +151,9 @@ class AuditProjectController {
 		},
 		'close': { evt = null ->
 			destroyMVCGroup('AuditProject')
+		},
+		'exportLog': { evt = null ->
+			exportLog()
 		}
     ]
 }

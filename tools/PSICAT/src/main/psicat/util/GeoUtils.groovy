@@ -136,6 +136,8 @@ class GeoUtils {
 				}
 			}
 		}
+		
+		if (sitIntervals.size() == 0) { throw new Exception("No PSICAT sections matching Splice Interval sections could be found.") }
 			
 		logger.info("Parsed SIT file: ${sitIntervals.size()} intervals, from ${sitIntervals[0]} to \n ${sitIntervals[-1]}")
 		return sitIntervals

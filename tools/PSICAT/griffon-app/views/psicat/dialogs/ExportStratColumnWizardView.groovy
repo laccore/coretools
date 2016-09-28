@@ -36,13 +36,8 @@ actions {
 }
 
 panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
-	panel(border: titledBorder('Section Metadata File'), layout: new MigLayout('fill, wrap'), constraints:'growx') {
-		label("Section metadata file requirements:")
-		label("  - CSV (comma-separated values) format")
-		label("  - Three columns, in order: section name, top depth (m), bottom depth (m).")
-		label("  - No column header/label row", constraints:'gapbottom 10px')
-	
-		label("Metadata File:", constraints:"split 3")
+	panel(border: titledBorder('Section Depths or Splice Interval File'), layout: new MigLayout('fill, wrap'), constraints:'growx') {
+		label("File:", constraints:"split 3")
 		textField(text: bind(source:model, sourceProperty:'metadataPath', mutual:true), constraints:'width min(200px), growx')
 		button(action:chooseMetadata)
 	}
@@ -101,13 +96,5 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 	panel(layout: new MigLayout('','[grow][]',''), constraints:'growx') {
 		progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
 		button(action:doExport)
-	}
-}
-
-dialog(id:'progressDialog', layout:new MigLayout("insets 10"), owner:app.appFrames[0], pack:true, modal:true, undecorated:true) {
-	vbox {
-		label("Parsing metadata...")
-		vstrut(5)
-		progressBar(indeterminate:true)
 	}
 }

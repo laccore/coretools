@@ -394,6 +394,7 @@ JRE Home: ${System.getProperty("java.home")}
 		},
 		'exportStratColumn': { evt = null ->
 			withMVC('ExportStratColumnWizard', project: model.project) { mvc ->
+				mvc.controller.chooseMetadata()
 				model.status = mvc.controller.show()
 			}
 		},

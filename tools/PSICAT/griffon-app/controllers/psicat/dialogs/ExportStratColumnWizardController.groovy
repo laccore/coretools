@@ -276,26 +276,28 @@ class ExportStratColumnWizardController {
 	}
 	
 	// convenience method for "classic" strat column generation, where sectionData is a map with top, base, and section (section name)
-	def drawSectionName(graphics, sectionData, y, offset, trimExpName=null) {
-		drawSectionName(graphics, sectionData.top, sectionData.base, sectionData.section, y, offset, trimExpName)
+	def drawSectionName(graphics, sectionData, y, offset) {
+		drawSectionName(graphics, sectionData.top, sectionData.base, sectionData.section, y, offset)
 	}
 	
-	def drawSectionName(graphics, sectop, secbase, secname, y, offset, trimExpName=null) {
+	def drawSectionName(graphics, sectop, secbase, secname, y, offset) { // trimExpName=null
 		graphics.setFont(new Font("SansSerif", Font.PLAIN, 2))
 		graphics.setPaint(Color.BLACK)
 		
 		def top = depth2pix(sectop) + y
 		def base = depth2pix(secbase) + y
-		
-		if (trimExpName) {
-			def trimIndex = secname.indexOf(trimExpName)
-			if (trimIndex != -1)
-				secname = secname.substring(trimIndex + trimExpName.length())
-			def underscoreIndex = secname.indexOf("_")
-			if (underscoreIndex != -1)
-				secname = secname.substring(0, underscoreIndex)
-			graphics.setFont(new Font("SansSerif", Font.PLAIN, 4)) // use bigger font, more space!
-		}
+
+		// experimental - remove (typically redundant) project portion of section names
+		// to save space allow larger font in section names		
+//		if (trimExpName) {
+//			def trimIndex = secname.indexOf(trimExpName)
+//			if (trimIndex != -1)
+//				secname = secname.substring(trimIndex + trimExpName.length())
+//			def underscoreIndex = secname.indexOf("_")
+//			if (underscoreIndex != -1)
+//				secname = secname.substring(0, underscoreIndex)
+//			graphics.setFont(new Font("SansSerif", Font.PLAIN, 4)) // use bigger font, more space!
+//		}
 
 		// center name vertically in section range
 		def centerShift = (((secbase - sectop) / 2.0) * scaleFactor).intValue() + 1
@@ -555,10 +557,10 @@ class ExportStratColumnWizardController {
 		return true
 	}
 		
-	boolean parseSIT(sitPath) {
+	boolean parseSIT(sitPath, expName) {
 		def sitdata = null
 		try {
-			sitdata = GeoUtils.parseSITFile(sitPath, model.project, "MEXI-CHA16")//PLJ-JUN15")
+			sitdata = GeoUtils.parseSITFile(sitPath, model.project, expName)
 		} catch (e) {
 			errbox("Export Error", "Couldn't parse SIT file: ${e.getMessage()}")
 			return false
@@ -696,7 +698,7 @@ class ExportStratColumnWizardController {
 					def modelList = intervalDrawData.models
 					
 					if (model.drawSectionNames) {
-						drawSectionName(g2, intervalDrawData.top, intervalDrawData.base, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName, "MEXI-CHA16-")
+						drawSectionName(g2, intervalDrawData.top, intervalDrawData.base, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName)
 						offsetSectionName = !offsetSectionName
 					}
 										
@@ -804,32 +806,7 @@ class ExportStratColumnWizardController {
 	
     def actions = [
 		'chooseMetadata': { evt = null ->
-			def file = Dialogs.showOpenDialog('Choose Section Metadata', CustomFileFilter.CSV, app.appFrames[0])
-			doOutside {
-				doLater {
-					view.progressDialog.setLocationRelativeTo(view.root)
-					view.progressDialog.setVisible(true)
-				}
-
-				if (file) {
-					try {
-						def mdType = GeoUtils.identifyMetadataFile(file.absolutePath)
-						if (mdType == GeoUtils.SectionMetadataFile)
-							parseSectionMetadata(file.absolutePath)
-						else if (mdType == GeoUtils.SpliceIntervalFile)
-							parseSIT(file.absolutePath)
-						else {
-							doLater { view.progressDialog.setVisible(false) }
-							errbox("Unrecognized Metadata", "Couldn't identify metadata file")
-							return
-						}
-						model.metadataPath = file.absolutePath
-					} catch (Exception e) {
-						errbox("Parsing error", "Error: ${e.message}")
-					}
-				}
-				doLater { view.progressDialog.setVisible(false) }
-			}
+			chooseMetadata()
 		},
 		'chooseExport': { evt = null ->
 			def file = Dialogs.showSaveDialog('Export Strat Column', CustomFileFilter.PDF, '.pdf', app.appFrames[0])
@@ -845,6 +822,55 @@ class ExportStratColumnWizardController {
 			doOutside {	export() }
 		}
     ]
+	
+	// TODO: don't assume full LacCore IDs 
+	def guessProjectName() {
+		def expGuess = null
+		def sectionName = model.project.containers.size() > 0 ? model.project.containers[0] : null
+		int firstHyphenIndex = sectionName.indexOf("-")
+		if (firstHyphenIndex != -1) {
+			int secondHyphenIndex = sectionName.indexOf("-", firstHyphenIndex + 1)
+			if (secondHyphenIndex != -1) {
+				expGuess = sectionName.substring(0, secondHyphenIndex)
+			}
+		}
+		return expGuess
+	}
+	
+	// TODO: separate Choose Metadata dialog
+	def chooseMetadata() {
+		def file = Dialogs.showOpenDialog('Choose Strat Column Metadata File', CustomFileFilter.CSV, app.appFrames[0])
+		doOutside {
+			if (file) {
+				try {
+					doLater { view.progress.indeterminate = true }
+					def mdType = GeoUtils.identifyMetadataFile(file.absolutePath)
+					if (mdType == GeoUtils.SectionMetadataFile)
+						parseSectionMetadata(file.absolutePath)
+					else if (mdType == GeoUtils.SpliceIntervalFile) {
+						def expGuess = guessProjectName()
+						def expName = Dialogs.showCustomInputDialog("Project Name", "To match Splice Interval sections to PSICAT sections,\nthe project portion of section IDs is required.\nExample: GLAD9-PET06 for section GLAD9-PET06-1A-2C-A", expGuess, parent=view.root)
+						if (expName) {
+							parseSIT(file.absolutePath, expName)
+						}
+					}
+					else {
+						errbox("Unrecognized Metadata", "Couldn't identify metadata file")
+						return
+					}
+					model.metadataPath = file.absolutePath
+				} catch (Exception e) {
+					errbox("Parsing error", "Error: ${e.message}")
+					return // so finally block runs
+				} finally {
+					doLater {
+						view.progress.indeterminate = false	
+						resetProgress()
+					}
+				}
+			}
+		}
+	}
 
     def show() {
     	Dialogs.showCustomOneButtonDialog("Export Strat Column", view.root, app.appFrames[0])

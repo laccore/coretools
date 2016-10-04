@@ -39,30 +39,32 @@ class AuditProjectController {
 		model.project = args.project
     }
 	
-	void log(str) {
-		view.logArea.append(str + "\n")
-	}
-	
-	void logIssue(str, lines) {
-		lines << "   - $str"
-	}
-	
 	void exportLog() {
 		def file = Dialogs.showSaveDialog("Save Audit Log", null, ".txt", view.auditProjectDialog)
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(file));
-			view.logArea.write(out)
+			model.auditResults.elements().each {
+				out.write("$it")
+				out.newLine()
+			}
+			out.close()
 		} catch (Exception e) {
 			Dialogs.showErrorDialog("Save Log Failed", "Log could not be saved: ${e.message}", view.auditProjectDialog)
 		}
 	}
 	
 	void audit() {
-		view.progress.string = "Auditing Project..."
+		view.auditButton.enabled = false
 		view.progress.indeterminate = true
-		view.logArea.setText('')
+		
+		edt { model.auditResults.clear() }
+		
 		model.project.containers.each { containerName ->
+			edt { view.progressText.text = "Auditing $containerName..." }
+			
 			def container = model.project.openContainer(containerName)
+			def auditResults = []
+			def issues = []
 			
 			def secTop = null
 			def intervals = []
@@ -86,63 +88,73 @@ class AuditProjectController {
 			}
 			
 			// perform selected audits
-			def logLines = []
 			def undescribed = false
 			if (model.undescribedSecs) {
 				if (intervals.size() == 0 && symbols.size() == 0 && units.size() == 0) {
-					logIssue("Section is undescribed (no intervals, symbols, or units)", logLines)
+					def msg = "Section is undescribed (no intervals, symbols, or units)" 
+					issues << msg
 					undescribed = true
 				}
 			}
 			
 			if (model.noIntervalSecs && !undescribed) {
-				if (intervals.size() == 0)
-					logIssue("Has no lithologic intervals defined", logLines)
+				if (intervals.size() == 0) {
+					def msg = "Has no lithologic intervals defined"
+					issues << msg
+				}
 			}
 			
 			if (model.emptyUndescribedInts) {
 				intervals.each { it ->
-					if (it.lithology == null && it.description == null)
-						logIssue("Interval $it is type 'None' with no description", logLines)
+					if (it.lithology == null && it.description == null) {
+						def msg = "Interval $it is type 'None' with no description"
+						issues << msg
+					}
 				}
 			}
 			
 			if (model.emptyUndescribedSyms) {
 				symbols.each { it ->
-					if (it.scheme == null && it.description == null)
-						logIssue("Symbol $it is type 'None' with no description", logLines)
+					if (it.scheme == null && it.description == null) {
+						def msg = "Symbol $it is type 'None' with no description"
+						issues << msg
+					}
 				}
 			}
 			
 			if (model.zeroLengthInts) {
 				intervals.each { it ->
-					if (it.top && it.base && it.top.compareTo(it.base) == 0)
-						logIssue("Interval $it has zero length", logLines)
+					if (it.top && it.base && it.top.compareTo(it.base) == 0) {
+						def msg = "Interval $it has zero length" 
+						issues << msg
+					}
 				}
 			}
 			
 			if (model.invertedInts) {
 				intervals.each { it ->
-					if (it.top && it.base && it.top.compareTo(it.base) == 1)
-						logIssue("Interval $it is inverted (top depth > base depth)", logLines)
+					if (it.top && it.base && it.top.compareTo(it.base) == 1) {
+						def msg = "Interval $it is inverted (top depth > base depth)" 
+						issues << msg
+					}
 				}
 			}
 			
-			if (logLines.size() > 0) {
-				log("$containerName:")
-				logLines.each { log(it) }
-			}
+			if (issues.size() > 0) { auditResults << new AuditResult(containerName, issues)	}
 			
 			GeoUtils.adjustDown(container, secTop, false)
 			model.project.closeContainer(container)
+			
+			edt {
+				auditResults.each {	model.auditResults.addElement(it) }
+			}
 		}
 		
-		if (view.logArea.text.isEmpty())
-			log("No issues found, hooray!!!")
-		
-		view.progress.string = "Audit Complete"
+		view.exportLogButton.enabled = model.auditResults.size > 0
+		view.auditButton.enabled = true
 		view.progress.indeterminate = false
 		view.progress.value = 0
+		view.progressText.text = "Audit complete, ${model.auditResults.size} issues found"
 	}
 	
     def actions = [

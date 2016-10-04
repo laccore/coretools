@@ -270,9 +270,9 @@ class PSICATController {
 		'closeProject': { evt = null ->
 			if (canClose(evt)) closeProject()
 		},
-		'openSection': { evt = null ->
+		'openSection': { evt = null, sectionToOpen = null ->
 			// figure out our name and id
-			def sections = getSelectedSections()
+			def sections = sectionToOpen ? [sectionToOpen] : getSelectedSections()
 			def id = sections.join('|')
 			
 			// check to make sure the diagram isn't open already

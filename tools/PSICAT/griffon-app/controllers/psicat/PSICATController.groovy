@@ -454,6 +454,11 @@ JRE Home: ${System.getProperty("java.home")}
 			if (app.views.AuditProject == null)
 				createMVCGroup('AuditProject', project: model.project)
 		},
+		'openStratColumnDepths': { evt = null ->
+			withMVC('OpenStratColumnDepths', project: model.project) { mvc ->
+				model.status = mvc.controller.show()
+			}
+		},
 		'versionCheckSilent': { evt = null ->
 			versionCheck(true)
 		},

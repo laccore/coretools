@@ -38,7 +38,7 @@ actions {
 panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 	panel(border: titledBorder('Section Depths or Splice Interval File'), layout: new MigLayout('fill, wrap'), constraints:'growx') {
 		label("File:", constraints:"split 3")
-		textField(text: bind(source:model, sourceProperty:'metadataPath', mutual:true), constraints:'width min(200px), growx')
+		label(text: bind(source:model, sourceProperty:'metadataPath'), constraints:'width min(200px), growx')
 		button(action:chooseMetadata)
 	}
 	

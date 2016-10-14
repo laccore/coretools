@@ -44,20 +44,6 @@ import org.andrill.coretools.model.scheme.SchemeManager
 
 import psicat.util.*
 
-class IntervalDrawData {
-	public sectionName
-	public top
-	public base
-	public models
-	
-	public IntervalDrawData(sectionName, top, base, models) {
-		this.sectionName = sectionName
-		this.top = top
-		this.base = base
-		this.models = models
-	}
-}
-
 class ExportStratColumnWizardController {
     def model
     def view
@@ -219,20 +205,6 @@ class ExportStratColumnWizardController {
 				graphics.rotate(-1.57079633) // pi/2 radians, i.e. 90 degrees CCW
 				graphics.drawString(label, 0, 0)
 				graphics.transform = oldTrans
-			}
-		}
-	}
-	
-	// draw interval's occurrences starting from interval's rightmost edge (x) and top (y)
-	def drawOccurrences(graphics, intervalDrawData, intervalHeight, x, y) {
-		def OCC_SPACE = 2
-		def occRowWidth = OCC_SPACE * 2 // pad between end of lithology and start of occurrence
-		intervalDrawData.occs.each { o ->
-			def occEntry = getSchemeEntry(o.scheme?.scheme, o.scheme?.code)
-			if (occEntry && occEntry.image) {
-				def occwidth = drawOccurrence(graphics, occEntry, x + occRowWidth, y, intervalHeight)
-				occRowWidth += (occwidth + OCC_SPACE)
-				usedOccs << occEntry
 			}
 		}
 	}
@@ -416,214 +388,11 @@ class ExportStratColumnWizardController {
 	}
 	
 	// mod: Interval model, rmin: range min (in meters), rmax: range max (in meters)
+	// unused?
 	boolean intervalInRange(mod, rmin, rmax) {
 		def top = mod.top.to('m').value
 		def bot = mod.base.to('m').value
 		return (top > rmin && top < rmax) || (bot > rmin && bot < rmax) || (top < rmin && bot > rmax)
-	}
-	
-	// cull models out of range, trim models that overlap range
-	def getTrimmedModels(secname, min, max) {
-		println "Trimming $secname, min = $min, max = $max"
-		def trimmedModels = []
-		def projContainer = model.project.openContainer(secname)
-		def cursec = GeoUtils.copyContainer(projContainer)
-		GeoUtils.zeroBaseContainer(cursec)
-		def modit = cursec.iterator()
-		while (modit.hasNext()) {
-			GeologyModel mod = modit.next()
-			
-			// only interested in Intervals and Occurrences, skip others, particularly Images,
-			// which exceed curated length of section due to inclusion of color card
-			if (!mod.modelType.equals("Interval") && !mod.modelType.equals("Occurrence"))
-				continue;
-
-			if (min) {
-				def cmp = mod.base.compareTo(min)
-				if (cmp == -1 || cmp == 0) {
-					println "   $mod out of range or base == $min, culling"
-					continue;
-				}
-				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {
-					print "   $mod top above $min, trimming..."
-					mod.top = min.to('m')
-					println "$mod"
-				}
-			}
-			if (max) {
-				def cmp = mod.top.compareTo(max)
-				if (cmp == 1 || cmp == 0) {
-					println "   $mod out of range or top == $max, culling"
-					continue;
-				}
-				if (mod.top.compareTo(max) == -1 && mod.base.compareTo(max) == 1) {
-					print "   $mod bot below $max, trimming..."
-					mod.base = max.to('m')
-					println "$mod"
-				}
-			}
-			trimmedModels << mod
-		}
-		
-		println "   pre-zeroBase: trimmedModels = $trimmedModels"
-		
-		// now that we've trimmed, need to zero base *again* so scaling works properly
-		GeoUtils.zeroBase(trimmedModels)
-		
-		println "   post-zeroBase: trimmedModels = $trimmedModels"
-		return trimmedModels
-	}
-	
-	def offsetModels(modelList, offset) {
-		modelList.each {
-			it.top += offset
-			it.base += offset
-		}
-	}
-	
-	def scaleModels(modelList, scale) {
-		modelList.each {
-			it.top *= scale
-			it.base *= scale
-		}
-	}
-	
-	def compressModels(models, drilledLength) {
-		if (models.size() > 0) {
-			def maxBase = getMaxBase(models)
-			def scalingFactor = 1.0
-			if (maxBase.value > 0.0) // avoid divide by zero
-				scalingFactor = drilledLength / maxBase.value
-			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
-			if (scalingFactor < 1.0) {
-				println "   Downscaling models..."
-				scaleModels(models, scalingFactor)
-				println "   Downscaled: $models"
-			} else {
-				println "   Scaling factor >= 1.0, leaving models as-is"
-			}
-		}
-	}
-	
-	def getMinTop(modelList) {
-		def min = null
-		modelList.each {
-			if (!min || it.top.compareTo(min) == -1)
-				min = it.top
-		}
-		return min
-	}
-	
-	def getMaxBase(modelList) {
-		def max = null
-		modelList.each {
-			if (!max || it.base.compareTo(max) == 1)
-				max = it.base
-		}
-		return max
-	}
-
-	boolean parseSectionMetadata(secMetadataPath) {
-		def metadata = null
-		try {
-			metadata = GeoUtils.parseMetadataFile(secMetadataPath, model.project)
-		} catch (e) {
-			errbox("Export Error", "Couldn't parse metadata file: ${e.getMessage()}")
-			return false
-		}
-		
-		if (metadata.size() == 0) {
-			errbox("Export Error", "Couldn't find any project sections that match metadata sections.")
-			return false
-		}
-		
-		def intervalsToDraw = []
-		metadata.each {
-			// gather and zero base models for each section
-			def models = getTrimmedModels(it.section, null, null) // no min/max
-			
-			// compress models to fit drilled interval if necessary
-			def drilledLength = it.base - it.top
-			compressModels(models, drilledLength)
-			
-			def intervalModels = [new IntervalDrawData(it.section, it.top, it.base, models)]
-			intervalsToDraw.add(['top':it.top, 'base':it.base, 'siIntervals':intervalModels])
-		}
-		
-		model.sortedMetadata = intervalsToDraw.sort { it.top }
-		model.startDepth = intervalsToDraw[0].top
-		model.endDepth = intervalsToDraw[-1].base
-				
-		return true
-	}
-		
-	boolean parseSIT(sitPath, expName) {
-		def sitdata = null
-		try {
-			sitdata = GeoUtils.parseSITFile(sitPath, model.project, expName)
-		} catch (e) {
-			errbox("Export Error", "Couldn't parse SIT file: ${e.getMessage()}")
-			return false
-		}
-		if (sitdata.size() == 0) {
-			errbox("Export Error", "Couldn't find any rows in SIT file.")
-			return false
-		}
-		
-		// for each SIT row
-		def sitMetadata = [] // list of maps of stuff
-		sitdata.eachWithIndex { sd, sitIndex ->
-			println "\n--- Interval $sitIndex ---"
-			def intervalModels = []
-			
-			// get names of sections
-			def sections = getSectionsInInterval(sd.startSec, sd.endSec)
-			def maxBase = null
-			sections.eachWithIndex { secname, index ->
-				def min = null, max = null
-				if (secname.startsWith(sd.startSec))
-					min = new Length(sd.startSecDepth, 'cm')
-				if (secname.startsWith(sd.endSec))
-					max = new Length(sd.endSecDepth, 'cm')
-				def models = getTrimmedModels(secname, min, max)
-				
-				// start models from maximum base of previous section's models
-				if (maxBase) {
-					println "maxBase = $maxBase, offsetting"
-					offsetModels(models, maxBase)
-				}
-				println "offset models = $models"
-				
-				// find max base of models - start next section from that depth
-				if (models.size() > 0) {
-					def minTop = getMinTop(models)
-					maxBase = getMaxBase(models)
-					intervalModels.add(new IntervalDrawData(secname, sd.startMcd + minTop.value, sd.startMcd + maxBase.value, models))
-				}
-			}
-			
-			// compress models to fit drilled interval if necessary
-			def drilledLength = sd.endMcd - sd.startMcd
-			def scalingFactor = drilledLength / maxBase.value
-			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
-			if (scalingFactor < 1.0) {
-				println "   Downscaling models..."
-				intervalModels.each { idd ->
-					scaleModels(idd.models, scalingFactor)
-					println "   Downscaled: $idd.models"
-				}
-			} else {
-				println "   Scaling factor >= 1.0, leaving models as-is"
-			}
-			def spliceIntervalMap = ['top':sd.startMcd, 'base':sd.endMcd, 'siIntervals':intervalModels]
-			sitMetadata.add(spliceIntervalMap)
-		}
-		
-		model.sortedMetadata = sitMetadata.sort { it.top }
-		model.startDepth = sitMetadata[0].top
-		model.endDepth = sitMetadata[-1].base
-		
-		return true
 	}
 	
 	void export() {
@@ -667,6 +436,8 @@ class ExportStratColumnWizardController {
 		
 		updateProgress(10, "Preparing data...")
 		
+		model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project)
+		
 		// create PDF
 		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))
 		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(model.exportPath))
@@ -693,12 +464,12 @@ class ExportStratColumnWizardController {
 				def nextTop = sitIndex + 1 < model.sortedMetadata.size() ? model.sortedMetadata[sitIndex + 1].top : null 
 				
 				// now grab intervals and draw them - curint is simply the Model that is an Interval
-				sitdata.siIntervals.eachWithIndex { intervalDrawData, sectionIndex ->
-					logger.info("- ${intervalDrawData.sectionName} -")
-					def modelList = intervalDrawData.models
+				sitdata.siIntervals.eachWithIndex { sectionDrawData, sectionIndex ->
+					logger.info("- ${sectionDrawData.sectionName} -")
+					def modelList = sectionDrawData.models
 					
 					if (model.drawSectionNames) {
-						drawSectionName(g2, intervalDrawData.top, intervalDrawData.base, intervalDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName)
+						drawSectionName(g2, sectionDrawData.top, sectionDrawData.base, sectionDrawData.sectionName, MARGIN + HEADER_HEIGHT, offsetSectionName)
 						offsetSectionName = !offsetSectionName
 					}
 										
@@ -708,8 +479,10 @@ class ExportStratColumnWizardController {
 					def occs = modelList.findAll { it.modelType.equals("Occurrence") }
 
 					intervals.eachWithIndex { mod, intervalIndex ->
-						def t = sitdata.top + mod.top.value
-						def b = sitdata.top + mod.base.value
+						//def t = sitdata.top + mod.top.value
+						//def b = sitdata.top + mod.base.value
+						def t = sectionDrawData.top + mod.top.value
+						def b = sectionDrawData.top + mod.base.value
 
 						logger.info("   Interval $intervalIndex: top = ${mod.top}, base = ${mod.base}, t = $t, b = $b")
 						def xbase = MARGIN + RULER_WIDTH
@@ -762,7 +535,7 @@ class ExportStratColumnWizardController {
 
 						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
 						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
-						drawInterval(g2, entry, xbase, xur, xlr, y, height)
+						drawInterval(g2, entry, xbase, xur, xlr, y, height)//true)
 						if (!entry) println "### ERROR No lithology entry for $mod"
 						usedLiths << entry
 						
@@ -837,38 +610,21 @@ class ExportStratColumnWizardController {
 		return expGuess
 	}
 	
-	// TODO: separate Choose Metadata dialog
 	def chooseMetadata() {
-		def file = Dialogs.showOpenDialog('Choose Strat Column Metadata File', CustomFileFilter.CSV, app.appFrames[0])
-		doOutside {
-			if (file) {
-				try {
-					doLater { view.progress.indeterminate = true }
-					def mdType = GeoUtils.identifyMetadataFile(file.absolutePath)
-					if (mdType == GeoUtils.SectionMetadataFile)
-						parseSectionMetadata(file.absolutePath)
-					else if (mdType == GeoUtils.SpliceIntervalFile) {
-						def expGuess = guessProjectName()
-						def expName = Dialogs.showCustomInputDialog("Project Name", "To match Splice Interval sections to PSICAT sections,\nthe project portion of section IDs is required.\nExample: GLAD9-PET06 for section GLAD9-PET06-1A-2C-A", expGuess, parent=view.root)
-						if (expName) {
-							parseSIT(file.absolutePath, expName)
-						}
-					}
-					else {
-						errbox("Unrecognized Metadata", "Couldn't identify metadata file")
-						return
-					}
-					model.metadataPath = file.absolutePath
-				} catch (Exception e) {
-					errbox("Parsing error", "Error: ${e.message}")
-					return // so finally block runs
-				} finally {
-					doLater {
-						view.progress.indeterminate = false	
-						resetProgress()
-					}
+		try {
+			app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:model.metadataPath) { mvc ->
+				def dlg = mvc.view.openSCMD
+				dlg.setLocationRelativeTo(view.root)
+				dlg.setVisible(true)
+				if (mvc.model.confirmed) {
+					model.metadataPath = mvc.model.metadataPath
+					model.stratColumnMetadata = mvc.model.stratColumnMetadata
+					model.startDepth = model.stratColumnMetadata.getTop()
+					model.endDepth = model.stratColumnMetadata.getBase()
 				}
 			}
+		} catch (Exception e) {
+			errbox("Metadata Error", "${e.message}")
 		}
 	}
 

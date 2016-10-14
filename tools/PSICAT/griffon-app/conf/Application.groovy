@@ -104,4 +104,9 @@ mvcGroups {
 		controller="psicat.dialogs.AuditProjectController"
 		view="psicat.dialogs.AuditProjectView"
 	}
+	OpenStratColumnDepths {
+		model="psicat.dialogs.OpenStratColumnDepthsModel"
+		controller="psicat.dialogs.OpenStratColumnDepthsController"
+		view="psicat.dialogs.OpenStratColumnDepthsView"
+	}
 }

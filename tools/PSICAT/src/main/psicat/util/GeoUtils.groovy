@@ -24,6 +24,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import org.andrill.coretools.geology.models.GeologyModel
+import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.ui.Scale
 
 import org.andrill.coretools.Platform
@@ -31,117 +32,7 @@ import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.DefaultModelManager
 
 class GeoUtils {
-	private static Logger logger = LoggerFactory.getLogger(GeoUtils.class)	
-	
-	static final UnknownFile = 0;
-	static final SectionMetadataFile = 1;
-	static final SpliceIntervalFile = 2;
-	
-	static int identifyMetadataFile(mdFile) throws Exception {
-		def type = UnknownFile
-		CSVReader reader = openMetadataFile(mdFile)
-		def firstRow = reader.readNext()
-		reader.close()
-		if (firstRow.length == 3)
-			type = SectionMetadataFile
-		else if (firstRow.length == 15)
-		 	type = SpliceIntervalFile
-		return type
-	}
-	
-	static openMetadataFile(mdFile) throws Exception {
-		CSVReader reader = null
-		try {
-			reader = new CSVReader(new FileReader(mdFile));
-		} catch (e) {
-			throw new Exception("Couldn't parse metadata file: ${e.getMessage()}", e)
-		}
-		return reader
-	}
-	
-	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
-	static parseMetadataFile(metadataFile, project) throws Exception {
-		def metadata = []
-		CSVReader reader = openMetadataFile(metadataFile)
-		def entries = reader.readAll()
-		entries.eachWithIndex { row, index ->
-			def section = row[0]
-			def projSection = GeoUtils.findSection(project, section)
-			if (projSection) {
-				def top = null, base = null
-				try {
-					top = row[1] as BigDecimal
-					base = row[2] as BigDecimal
-				} catch (e) {
-					throw new Exception("parsing error at row ${index + 1}: ${e.toString()}", e)
-				}
-				def secdata = ['section':projSection, 'top':top, 'base':base]
-				metadata.add(secdata)
-			}
-		}
-		reader.close()
-		//metadata.each {	println "${it['section']} ${it['top']} ${it['base']} - length = ${it['base'].subtract(it['top'])}" }
-		def sorted = metadata.sort { it.top }
-		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
-		return sorted
-	}
-	
-	static def findSection(project, sectionName) {
-		def projSection = project.containers.find { it.startsWith(sectionName) }
-		if (!projSection) logger.warn("Couldn't find matching PSICAT section for ${sectionName}")
-		return projSection 
-	}
-	
-	static def makeSectionName(csvrow, secIndex, expName=null) {
-		def site = csvrow[0]
-		def hole = csvrow[1]
-		def core = csvrow[2]
-		def tool = csvrow[3]
-		def sec = csvrow[secIndex]
-		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
-	}
-	
-	// parse required data from SIT table
-	// sitFile - source Splice Interval Table CSV file
-	// project - destination project
-	// expName - optional name of expedition, prepended to sitFile's section names
-	// to find matching sections in PSICAT
-	static parseSITFile(sitFile, project, expName) throws Exception {
-		def sitIntervals = []
-		CSVReader reader = openMetadataFile(sitFile)
-		reader.readAll().eachWithIndex { row, index ->
-			if (index > 0) { // skip header row
-				def startSecDepth, endSecDepth, startMbsf, endMbsf, startMcd, endMcd
-				try {
-					startSecDepth = row[5] as BigDecimal
-					endSecDepth = row[9] as BigDecimal
-					startMbsf = row[6] as BigDecimal
-					endMbsf = row[10] as BigDecimal
-					startMcd = row[7] as BigDecimal
-					endMcd = row[11] as BigDecimal
-				} catch (e) {
-					throw new Exception("Couldn't convert text to number at row ${index + 1}: ${e.toString()}", e)
-				}
-				
-				//println "Interval $index:"
-				def startSec = GeoUtils.makeSectionName(row, 4, expName)
-				//println "   Start section: $startSec at depth $startSecDepth"
-				def endSec = GeoUtils.makeSectionName(row, 8, expName)
-				//println "   End section: $endSec at depth $endSecDepth"
-				
-				if (GeoUtils.findSection(project, startSec) && GeoUtils.findSection(project, endSec)) {
-					def sitrow = ['startSec':startSec, 'endSec':endSec, 'startMbsf':startMbsf, 'endMbsf':endMbsf,
-						'startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth]
-					sitIntervals.add(sitrow)
-				}
-			}
-		}
-		
-		if (sitIntervals.size() == 0) { throw new Exception("No PSICAT sections matching Splice Interval sections could be found.") }
-			
-		logger.info("Parsed SIT file: ${sitIntervals.size()} intervals, from ${sitIntervals[0]} to \n ${sitIntervals[-1]}")
-		return sitIntervals
-	}
+	private static Logger logger = LoggerFactory.getLogger(GeoUtils.class)
 	
 	// parse alternate grain size CSV file: row 1 should be a valid Scale string, remaining rows
 	// consist of code and grain size columns. Returns map with 'scale' for scale string, 'gs' map 
@@ -218,6 +109,114 @@ class GeoUtils {
 			m.top -= minDepth
 			m.base -= minDepth
 		}
+	}
+	
+	// cull models out of range, trim models that overlap range
+	static getTrimmedModels(project, secname, min, max) {
+		println "Trimming $secname, min = $min, max = $max"
+		def trimmedModels = []
+		def projContainer = project.openContainer(secname)
+		def cursec = copyContainer(projContainer)
+		zeroBaseContainer(cursec)
+		def modit = cursec.iterator()
+		while (modit.hasNext()) {
+			GeologyModel mod = modit.next()
+			
+			// only interested in Intervals and Occurrences, skip others, particularly Images,
+			// which exceed curated length of section due to inclusion of color card
+			if (!mod.modelType.equals("Interval") && !mod.modelType.equals("Occurrence"))
+				continue;
+
+			if (min) {
+				def cmp = mod.base.compareTo(min)
+				if (cmp == -1 || cmp == 0) {
+					println "   $mod out of range or base == $min, culling"
+					continue;
+				}
+				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {
+					print "   $mod top above $min, trimming..."
+					mod.top = min.to('m')
+					println "$mod"
+				}
+			}
+			if (max) {
+				def cmp = mod.top.compareTo(max)
+				if (cmp == 1 || cmp == 0) {
+					println "   $mod out of range or top == $max, culling"
+					continue;
+				}
+				if (mod.top.compareTo(max) == -1 && mod.base.compareTo(max) == 1) {
+					print "   $mod bot below $max, trimming..."
+					mod.base = max.to('m')
+					println "$mod"
+				}
+			}
+			trimmedModels << mod
+		}
+		
+		println "   pre-zeroBase: trimmedModels = $trimmedModels"
+		
+		// now that we've trimmed, need to zero base *again* so scaling works properly
+		zeroBase(trimmedModels)
+		
+		println "   post-zeroBase: trimmedModels = $trimmedModels"
+		return trimmedModels
+	}
+	
+	static offsetModels(modelList, offset) {
+		modelList.each {
+			it.top += offset
+			it.base += offset
+		}
+	}
+	
+	static scaleModels(modelList, scale) {
+		modelList.each {
+			it.top *= scale
+			it.base *= scale
+		}
+	}
+	
+	// TODO MAKE MORE THINGS STATUS SO METHODS CAN BE CALLED!
+	static compressModels(models, drilledLength) {
+		if (models.size() > 0) {
+			def maxBase = getMaxBase(models)
+			def scalingFactor = 1.0
+			if (maxBase.value > 0.0) // avoid divide by zero
+				scalingFactor = drilledLength / maxBase.value
+			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
+			if (scalingFactor < 1.0) {
+				println "   Downscaling models..."
+				scaleModels(models, scalingFactor)
+				println "   Downscaled: $models"
+			} else {
+				println "   Scaling factor >= 1.0, leaving models as-is"
+			}
+		}
+	}
+	
+	static getMinTop(modelList) {
+		def min = null
+		modelList.each {
+			if (!min || it.top.compareTo(min) == -1)
+				min = it.top
+		}
+		return min
+	}
+	
+	static getMaxBase(modelList) {
+		def max = null
+		modelList.each {
+			if (!max || it.base.compareTo(max) == 1)
+				max = it.base
+		}
+		return max
+	}
+	
+	// return difference between topmost and bottommost model in modelList 
+	static getLength(modelList) {
+		def diff = getMaxBase(modelList) - getMinTop(modelList)
+		return diff.to('m').value
 	}
 	
 	// notify listeners of change by default, but provide option to avoid doing so

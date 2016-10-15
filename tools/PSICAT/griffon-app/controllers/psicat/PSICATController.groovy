@@ -39,6 +39,7 @@ import org.andrill.coretools.geology.edit.DeleteIntervalCommand
 import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
+import org.andrill.coretools.scene.Scene.Origin
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
@@ -334,7 +335,7 @@ class PSICATController {
 			def active = model.activeDiagram.model
 			active.scene.selection.selectedObjects.findAll { it instanceof Model }.each { m ->
 				if (m instanceof Interval) {
-					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models))	
+					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models, active.scene.origin == Origin.TOP))	
 				} else {
 					active.commandStack.execute(new DeleteCommand(m, active.scene.models))
 				}

@@ -19,6 +19,7 @@ import static javax.swing.SwingConstants.*
 
 import java.awt.Color
 import java.awt.event.KeyEvent
+import javax.swing.BorderFactory
 import javax.swing.KeyStroke
 
 import ca.odell.glazedlists.GlazedLists
@@ -51,6 +52,13 @@ panel(id:'root', layout: new MigLayout("fill, wrap, insets 0", "", "[][][grow]")
 	scrollPane(constraints: 'grow') {
 		list(id:'sections', model: new DefaultEventListModel(filteredSectionList), mouseClicked: { evt -> controller.handleClick(evt) })
 	}
+	// brg 10/16/2016 buttonbar experiment
+//	hbox(constraints: 'gaptop 0') {
+//		def btnBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 1), BorderFactory.createEmptyBorder(3, 3, 3, 3))
+//		button(imageIcon('/iconic-png/plus-2x.png'), border:btnBorder, background:Color.WHITE)
+//		button(imageIcon('/iconic-png/minus-2x.png'), border:btnBorder, background:Color.WHITE)
+//		button(imageIcon('/iconic-png/cog-2x.png'), border:btnBorder, background:Color.WHITE)
+//	}
 }
 
 //handle enter on the section list

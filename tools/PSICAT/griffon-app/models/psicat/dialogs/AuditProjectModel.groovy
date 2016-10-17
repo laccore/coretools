@@ -15,6 +15,8 @@
  */
 package psicat.dialogs
 
+import javax.swing.DefaultListModel
+
 import groovy.beans.Bindable
 
 class AuditProjectModel {
@@ -22,10 +24,23 @@ class AuditProjectModel {
 
 	// brgtodo: overlapping intervals, non-abutting adjacent intervals, negative depths(?)
 	
+	@Bindable def auditResults = new DefaultListModel()
 	@Bindable def undescribedSecs = true
 	@Bindable def noIntervalSecs = true
 	@Bindable def emptyUndescribedInts = true
 	@Bindable def emptyUndescribedSyms = true
 	@Bindable def zeroLengthInts = true 
 	@Bindable def invertedInts = true
+}
+
+class AuditResult {
+	public AuditResult(section, issues) {
+		this.section = section
+		this.issues = issues
+	}
+	
+	def section
+	def issues
+	
+	public String toString() { return "$section: $issues" }
 }

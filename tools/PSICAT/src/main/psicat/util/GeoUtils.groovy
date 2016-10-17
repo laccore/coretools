@@ -16,45 +16,23 @@
 
 package psicat.util
 
+import java.util.List;
+
 import au.com.bytecode.opencsv.CSVReader
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 import org.andrill.coretools.geology.models.GeologyModel
+import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.ui.Scale
 
+import org.andrill.coretools.Platform
+import org.andrill.coretools.model.ModelContainer
+import org.andrill.coretools.model.DefaultModelManager
+
 class GeoUtils {
-	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
-	static parseMetadataFile(metadataFile, project) throws Exception {
-		def metadata = []
-		CSVReader reader = null
-		try {
-			reader = new CSVReader(new FileReader(metadataFile));
-		} catch (e) {
-			throw new Exception("Couldn't parse metadata file: ${e.getMessage()}", e)
-		}
-		def entries = reader.readAll()
-		entries.eachWithIndex { row, index ->
-			def section = row[0]
-			def projSection = project.containers.find { it.startsWith(section) } 
-			if (projSection) {
-				def top = null, base = null
-				try {
-					top = row[1] as BigDecimal
-					base = row[2] as BigDecimal
-				} catch (e) {
-					throw new Exception("parsing error at row ${index + 1}: ${e.toString()}", e)
-				}
-				def secdata = ['section':projSection, 'top':top, 'base':base]
-				metadata.add(secdata)
-			} else {
-				println "Couldn't find matching PSICAT section for ${section}"
-			}
-		}
-		reader.close()
-		//metadata.each {	println "${it['section']} ${it['top']} ${it['base']} - length = ${it['base'].subtract(it['top'])}" }
-		def sorted = metadata.sort { it.top }
-		//sorted.each { println "${it['section']} ${it['top']} ${it['base']}" }
-		return sorted
-	}
+	private static Logger logger = LoggerFactory.getLogger(GeoUtils.class)
 	
 	// parse alternate grain size CSV file: row 1 should be a valid Scale string, remaining rows
 	// consist of code and grain size columns. Returns map with 'scale' for scale string, 'gs' map 
@@ -95,6 +73,150 @@ class GeoUtils {
 			reader.close()
 		}
 		return result
+	}
+
+	/**
+	 * Creates a new container with copies of all input containers' models
+	 * (model data only). The copies can be freely manipulated without fear of
+	 * corrupting the "true" set of models maintained in the project or
+	 * disrupting listeners dependent on model/container association.
+	 */
+	static copyContainer(container) {
+		def modelManager = Platform.getService(DefaultModelManager.class)
+		def copy = Platform.getService(ModelContainer.class)
+		container.models.each { m ->
+			copy.add(modelManager.build(m.modelType, m.modelData))
+		}
+		//container.project = model.project // need project for e.g. grain size
+		//container.models.sort { it.top }
+		
+		return copy
+	}
+	
+	static zeroBaseContainer(container) {
+		if (container.models.size() > 0) {
+			GeoUtils.zeroBase(container.models)
+		}
+	}
+	
+	static zeroBase(modelList) {
+		def minDepth = null
+		modelList.each {
+			if (!minDepth || it.top.compareTo(minDepth) == -1)
+				minDepth = it.top
+		}
+		modelList.each { m ->
+			m.top -= minDepth
+			m.base -= minDepth
+		}
+	}
+	
+	// cull models out of range, trim models that overlap range
+	static getTrimmedModels(project, secname, min, max) {
+		println "Trimming $secname, min = $min, max = $max"
+		def trimmedModels = []
+		def projContainer = project.openContainer(secname)
+		def cursec = copyContainer(projContainer)
+		zeroBaseContainer(cursec)
+		def modit = cursec.iterator()
+		while (modit.hasNext()) {
+			GeologyModel mod = modit.next()
+			
+			// only interested in Intervals and Occurrences, skip others, particularly Images,
+			// which exceed curated length of section due to inclusion of color card
+			if (!mod.modelType.equals("Interval") && !mod.modelType.equals("Occurrence"))
+				continue;
+
+			if (min) {
+				def cmp = mod.base.compareTo(min)
+				if (cmp == -1 || cmp == 0) {
+					println "   $mod out of range or base == $min, culling"
+					continue;
+				}
+				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {
+					print "   $mod top above $min, trimming..."
+					mod.top = min.to('m')
+					println "$mod"
+				}
+			}
+			if (max) {
+				def cmp = mod.top.compareTo(max)
+				if (cmp == 1 || cmp == 0) {
+					println "   $mod out of range or top == $max, culling"
+					continue;
+				}
+				if (mod.top.compareTo(max) == -1 && mod.base.compareTo(max) == 1) {
+					print "   $mod bot below $max, trimming..."
+					mod.base = max.to('m')
+					println "$mod"
+				}
+			}
+			trimmedModels << mod
+		}
+		
+		println "   pre-zeroBase: trimmedModels = $trimmedModels"
+		
+		// now that we've trimmed, need to zero base *again* so scaling works properly
+		zeroBase(trimmedModels)
+		
+		println "   post-zeroBase: trimmedModels = $trimmedModels"
+		return trimmedModels
+	}
+	
+	static offsetModels(modelList, offset) {
+		modelList.each {
+			it.top += offset
+			it.base += offset
+		}
+	}
+	
+	static scaleModels(modelList, scale) {
+		modelList.each {
+			it.top *= scale
+			it.base *= scale
+		}
+	}
+	
+	// TODO MAKE MORE THINGS STATUS SO METHODS CAN BE CALLED!
+	static compressModels(models, drilledLength) {
+		if (models.size() > 0) {
+			def maxBase = getMaxBase(models)
+			def scalingFactor = 1.0
+			if (maxBase.value > 0.0) // avoid divide by zero
+				scalingFactor = drilledLength / maxBase.value
+			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
+			if (scalingFactor < 1.0) {
+				println "   Downscaling models..."
+				scaleModels(models, scalingFactor)
+				println "   Downscaled: $models"
+			} else {
+				println "   Scaling factor >= 1.0, leaving models as-is"
+			}
+		}
+	}
+	
+	static getMinTop(modelList) {
+		def min = null
+		modelList.each {
+			if (!min || it.top.compareTo(min) == -1)
+				min = it.top
+		}
+		return min
+	}
+	
+	static getMaxBase(modelList) {
+		def max = null
+		modelList.each {
+			if (!max || it.base.compareTo(max) == 1)
+				max = it.base
+		}
+		return max
+	}
+	
+	// return difference between topmost and bottommost model in modelList 
+	static getLength(modelList) {
+		def diff = getMaxBase(modelList) - getMinTop(modelList)
+		return diff.to('m').value
 	}
 	
 	// notify listeners of change by default, but provide option to avoid doing so

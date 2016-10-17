@@ -19,23 +19,46 @@ import static javax.swing.SwingConstants.*
 
 import java.awt.Color
 import java.awt.event.KeyEvent
+import javax.swing.BorderFactory
 import javax.swing.KeyStroke
 
-import ca.odell.glazedlists.swing.EventListModel
+import ca.odell.glazedlists.GlazedLists
+import ca.odell.glazedlists.swing.DefaultEventListModel
+import ca.odell.glazedlists.swing.TextComponentMatcherEditor
+import ca.odell.glazedlists.TextFilterator
+import ca.odell.glazedlists.FilterList
+
+import net.miginfocom.swing.MigLayout
+
+import psicat.ui.FilterTextField
+
+class SectionNameFilterator implements TextFilterator {
+	public void getFilterStrings(List baseList, Object element) {
+		baseList.add((String)element)
+	}
+}
+
+def filterText = new FilterTextField(imageIcon('/magnifying-glass.png'), imageIcon('/reset-x.png'))
+def filteredSectionList = new FilterList(model.sections, new TextComponentMatcherEditor(filterText, new SectionNameFilterator()))
 
 actions {
 	action(id: 'openAction', name: 'Open', closure: controller.&handleOpen)
 }
 
-scrollPane(id:'root', columnHeaderView: label(id:'name', horizontalAlignment: CENTER, text: bind { model.name }, 
-		mouseClicked: { evt = null ->
-			switch (evt.clickCount) {
-				case 1: sections.setSelectionInterval(0, model.sections.size() - 1); break
-				case 2: controller.handleClick(evt); break
-			}
-		}, 
-		border: compoundBorder(matteBorder(0, 0, 1, 0, color: Color.lightGray), emptyBorder(5)))) {
-	list(id:'sections', model: new EventListModel(model.sections), mouseClicked: { evt -> controller.handleClick(evt) })
+panel(id:'root', layout: new MigLayout("fill, wrap, insets 0", "", "[][][grow]")) {
+	label(id:'name', horizontalAlignment: CENTER, text: bind { model.name },
+		border: compoundBorder(matteBorder(0, 0, 1, 0, color: Color.lightGray), emptyBorder(5)), constraints:'grow')
+	widget(id:'filterText', filterText, enabled:bind { model.project != null }, mouseClicked: { evt -> filterText.mouseClicked(evt) }, constraints:'growx')
+	scrollPane(constraints: 'grow') {
+		list(id:'sections', model: new DefaultEventListModel(filteredSectionList), mouseClicked: { evt -> controller.handleClick(evt) })
+	}
+	// brg 10/16/2016 buttonbar experiment
+//	hbox(constraints: 'gaptop 0') {
+//		def btnBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 1), BorderFactory.createEmptyBorder(3, 3, 3, 3))
+//		button(imageIcon('/iconic-png/plus-2x.png'), border:btnBorder, background:Color.WHITE)
+//		button(imageIcon('/iconic-png/minus-2x.png'), border:btnBorder, background:Color.WHITE)
+//		button(imageIcon('/iconic-png/cog-2x.png'), border:btnBorder, background:Color.WHITE)
+//	}
 }
 
 //handle enter on the section list

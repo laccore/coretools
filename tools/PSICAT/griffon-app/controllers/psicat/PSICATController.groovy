@@ -39,6 +39,7 @@ import org.andrill.coretools.geology.edit.DeleteIntervalCommand
 import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
+import org.andrill.coretools.scene.Scene.Origin
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
@@ -270,9 +271,9 @@ class PSICATController {
 		'closeProject': { evt = null ->
 			if (canClose(evt)) closeProject()
 		},
-		'openSection': { evt = null ->
+		'openSection': { evt = null, sectionToOpen = null ->
 			// figure out our name and id
-			def sections = getSelectedSections()
+			def sections = sectionToOpen ? [sectionToOpen] : getSelectedSections()
 			def id = sections.join('|')
 			
 			// check to make sure the diagram isn't open already
@@ -334,7 +335,7 @@ class PSICATController {
 			def active = model.activeDiagram.model
 			active.scene.selection.selectedObjects.findAll { it instanceof Model }.each { m ->
 				if (m instanceof Interval) {
-					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models))	
+					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models, active.scene.origin == Origin.TOP))	
 				} else {
 					active.commandStack.execute(new DeleteCommand(m, active.scene.models))
 				}
@@ -394,6 +395,7 @@ JRE Home: ${System.getProperty("java.home")}
 		},
 		'exportStratColumn': { evt = null ->
 			withMVC('ExportStratColumnWizard', project: model.project) { mvc ->
+				mvc.controller.chooseMetadata()
 				model.status = mvc.controller.show()
 			}
 		},
@@ -452,6 +454,11 @@ JRE Home: ${System.getProperty("java.home")}
 		'auditProject': { evt = null ->
 			if (app.views.AuditProject == null)
 				createMVCGroup('AuditProject', project: model.project)
+		},
+		'openStratColumnDepths': { evt = null ->
+			withMVC('OpenStratColumnDepths', project: model.project) { mvc ->
+				model.status = mvc.controller.show()
+			}
 		},
 		'versionCheckSilent': { evt = null ->
 			versionCheck(true)

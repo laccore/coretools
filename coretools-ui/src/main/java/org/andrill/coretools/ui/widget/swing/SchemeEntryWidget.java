@@ -84,7 +84,6 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 		}
 	}
 
-	private static List<SchemeEntry> used = new ArrayList<SchemeEntry>();
 	private static final SchemeEntry NONE = new SchemeEntry(null, "None", null, null);
 	protected JPanel panel = null;
 	protected JLabel icon = null;
@@ -111,9 +110,6 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 		SchemeEntry selected = (SchemeEntry) combo.getSelectedItem();
 		if (selected != null) {
 			icon.setIcon(selected.getIcon());
-			if (!used.contains(selected)) {
-				used.add(selected);
-			}
 			fireChange();
 		}
 	}
@@ -138,14 +134,6 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 					return o1.getName().compareTo(o2.getName());
 				}
 			});
-
-			// put our used entries at the top
-			for (SchemeEntry e : used) {
-				if (entries.contains(e)) {
-					entries.remove(e);
-					entries.add(0, e);
-				}
-			}
 
 			// build our icon label
 			icon = new JLabel();

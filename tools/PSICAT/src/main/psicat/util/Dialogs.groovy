@@ -106,6 +106,10 @@ class Dialogs {
 		JOptionPane.showInputDialog(parent, message, title, JOptionPane.QUESTION_MESSAGE)
 	}
 	
+	static def showCustomInputDialog(title, message, initialValue, parent = null) {
+		JOptionPane.showInputDialog(parent, message, title, JOptionPane.QUESTION_MESSAGE, null, null, initialValue)
+	}
+	
 	static void showMessageDialog(title, message, parent = null) {
 		JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE)
 	}

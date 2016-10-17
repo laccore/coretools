@@ -25,6 +25,7 @@ import psicat.util.Dialogs
 	def project = null
 	def grainSizeScale = null
 	def sortedMetadata = null
+	def stratColumnMetadata = null
 	@Bindable def metadataPath = null
 	@Bindable def exportPath = null
 	@Bindable def startDepth = 0.0

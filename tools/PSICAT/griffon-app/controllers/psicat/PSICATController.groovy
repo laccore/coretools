@@ -46,6 +46,7 @@ import org.andrill.coretools.ui.widget.Widget
 import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
 import org.andrill.coretools.misc.util.LauncherUtils
 
+import psicat.stratcol.StratColumnMetadataUtils
 import psicat.util.*
 
 class PSICATController {
@@ -394,9 +395,13 @@ JRE Home: ${System.getProperty("java.home")}
 			}
 		},
 		'exportStratColumn': { evt = null ->
-			withMVC('ExportStratColumnWizard', project: model.project) { mvc ->
-				mvc.controller.chooseMetadata()
-				model.status = mvc.controller.show()
+			def file = StratColumnMetadataUtils.chooseMetadataFile(app.appFrames[0])
+			if (file) {
+				withMVC('ExportStratColumnWizard', project: model.project, metadataPath:file.absolutePath) { mvc ->
+					if (mvc.controller.chooseMetadata()) {
+						model.status = mvc.controller.show()
+					}
+				}
 			}
 		},
 		'exportTabular': { evt = null ->

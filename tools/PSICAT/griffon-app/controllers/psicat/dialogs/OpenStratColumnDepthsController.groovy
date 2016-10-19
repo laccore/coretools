@@ -30,9 +30,7 @@ class OpenStratColumnDepthsController {
 	}
 	
 	def show() {
-		if (!model.metadataPath) {
-			actions.browse()
-		} else {
+		if (model.metadataPath) {
 			parse(model.metadataPath)
 		}
 	}
@@ -72,8 +70,7 @@ class OpenStratColumnDepthsController {
 	
 	def actions = [
 		'browse': { evt = null ->
-			def csvFilter = new CustomFileFilter(description: "CSV Files (*.csv)", extensions: [".csv"])
-			def file = Dialogs.showOpenDialog("Select Section Metadata File", csvFilter, app.appFrames[0])
+			def file = StratColumnMetadataUtils.chooseMetadataFile(app.appFrames[0])
 			if (file) {
 				parse(file.absolutePath)
 			}

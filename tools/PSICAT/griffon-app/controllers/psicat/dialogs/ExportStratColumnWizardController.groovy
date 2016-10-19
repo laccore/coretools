@@ -72,6 +72,7 @@ class ExportStratColumnWizardController {
 
     void mvcGroupInit(Map args) {
     	model.project = args.project
+		model.metadataPath = args.metadataPath
     }
 
 	def setScaleFactor(intervalLength) {
@@ -610,22 +611,25 @@ class ExportStratColumnWizardController {
 		return expGuess
 	}
 	
-	def chooseMetadata() {
+	boolean chooseMetadata() {
+		def confirmed = false
 		try {
 			app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:model.metadataPath) { mvc ->
 				def dlg = mvc.view.openSCMD
-				dlg.setLocationRelativeTo(view.root)
+				dlg.setLocationRelativeTo(app.appFrames[0])
 				dlg.setVisible(true)
 				if (mvc.model.confirmed) {
 					model.metadataPath = mvc.model.metadataPath
 					model.stratColumnMetadata = mvc.model.stratColumnMetadata
 					model.startDepth = model.stratColumnMetadata.getTop()
 					model.endDepth = model.stratColumnMetadata.getBase()
+					confirmed = true
 				}
 			}
 		} catch (Exception e) {
 			errbox("Metadata Error", "${e.message}")
 		}
+		return confirmed
 	}
 
     def show() {

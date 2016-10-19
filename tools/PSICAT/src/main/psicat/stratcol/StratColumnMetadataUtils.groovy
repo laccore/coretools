@@ -21,6 +21,9 @@ import au.com.bytecode.opencsv.CSVReader
 import psicat.stratcol.StratColumnMetadataTypes as scmt
 //import psciat.stratcol.StratColumnMetadata
 
+import psicat.util.CustomFileFilter
+import psicat.util.Dialogs
+
 class StratColumnMetadataUtils {
 	static int identifyMetadataFile(mdFile) throws Exception {
 		def type = scmt.UnknownFile
@@ -55,5 +58,10 @@ class StratColumnMetadataUtils {
 			return projSections.find { it.contains(section) }
 		else
 			return projSections.find { it.startsWith(section) }
+	}
+	
+	static File chooseMetadataFile(parent=null) {
+		def csvFilter = new CustomFileFilter(description: "CSV Files (*.csv)", extensions: [".csv"])
+		return Dialogs.showOpenDialog("Select Section Metadata File", csvFilter, parent)
 	}
 }

@@ -15,6 +15,7 @@
  */
 
 import java.awt.Image
+import java.awt.Rectangle
 import java.io.File;
 import java.util.zip.ZipFile
 import javax.swing.ImageIcon
@@ -23,12 +24,14 @@ import javax.swing.JFileChooser
 import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
+import javax.swing.event.TableModelEvent
+import javax.swing.event.TableModelListener
 import javax.swing.filechooser.FileFilter
 
 /**
  * The SchemeEditor controller.
  */
-class SchemeEditorController implements ListSelectionListener {
+class SchemeEditorController implements ListSelectionListener, TableModelListener {
     def model
     def view
     
@@ -199,19 +202,35 @@ class SchemeEditorController implements ListSelectionListener {
    		}
 	}
 	
+	public void tableChanged(TableModelEvent e) {
+		// delay to ensure we get row index after model.schemeEntries resorts - otherwise,
+		// if a name is edited such that it sorts lower in the list, the previous element
+		// will be selected
+		doLater {
+			if (model.entry) {
+				def row = model.schemeEntries.indexOf(model.entry)
+				view.schemeEntries.setRowSelectionInterval(row, row)
+				view.schemeEntries.scrollRectToVisible(new Rectangle(view.schemeEntries.getCellRect(row, 0, true)));
+			}
+		}
+	}
+	
     def entryChanged = { evt = null ->
 		if (!model.ignoreEvents) {
 			model.entryDirty = true
-    		model.entryValid = (view.entryName.text && view.entryCode.text)
+    		model.entryValid = true//(view.entryName.text && view.entryCode.text)
 		}
 	}
     
     def addEntry = { evt = null ->
+		println "addEntry"
     	def e = [name:'New Entry']
     	model.schemeEntries << e
     	setEntry(e)
-		view.entryName.requestFocus()
-		view.entryName.selectAll() // Windows: must explicitly select text
+		tableChanged(null)
+		//udpateSelection()
+		//view.entryName.requestFocus()
+		//view.entryName.selectAll() // Windows: must explicitly select text
     }
     
     def saveEntry = { evt = null ->
@@ -264,25 +283,19 @@ class SchemeEditorController implements ListSelectionListener {
     	model.ignoreEvents = true
     	if (entry) {
 	    	model.entry = entry
-	    	view.entryName.text = entry?.name
-	    	view.entryCode.text = entry?.code
-	    	view.entryGroup.text = entry?.group
 	    	model.entryColor = entry?.color
 	    	model.entryImage = entry?.image
-	    	if (view.schemeEntries.selectedValue != entry) {
-	    		view.schemeEntries.setSelectedValue(entry, true)
-	    	}
+//	    	if (view.schemeEntries.selectedValue != entry) {
+//	    		view.schemeEntries.setSelectedValue(entry, true)
+//	    	}
 	    } else {
 	    	model.entry = null
-	    	view.entryName.text = ""
-	    	view.entryCode.text = ""
-	    	view.entryGroup.text = ""
 	    	model.entryColor = null
 	    	model.entryImage = null
 	    }
     	updatePreview()
     	model.entryDirty = false
-        model.entryValid = (view.entryName.text && view.entryCode.text)
+//        model.entryValid = (view.entryName.text && view.entryCode.text)
         model.ignoreEvents = false
     }
     
@@ -290,6 +303,7 @@ class SchemeEditorController implements ListSelectionListener {
     	def color = JColorChooser.showDialog(app.appFrames[0], "Choose Color", view.preview.color)
     	if (color) {
     		model.entryColor = "${color.red},${color.green},${color.blue}"
+			model.entry.color = "${color.red},${color.green},${color.blue}"
     	}
     	entryChanged()
     	updatePreview()
@@ -300,6 +314,7 @@ class SchemeEditorController implements ListSelectionListener {
     			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 		if (option == JOptionPane.OK_OPTION) {
 			model.entryImage = view.standardImages.selectedValue?.image
+			model.entry.image = view.standardImages.selectedValue?.image
 		}
     	view.imageFilter.text = ""
     	entryChanged()
@@ -344,7 +359,10 @@ class SchemeEditorController implements ListSelectionListener {
     }
     
 	public void valueChanged(ListSelectionEvent e) {
-    	setEntry(view.schemeEntries.selectedValue)
+		if (e.isAdjusting) {
+			int row = view.schemeEntries.selectedRow
+			setEntry(model.schemeEntries[row])
+		}
 	}
 }
 

@@ -51,6 +51,13 @@ public class SchemeHelper {
 		}
     }
 	
+	static codeFromName(name) {
+		def code = name.toLowerCase()
+		code = code.replace(" ", ",")
+		code = code.replace(',,', ",")
+		return code
+	}
+	
 	/**
 	 * Parses an image from a path.
 	 */

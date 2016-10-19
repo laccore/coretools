@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 import static griffon.util.GriffonApplicationUtils.*
-
 import ca.odell.glazedlists.FilterList
 import ca.odell.glazedlists.TextFilterator
+import ca.odell.glazedlists.gui.TableFormat
+import ca.odell.glazedlists.gui.WritableTableFormat
 import ca.odell.glazedlists.swing.EventListModel
+import ca.odell.glazedlists.swing.DefaultEventTableModel
 import ca.odell.glazedlists.swing.TextComponentMatcherEditor
 
 import java.awt.*
 import java.awt.image.BufferedImage
 
+import javax.swing.table.AbstractTableModel
+import javax.swing.BorderFactory
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
 import javax.swing.JPanel
@@ -30,6 +34,7 @@ import javax.swing.event.DocumentListener
 
 import java.util.prefs.Preferences
 
+import groovy.swing.SwingBuilder
 import net.miginfocom.swing.MigLayout
 
 // build our actions
@@ -49,7 +54,7 @@ preview.setOpaque(false)
 
 // build our main application
 application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
-			id:'mainView', size:[mainWidth, mainHeight], location:[xpos,ypos], layout: new MigLayout('fill')) {
+			id:'mainView', size:[mainWidth, mainHeight], location:[xpos,ypos], layout: new MigLayout('fill', '', '[][grow][]')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {
 			menuItem(newAction)
@@ -67,44 +72,33 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 		}
 	}
 	
-	// master
-	label('Id:', constraints: 'sg 1, split, right')
-	textField(id:'schemeId', constraints:'growx, wrap', action: updateSchemeAction)
-	label('Name:', constraints: 'sg 1, split, right')
-	textField(id:'schemeName', constraints:'growx, wrap', action: updateSchemeAction)
-	label('Type:', constraints: 'sg 1, split, right')
-	comboBox(id:'schemeType', items: ['lithology', 'symbol'], editable: true, constraints: 'growx, wrap', action: updateSchemeAction)
-    label('Entries:', constraints: 'sg 1, wrap')
-    scrollPane(constraints:'span 2, grow, wrap, h 30%') {
-    	list(id:"schemeEntries", cellRenderer: new EntryListRenderer(), model: new EventListModel(model.schemeEntries))
-    }
-	button(action: addEntryAction, constraints:'split, right')
-    button(action: removeEntryAction, constraints: 'right, wrap')
-	
-	// details
-	panel(layout: new MigLayout('fill'), border: titledBorder('Entry Details'), constraints: 'grow') {
-	    label('Name:', constraints: 'sg 2, split, right')
-	    textField(id:'entryName', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
-	    label('Code:', constraints: 'sg 2, split, right')
-	    textField(id:'entryCode', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction,
-			focusGained: { evt = null -> controller.fillCode() } )
-	    label('Group:', constraints: 'sg 2, split, right')
-	    textField(id:'entryGroup', constraints: 'span, growx, wrap', editable: true, action: updateEntryAction)
-	    button(text: 'Set Image', constraints: 'split, growx', action:updateImageAction)
-	    button(text: 'Set Color', constraints: 'growx, wrap', action:updateColorAction)
-	    widget(preview, id:'preview', constraints:'span 2, grow, h 200px, wrap', border: titledBorder('Preview'))
-		button(action: saveAndAddEntryAction, constraints: 'split, right')
-		button(action: saveEntryAction, constraints: 'right')
-		button(action: revertEntryAction, constraints: 'right')
+	panel(layout:new MigLayout("fill, wrap 2", "[][grow]", ""), constraints:'growx, wrap', border:BorderFactory.createLineBorder(java.awt.Color.BLACK, 1)) {
+		label('Name:')
+		textField(id:'schemeName', constraints:'growx', action: updateSchemeAction)
+		label('ID:')
+		textField(id:'schemeId', constraints:'growx', action: updateSchemeAction)
+		label('Type:')
+		comboBox(id:'schemeType', items: ['lithology', 'symbol'], editable: false, constraints: 'growx', action: updateSchemeAction)
 	}
+	panel(layout:new MigLayout("fill"), constraints:'grow, wrap', border:BorderFactory.createTitledBorder("Entries")) {
+	    scrollPane(constraints:'grow') {
+	    	table(id:"schemeEntries", model: new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries)),
+				selectionMode:javax.swing.ListSelectionModel.SINGLE_SELECTION)
+	    }
+	}
+	hbox {
+		button(action: addEntryAction)
+		button(action: removeEntryAction)
+		button(text: 'Set Image', action:updateImageAction)
+		button(text: 'Set Color', action:updateColorAction)
+	}
+	widget(preview, id:'preview', constraints:'grow, h 200px', border: titledBorder('Preview'))
 }
-schemeEntries.addListSelectionListener(controller)
+	
+schemeEntries.selectionModel.addListSelectionListener(controller)
+schemeEntries.model.addTableModelListener(controller)
 schemeId.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
 schemeName.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
-entryName.document.addDocumentListener({ controller.entryChanged() } as DocumentListener)
-entryCode.document.addDocumentListener({ controller.entryChanged() } as DocumentListener)
-entryGroup.document.addDocumentListener({ controller.entryChanged() } as DocumentListener)
-
 
 // build our image chooser panel
 panel(id:'imageChooser', layout: new MigLayout('fill')) {
@@ -115,6 +109,30 @@ panel(id:'imageChooser', layout: new MigLayout('fill')) {
     			new TextComponentMatcherEditor(imageFilter, ([getFilterStrings: { list, obj -> list.add(obj?.name) }] as TextFilterator)))))
     }
 	button(constraints:'right', action:customImageAction)
+}
+
+class SchemeEntryTableFormat implements WritableTableFormat {
+	def colnames = ['name', 'code', 'group']
+	def entries = []
+	public SchemeEntryTableFormat(entries) { this.entries = entries }
+	public int getColumnCount() { return 2; } // ignore 'group' for now, never used
+	public Object getColumnValue(Object baseObject, int col) {
+		def propName = colnames[col]
+		return baseObject."$propName"
+	}
+	public String getColumnName(int col) { return colnames[col].substring(0,1).toUpperCase() + colnames[col].substring(1) }
+	
+	public boolean isEditable(Object obj, int col) { return col == 0 }
+	public Object setColumnValue(Object obj, Object newValue, int column) {
+		if (column == 0) {
+			obj.name = newValue
+			if (!obj.code) {
+				obj.code = SchemeHelper.codeFromName(obj.name)
+			}
+			return obj
+		}
+		return null
+	}
 }
 
 // our custom list cell renderer

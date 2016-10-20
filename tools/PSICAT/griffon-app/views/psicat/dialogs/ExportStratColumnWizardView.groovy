@@ -81,12 +81,12 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		}
 		hbox(constraints:'growx,wrap') {
 			checkBox(text:"Draw Legend", selected: bind(source:model, sourceProperty:'drawLegend', mutual:true))
-			checkBox(text:"Draw dm Ruler Ticks", selected:bind(source:model, sourceProperty:'drawDms', mutual:true),
-				toolTipText:"If space allows, draw decimeter ticks on ruler", constraints:'growx')
+			checkBox(text:"Draw Section Names and Ranges", selected:bind(source:model, sourceProperty:'drawSectionNames', mutual:true))
 		}
 		hbox(constraints:'growx') {
-			checkBox(text:"Draw Section Names", selected:bind(source:model, sourceProperty:'drawSectionNames', mutual:true))
 			checkBox(text:"Draw Interval Borders", selected:bind(source:model, sourceProperty:'drawIntervalBorders', mutual:true))
+			checkBox(text:"Draw dm Ruler Ticks", selected:bind(source:model, sourceProperty:'drawDms', mutual:true),
+				toolTipText:"If space allows, draw decimeter ticks on ruler", constraints:'growx')
 		}
 	}
 	

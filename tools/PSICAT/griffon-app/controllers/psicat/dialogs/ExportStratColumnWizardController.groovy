@@ -536,7 +536,7 @@ class ExportStratColumnWizardController {
 
 						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
 						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
-						drawInterval(g2, entry, xbase, xur, xlr, y, height)//true)
+						drawInterval(g2, entry, xbase, xur, xlr, y, height, model.drawIntervalBorders)
 						if (!entry) println "### ERROR No lithology entry for $mod"
 						usedLiths << entry
 						

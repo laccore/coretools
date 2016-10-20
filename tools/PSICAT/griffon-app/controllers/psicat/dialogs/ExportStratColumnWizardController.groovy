@@ -354,48 +354,6 @@ class ExportStratColumnWizardController {
 		resetProgress()
 	}
 	
-	// return list of section names, starting with startSec, ending with endSec,
-	// and including any sections that fall between the two
-	def getSectionsInInterval(startSec, endSec) {
-		def startnum, endnum
-		try {
-			startnum = startSec[-1] as Integer
-			endnum = endSec[-1] as Integer
-		} catch (e) {
-			errbox("Parse Error", "Couldn't get section number")
-			return []
-		}
-		
-		if (endnum < startnum) {
-			errbox("Data Error", "End section $endnum precedes start section $startnum")
-			return []
-		}
-		
-		def sections = []
-		def baseName = startSec.substring(0, startSec.lastIndexOf('-') + 1)
-		(startnum..endnum).each { sections <<  baseName + it }
-		
-		// find full project seciton name
-		def projSections = []
-		sections.each { secname ->
-			def projsec = model.project.containers.find { it.startsWith(secname) }
-			if (projsec)
-				projSections << projsec
-			else
-				println "Couldn't find matching project section for $secname" 
-		}
-
-		return projSections
-	}
-	
-	// mod: Interval model, rmin: range min (in meters), rmax: range max (in meters)
-	// unused?
-	boolean intervalInRange(mod, rmin, rmax) {
-		def top = mod.top.to('m').value
-		def bot = mod.base.to('m').value
-		return (top > rmin && top < rmax) || (bot > rmin && bot < rmax) || (top < rmin && bot > rmax)
-	}
-	
 	void export() {
 		preExport()
 
@@ -480,8 +438,6 @@ class ExportStratColumnWizardController {
 					def occs = modelList.findAll { it.modelType.equals("Occurrence") }
 
 					intervals.eachWithIndex { mod, intervalIndex ->
-						//def t = sitdata.top + mod.top.value
-						//def b = sitdata.top + mod.base.value
 						def t = sectionDrawData.top + mod.top.value
 						def b = sectionDrawData.top + mod.base.value
 
@@ -596,20 +552,6 @@ class ExportStratColumnWizardController {
 			doOutside {	export() }
 		}
     ]
-	
-	// TODO: don't assume full LacCore IDs 
-	def guessProjectName() {
-		def expGuess = null
-		def sectionName = model.project.containers.size() > 0 ? model.project.containers[0] : null
-		int firstHyphenIndex = sectionName.indexOf("-")
-		if (firstHyphenIndex != -1) {
-			int secondHyphenIndex = sectionName.indexOf("-", firstHyphenIndex + 1)
-			if (secondHyphenIndex != -1) {
-				expGuess = sectionName.substring(0, secondHyphenIndex)
-			}
-		}
-		return expGuess
-	}
 	
 	boolean chooseMetadata() {
 		def confirmed = false

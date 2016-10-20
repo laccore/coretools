@@ -112,10 +112,10 @@ panel(id:'imageChooser', layout: new MigLayout('fill')) {
 }
 
 class SchemeEntryTableFormat implements WritableTableFormat {
-	def colnames = ['name', 'code', 'group']
+	def colnames = ['name', 'code']
 	def entries = []
 	public SchemeEntryTableFormat(entries) { this.entries = entries }
-	public int getColumnCount() { return 2; } // ignore 'group' for now, never used
+	public int getColumnCount() { return 2; }
 	public Object getColumnValue(Object baseObject, int col) {
 		def propName = colnames[col]
 		return baseObject."$propName"
@@ -127,11 +127,29 @@ class SchemeEntryTableFormat implements WritableTableFormat {
 		if (column == 0) {
 			obj.name = newValue
 			if (!obj.code) {
-				obj.code = SchemeHelper.codeFromName(obj.name)
+				obj.code = createUniqueCode(obj.name)
 			}
 			return obj
 		}
 		return null
+	}
+	
+	private String createUniqueCode(name) {
+		def result = null
+		def baseCode = SchemeHelper.codeFromName(name)
+		int suffixNum = 1
+		def suffix = ""
+		while (true) {
+			def code = baseCode + suffix
+			if (this.entries.find { it.code?.equals(code) } != null) {
+				suffix = "$suffixNum"
+				suffixNum++
+			} else {
+				result = code	
+				break
+			}
+		}
+		return result
 	}
 }
 

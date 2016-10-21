@@ -22,11 +22,10 @@ class SchemeEditorModel {
 	boolean ignoreEvents = false
 	
 	@Bindable boolean schemeValid = false
+	@Bindable boolean schemeDirty = false
 	@Bindable File schemeFile = null
 	List schemeEntries = new SortedList(new BasicEventList(), {a, b -> a.name <=> b.name} as Comparator)
 	
-	@Bindable boolean entryDirty = false
-	@Bindable boolean entryValid = false
 	@Bindable Map entry = null
 	@Bindable String entryColor = null
 	@Bindable String entryImage = null

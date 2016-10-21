@@ -33,6 +33,14 @@ actions {
 		accelerator: shortcut('O'),
 		shortDescription: 'Open a scheme'
 	)
+	action( id: 'closeAction',
+		name: 'Close',
+		closure: controller.close,
+		mnemonic: 'W',
+		enabled: bind { model.schemeFile != null },
+		accelerator: shortcut('W'),
+		shortDescription: 'Close current scheme'
+	)
 	action( id: 'exitAction',
 		name: 'Quit',
 		closure: controller.exit,
@@ -48,7 +56,7 @@ actions {
 		shortDescription: 'Save scheme'
 	)
 	action( id: 'saveAsAction',
-		name: 'Save as...',
+		name: 'Save As...',
 		enabled: bind { model.schemeValid },
 		closure: controller.saveAs
 	)
@@ -77,24 +85,6 @@ actions {
 		name:'Remove',
 		enabled: bind { model.entry != null },
 		closure: controller.removeEntry
-	)
-	action( id:'saveAndAddEntryAction',
-		name:'Update and Add',
-		enabled: bind { model.entry != null && model.entryDirty && model.entryValid },
-		closure: controller.saveAndAddEntry
-	)
-	action( id:'saveEntryAction',
-		name:'Update',
-		enabled: bind { model.entry != null && model.entryDirty && model.entryValid },
-		closure: controller.saveEntry
-	)
-	action( id:'revertEntryAction',
-		name:'Revert',
-		enabled: bind { model.entry != null && model.entryDirty },
-		closure: controller.revertEntry
-	)
-	action( id:'updateEntryAction',
-		closure: controller.entryChanged
 	)
 	action( id:'updateColorAction',
 		name: 'Set Color',

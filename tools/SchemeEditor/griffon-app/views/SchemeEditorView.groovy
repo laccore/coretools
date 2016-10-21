@@ -19,17 +19,23 @@ import ca.odell.glazedlists.TextFilterator
 import ca.odell.glazedlists.gui.TableFormat
 import ca.odell.glazedlists.gui.WritableTableFormat
 import ca.odell.glazedlists.swing.EventListModel
+import ca.odell.glazedlists.swing.DefaultEventSelectionModel
 import ca.odell.glazedlists.swing.DefaultEventTableModel
 import ca.odell.glazedlists.swing.TextComponentMatcherEditor
 
 import java.awt.*
+import java.awt.event.*
 import java.awt.image.BufferedImage
 
+import javax.swing.ListSelectionModel
+import javax.swing.event.*;
+import javax.swing.table.*;
 import javax.swing.table.AbstractTableModel
 import javax.swing.BorderFactory
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.event.DocumentListener
 
 import java.util.prefs.Preferences
@@ -60,6 +66,8 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 			menuItem(newAction)
 			menuItem(openAction)
 			separator()
+			menuItem(closeAction)
+			separator()
 			menuItem(saveAction)
 			menuItem(saveAsAction)
 			separator()
@@ -83,7 +91,7 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 	panel(layout:new MigLayout("fill"), constraints:'grow, wrap', border:BorderFactory.createTitledBorder("Entries")) {
 	    scrollPane(constraints:'grow') {
 	    	table(id:"schemeEntries", model: new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries)),
-				selectionMode:javax.swing.ListSelectionModel.SINGLE_SELECTION)
+				selectionModel: new DefaultEventSelectionModel(model.schemeEntries), selectionMode:ListSelectionModel.SINGLE_SELECTION)
 	    }
 	}
 	hbox {
@@ -94,11 +102,13 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 	}
 	widget(preview, id:'preview', constraints:'grow, h 200px', border: titledBorder('Preview'))
 }
+
 	
 schemeEntries.selectionModel.addListSelectionListener(controller)
-schemeEntries.model.addTableModelListener(controller)
+schemeEntries.addKeyListener(new SchemeEntryTableKeyListener())
 schemeId.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
 schemeName.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
+model.schemeEntries.addListEventListener(controller)
 
 // build our image chooser panel
 panel(id:'imageChooser', layout: new MigLayout('fill')) {
@@ -109,6 +119,31 @@ panel(id:'imageChooser', layout: new MigLayout('fill')) {
     			new TextComponentMatcherEditor(imageFilter, ([getFilterStrings: { list, obj -> list.add(obj?.name) }] as TextFilterator)))))
     }
 	button(constraints:'right', action:customImageAction)
+}
+
+// consume up and down arrow keys and adjust selected row - allowing JTable
+// to handle these messages results in a table change event, which screws
+// up dirty state tracking - interestingly, changing selection by clicking
+// with the mouse does not cause a table change event.
+class SchemeEntryTableKeyListener extends KeyAdapter {
+	public void keyPressed(KeyEvent event) {
+		//System.out.println("Key Pressed!");
+		JTable theTable = (JTable) event.getSource();
+		int curRow = theTable.getSelectedRow();
+		if (event.getKeyCode() == KeyEvent.VK_DOWN) {
+			if (curRow < theTable.getRowCount() - 1) {
+				theTable.setRowSelectionInterval(curRow + 1, curRow + 1);
+				theTable.scrollRectToVisible(new Rectangle(theTable.getCellRect(curRow + 1, 0, true)))
+			}
+			event.consume();
+		} else if (event.getKeyCode() == KeyEvent.VK_UP) {
+			if (curRow > 0) {
+				theTable.setRowSelectionInterval(curRow - 1, curRow - 1);
+				theTable.scrollRectToVisible(new Rectangle(theTable.getCellRect(curRow - 1, 0, true)))
+			}
+			event.consume();
+		}
+	}
 }
 
 class SchemeEntryTableFormat implements WritableTableFormat {
@@ -128,6 +163,11 @@ class SchemeEntryTableFormat implements WritableTableFormat {
 			obj.name = newValue
 			if (!obj.code) {
 				obj.code = createUniqueCode(obj.name)
+				def objElt = this.entries.find { obj }
+				if (objElt) {
+					def objIndex = this.entries.indexOf(objElt)
+					this.entries.set(objIndex, objElt) // set object to itself to update EventList
+				}
 			}
 			return obj
 		}
@@ -153,7 +193,7 @@ class SchemeEntryTableFormat implements WritableTableFormat {
 	}
 }
 
-// our custom list cell renderer
+// Choose Image list cell renderer
 class EntryListRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean hasFocus) {
 	    def label = super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);

@@ -51,10 +51,10 @@ public class SchemeHelper {
 		}
     }
 	
-	static codeFromName(name) {
+	static codeFromName(name, rc=",") {
 		def code = name.toLowerCase()
-		code = code.replace(" ", ",")
-		code = code.replace(',,', ",")
+		code = code.replace(" ", "$rc")
+		code = code.replace("$rc$rc", "$rc")
 		return code
 	}
 	

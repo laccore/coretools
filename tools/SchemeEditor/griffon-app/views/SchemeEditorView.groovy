@@ -103,7 +103,8 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 	widget(preview, id:'preview', constraints:'grow, h 200px', border: titledBorder('Preview'))
 }
 
-	
+
+schemeName.addFocusListener({ controller.schemeNameLostFocus() } as FocusListener)
 schemeEntries.selectionModel.addListSelectionListener(controller)
 schemeEntries.addKeyListener(new SchemeEntryTableKeyListener())
 schemeId.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)

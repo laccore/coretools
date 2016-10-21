@@ -346,13 +346,21 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 			if (row == -1) {
 				row = model.schemeEntries.indexOf(model.entry)
 			}
-			setEntry(model.schemeEntries[row])
-			view.schemeEntries.selectionModel.setSelectionInterval(row, row)
-			view.schemeEntries.scrollRectToVisible(new Rectangle(view.schemeEntries.getCellRect(row, 0, true)))
+			if (row != -1) {
+				setEntry(model.schemeEntries[row])
+				view.schemeEntries.selectionModel.setSelectionInterval(row, row)
+				view.schemeEntries.scrollRectToVisible(new Rectangle(view.schemeEntries.getCellRect(row, 0, true)))
+			}
 		}
 	}
 	
 	public void listChanged(ListEvent listChanges) { schemeChanged() }
+	
+	public void schemeNameLostFocus(event) {
+		if (view.schemeName.text.length() > 0 && view.schemeId.text.length() == 0) {
+			view.schemeId.text = SchemeHelper.codeFromName(view.schemeName.text, ".")
+		}
+	}
 }
 
 private class CustomFileFilter extends FileFilter {

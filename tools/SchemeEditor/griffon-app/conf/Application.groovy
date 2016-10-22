@@ -24,4 +24,9 @@ mvcGroups {
 		controller="SchemeEditorController"
 		view="SchemeEditorView"
 	}
+	ColorChooser {
+		model="ColorChooserModel"
+		controller="ColorChooserController"
+		view="ColorChooserView"
+	}
 }

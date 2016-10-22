@@ -51,6 +51,23 @@ public class SchemeHelper {
 		}
     }
 	
+	// todo: make all SchemeHelper methods static
+	static parseColorString(color) {
+		if (color) {
+			def rgb = color.split(",")
+			return new Color(rgb[0] as int, rgb[1] as int, rgb[2] as int)
+		} else {
+			return Color.WHITE // default to white for null Color as we do in PSICAT
+		}
+	}
+	
+	static codeFromName(name, rc=",") {
+		def code = name.toLowerCase()
+		code = code.replace(" ", "$rc")
+		code = code.replace("$rc$rc", "$rc")
+		return code
+	}
+	
 	/**
 	 * Parses an image from a path.
 	 */

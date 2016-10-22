@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 
+import groovy.lang.Closure;
+
 import java.awt.Image
+import java.awt.Rectangle
 import java.io.File;
+import java.util.Map;
 import java.util.zip.ZipFile
+
+import javax.swing.DefaultComboBoxModel
 import javax.swing.ImageIcon
 import javax.swing.JColorChooser
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
+import javax.swing.event.TableModelEvent
+import javax.swing.event.TableModelListener
 import javax.swing.filechooser.FileFilter
+
+import ca.odell.glazedlists.event.ListEvent
+import ca.odell.glazedlists.event.ListEventListener
 
 /**
  * The SchemeEditor controller.
  */
-class SchemeEditorController implements ListSelectionListener {
+class SchemeEditorController implements ListSelectionListener, ListEventListener {
     def model
     def view
     
@@ -56,11 +67,41 @@ class SchemeEditorController implements ListSelectionListener {
     		}
     	}
     }
-    
+	
+	// for working with MVC groups
+	def withMVC(Map params = [:], String type, Closure closure) {
+		def result
+		try {
+			result = closure(buildMVCGroup(params, type, type))
+		} catch (e) {
+			e.printStackTrace()
+			//Dialogs.showErrorDialog('Error', e.message)
+		} finally {
+			destroyMVCGroup(type)
+		}
+		return result
+	}
+	
+	def getMVC(String id) {
+		[model: app.models[id], view: app.views[id], controller: app.controllers[id]]
+	}
+
+	
     /**
      * Exit the application
      */
     def exit = { evt = null ->
+		// todo: this only works on Windows, Mac has its own exit routine which we can't veto in
+		// this ancient version of Griffon - need to get to 0.9.2!
+		if (model.schemeDirty) {
+			def choice = JOptionPane.showOptionDialog(app.appFrames[0], "Do you want to save changes to ${model.schemeFile.name}?",
+				"Save Before Closing?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, ["Save", "Don't Save", "Cancel"] as String[], "Save")
+			if (choice == JOptionPane.YES_OPTION) {
+				save(null)
+			} else if (choice == JOptionPane.CANCEL_OPTION) {
+				return
+			}
+		}
 		app.shutdown()
     }
 
@@ -70,44 +111,61 @@ class SchemeEditorController implements ListSelectionListener {
     def newScheme = { evt = null -> 
     	updateSchemeFile(null)
     	setScheme(null)
+		setEntry(null)
+		updatePreview()
     }
 	
-    /**
-     * Open an existing scheme file.
-     */
-    def open = { evt = null ->
-	    def fc = new JFileChooser(currentOpenDir)
-	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
-	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
-	    if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
-	       currentOpenDir = fc.currentDirectory
-	       updateSchemeFile(fc.selectedFile)
-	       
-	       // parse our file
-	       doOutside {
-	    	   def jar = new ZipFile(model.schemeFile)
-	    	   def schemeEntry = jar.entries().find() { it.name.endsWith("scheme.xml") }
-	    	   if (schemeEntry) {
-	    		   helper.add(fc.selectedFile.toURL())
-	    		   def stream = jar.getInputStream(schemeEntry)
-	    		   def scheme = helper.read(stream)
-	    		   stream.close()
-	    		   setScheme(scheme)
-	    	   } else {
-	    		   JOptionPane.showMessageDialog(app.appFrames[0], "Not a valid Scheme Pack file", 
-	    				   "Invalid Scheme Pack", JOptionPane.ERROR_MESSAGE)
-	    	   }
-	       }
-	    }
-    }
+	/**
+	 * Open an existing scheme file.
+	 */
+	def open = { evt = null ->
+		def fc = new JFileChooser(currentOpenDir)
+		fc.fileSelectionMode = JFileChooser.FILES_ONLY
+		fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
+		if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
+			currentOpenDir = fc.currentDirectory
+			updateSchemeFile(fc.selectedFile)
+
+			// parse our file
+			doOutside {
+				def jar = new ZipFile(model.schemeFile)
+				def schemeEntry = jar.entries().find() { it.name.endsWith("scheme.xml") }
+				if (schemeEntry) {
+					helper.add(fc.selectedFile.toURL())
+					def stream = jar.getInputStream(schemeEntry)
+					def scheme = helper.read(stream)
+					stream.close()
+					setScheme(scheme)
+				} else {
+					JOptionPane.showMessageDialog(app.appFrames[0], "Not a valid Scheme Pack file",
+							"Invalid Scheme Pack", JOptionPane.ERROR_MESSAGE)
+				}
+			}
+		}
+	}
+	
+	// close current scheme
+	def close = { evt = null ->
+		if (model.schemeDirty) {
+			def choice = JOptionPane.showOptionDialog(app.appFrames[0], "Do you want to save changes to ${model.schemeFile.name}?",
+				"Save Before Closing?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, ["Save", "Don't Save", "Cancel"] as String[], "Save")
+			if (choice == JOptionPane.YES_OPTION) {
+				save(null)
+			} else if (choice == JOptionPane.CANCEL_OPTION) {
+				return
+			}
+		}
+		newScheme(null)
+	}
     
     /**
      * Called when the scheme id, name, type, and entries are changed.
      */
     def schemeChanged = { evt = null -> 
-		model.schemeValid = (view.schemeId.text && view.schemeName.text && view.schemeType.selectedItem)
+		model.schemeValid = (view.schemeId.text && view.schemeName.text && view.schemeType.selectedItem && model.schemeEntries.size() > 0)
+		setSchemeDirty(true)
     }
-    
+	
     /**
      * Set the selected scheme
      */
@@ -127,6 +185,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    		view.schemeEntries.clearSelection()
 	    		model.schemeEntries.clear()
 	    	}
+			setSchemeDirty(false)
     	}
     }
     
@@ -135,9 +194,19 @@ class SchemeEditorController implements ListSelectionListener {
 	 */
 	def updateSchemeFile(file) {
 		model.schemeFile = file
-		def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}"
-		def fileName = file
-		view.mainView.title = baseTitle + (fileName ? " - [$fileName]" : "") 
+		updateTitle()
+	}
+
+	/**
+	 * Update main window title with current file and dirty state	
+	 */
+	def updateTitle() {
+		doLater {
+			def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}"
+			def fileName = model.schemeFile?.name
+			def newTitle = baseTitle + (fileName ? " - [$fileName]" : "- [New Untitled Scheme]") + (model.schemeDirty ? "*" : "")
+			view.mainView.title = newTitle
+		}
 	}
 	
     /**
@@ -147,10 +216,7 @@ class SchemeEditorController implements ListSelectionListener {
 	    if (model.schemeFile == null) {
 	    	saveAs(evt)
 	    } else {
-		    helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem, 
-		                        entries:model.schemeEntries], model.schemeFile)
-		    JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
-	    				   "Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+			saveScheme()
 	    }
     }
     
@@ -164,12 +230,25 @@ class SchemeEditorController implements ListSelectionListener {
 	    if (fc.showDialog(app.appFrames[0], "Save") == JFileChooser.APPROVE_OPTION) {
 			currentSaveDir = fc.currentDirectory
 			updateSchemeFile(fc.selectedFile)
-			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
-				entries:model.schemeEntries], model.schemeFile)
-			JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!", 
-				"Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+			saveScheme()
 	    }
     }
+
+	/**
+	 * Write scheme to file and pop success message
+	 */
+	def saveScheme() {
+		helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
+			entries:model.schemeEntries], model.schemeFile)
+		JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!",
+			"Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
+		setSchemeDirty(false)
+	}
+
+	def setSchemeDirty(dirty) {
+		model.schemeDirty = dirty
+		updateTitle()
+	}
 	
 	def exportPaginatedCatalog = { evt = null -> exportCatalog(true) }
 	def exportOnePageCatalog = { evt = null -> exportCatalog(false) }
@@ -189,60 +268,13 @@ class SchemeEditorController implements ListSelectionListener {
 			helper.exportCatalog(paginate, destFile, model.schemeEntries, isLithology, view.schemeName.text, view.schemeId.text)
 		}
 	}
-    
-	// If empty, populate Code field based on Name. Don't force user to devise and type a code!
-	def fillCode = { evt = null ->
-   		if (view.entryCode.text.length() == 0) {
-			def code = view.entryName.text.toLowerCase()
-			code = code.replace(" ", ",")
-			view.entryCode.text = code
-   		}
-	}
 	
-    def entryChanged = { evt = null ->
-		if (!model.ignoreEvents) {
-			model.entryDirty = true
-    		model.entryValid = (view.entryName.text && view.entryCode.text)
-		}
-	}
-    
     def addEntry = { evt = null ->
     	def e = [name:'New Entry']
     	model.schemeEntries << e
     	setEntry(e)
-		view.entryName.requestFocus()
-		view.entryName.selectAll() // Windows: must explicitly select text
-    }
-    
-    def saveEntry = { evt = null ->
-    	model.ignoreEvents = true
-    	model.entry.name = view.entryName.text
-    	model.entry.code = view.entryCode.text
-    	model.entry.group = view.entryGroup.text
-    	model.entry.color = model.entryColor
-    	model.entry.image = model.entryImage
-		
-		// brg 6/10/2014: SortedList doesn't resort when elements already present in the list are
-		// updated. Must explicitly get old entry and reset it to force resort.
-		def idx = view.schemeEntries.selectedIndex
-		def newEntry = model.schemeEntries.get(idx)
-		model.schemeEntries.set(idx, newEntry)
-		view.schemeEntries.selectedIndex = model.schemeEntries.indexOf(newEntry)
-		view.schemeEntries.ensureIndexIsVisible(view.schemeEntries.selectedIndex)		
-    	view.schemeEntries.repaint()
-		
-    	model.entryDirty = false
-    	model.entryValid = (view.entryName.text && view.entryCode.text)
-    	model.ignoreEvents = false;
-    }
-	
-	def saveAndAddEntry = { evt = null ->
-		saveEntry()
-		addEntry()
-	}
-    
-    def revertEntry = { evt = null ->
-    	setEntry(model?.entry)
+		def row = model.schemeEntries.indexOf(model.entry)
+		view.schemeEntries.selectionModel.setSelectionInterval(row, row)
     }
     
     def removeEntry = { evt = null ->
@@ -264,35 +296,27 @@ class SchemeEditorController implements ListSelectionListener {
     	model.ignoreEvents = true
     	if (entry) {
 	    	model.entry = entry
-	    	view.entryName.text = entry?.name
-	    	view.entryCode.text = entry?.code
-	    	view.entryGroup.text = entry?.group
 	    	model.entryColor = entry?.color
 	    	model.entryImage = entry?.image
-	    	if (view.schemeEntries.selectedValue != entry) {
-	    		view.schemeEntries.setSelectedValue(entry, true)
-	    	}
 	    } else {
 	    	model.entry = null
-	    	view.entryName.text = ""
-	    	view.entryCode.text = ""
-	    	view.entryGroup.text = ""
 	    	model.entryColor = null
 	    	model.entryImage = null
 	    }
     	updatePreview()
-    	model.entryDirty = false
-        model.entryValid = (view.entryName.text && view.entryCode.text)
         model.ignoreEvents = false
     }
     
     def updateColor = { evt = null ->
-    	def color = JColorChooser.showDialog(app.appFrames[0], "Choose Color", view.preview.color)
-    	if (color) {
-    		model.entryColor = "${color.red},${color.green},${color.blue}"
-    	}
-    	entryChanged()
-    	updatePreview()
+		withMVC('ColorChooser', entries:model.schemeEntries, selectedColor:model.entry?.color) { mvc ->
+			def color = mvc.controller.show()
+			if (color) {
+				model.entryColor = color
+				model.entry.color = color
+				schemeChanged()
+				updatePreview()
+			}
+		}
     }
     
     def updateImage = { evt = null ->
@@ -300,9 +324,10 @@ class SchemeEditorController implements ListSelectionListener {
     			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 		if (option == JOptionPane.OK_OPTION) {
 			model.entryImage = view.standardImages.selectedValue?.image
+			model.entry.image = view.standardImages.selectedValue?.image
 		}
     	view.imageFilter.text = ""
-    	entryChanged()
+		schemeChanged()
     	updatePreview()
     }
     
@@ -344,7 +369,25 @@ class SchemeEditorController implements ListSelectionListener {
     }
     
 	public void valueChanged(ListSelectionEvent e) {
-    	setEntry(view.schemeEntries.selectedValue)
+		if (!e.isAdjusting) {
+			int row = view.schemeEntries.selectedRow
+			if (row == -1 && model.entry) {
+				row = model.schemeEntries.indexOf(model.entry)
+			}
+			if (row != -1) {
+				setEntry(model.schemeEntries[row])
+				view.schemeEntries.selectionModel.setSelectionInterval(row, row)
+				view.schemeEntries.scrollRectToVisible(new Rectangle(view.schemeEntries.getCellRect(row, 0, true)))
+			}
+		}
+	}
+	
+	public void listChanged(ListEvent listChanges) { schemeChanged() }
+	
+	public void schemeNameLostFocus(event) {
+		if (view.schemeName.text.length() > 0 && view.schemeId.text.length() == 0) {
+			view.schemeId.text = SchemeHelper.codeFromName(view.schemeName.text, ".")
+		}
 	}
 }
 

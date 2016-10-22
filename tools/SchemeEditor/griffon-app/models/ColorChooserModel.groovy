@@ -4,7 +4,7 @@ import ca.odell.glazedlists.GlazedLists
 import groovy.beans.Bindable
 
 class ColorChooserModel {
-	//def entries = null
+	def schemeEntries = null
 	def selectedColor = null
 	def uniqueColors = []
 	@Bindable def colorListModel = new EventListModel(GlazedLists.eventList([]))

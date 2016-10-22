@@ -1,18 +1,22 @@
 import java.awt.*;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 
 import groovy.swing.SwingBuilder
 import net.miginfocom.swing.MigLayout
 
 action(id:'newColorAction', name:'Choose New Color', closure:controller.newColor)
-
+action(id:'normalizeAction', name:'Normalize Colors', closure:controller.normalizeColors)
 
 panel(id:'colorChooser', layout: new MigLayout('fill, insets 5, wrap'), border:titledBorder('Currently-used colors')) {
-	scrollPane(constraints:'grow, wrap, hmin 300') {
+	scrollPane(constraints:'grow, wrap, hmin 400') {
 		list(id:'colorList', cellRenderer: new ColorListRenderer(), model:bind { model.colorListModel })
 	}
 	button(action:newColorAction)
+	button(id:'normalizeButton', enabled:false, action:normalizeAction)
 }
+
+colorList.addListSelectionListener(controller)
 
 class ColorListRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean hasFocus) {

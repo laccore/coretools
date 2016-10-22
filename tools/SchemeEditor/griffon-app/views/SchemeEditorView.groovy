@@ -15,6 +15,7 @@
  */
 import static griffon.util.GriffonApplicationUtils.*
 import ca.odell.glazedlists.FilterList
+import ca.odell.glazedlists.GlazedLists
 import ca.odell.glazedlists.TextFilterator
 import ca.odell.glazedlists.gui.TableFormat
 import ca.odell.glazedlists.gui.WritableTableFormat
@@ -28,9 +29,9 @@ import java.awt.event.*
 import java.awt.image.BufferedImage
 
 import javax.swing.ListSelectionModel
+import javax.swing.ListCellRenderer
 import javax.swing.event.*;
 import javax.swing.table.*;
-import javax.swing.table.AbstractTableModel
 import javax.swing.BorderFactory
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
@@ -80,7 +81,7 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 		}
 	}
 	
-	panel(layout:new MigLayout("fill, wrap 2", "[][grow]", ""), constraints:'growx, wrap', border:BorderFactory.createLineBorder(java.awt.Color.BLACK, 1)) {
+	panel(layout:new MigLayout("fill, wrap 2, insets 5", "[][grow]", ""), constraints:'growx, wrap', border:titledBorder("Scheme Properties")) {
 		label('Name:')
 		textField(id:'schemeName', constraints:'growx', action: updateSchemeAction)
 		label('ID:')
@@ -88,22 +89,27 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 		label('Type:')
 		comboBox(id:'schemeType', items: ['lithology', 'symbol'], editable: false, constraints: 'growx', action: updateSchemeAction)
 	}
-	panel(layout:new MigLayout("fill"), constraints:'grow, wrap', border:BorderFactory.createTitledBorder("Entries")) {
+	panel(layout:new MigLayout("fill, wrap, insets 5", '', '[grow][]'), constraints:'grow, wrap', border:titledBorder("Scheme Entries")) {
 	    scrollPane(constraints:'grow') {
 	    	table(id:"schemeEntries", model: new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries)),
 				selectionModel: new DefaultEventSelectionModel(model.schemeEntries), selectionMode:ListSelectionModel.SINGLE_SELECTION)
 	    }
+		hbox {
+			button(action: addEntryAction)
+			button(action: removeEntryAction)
+		}
 	}
-	hbox {
-		button(action: addEntryAction)
-		button(action: removeEntryAction)
-		button(text: 'Set Image', action:updateImageAction)
-		button(text: 'Set Color', action:updateColorAction)
+
+	panel(layout:new MigLayout('fill, wrap, insets 5', '', '[grow][]'), border:titledBorder("Entry Appearance")) {
+		widget(preview, id:'preview', constraints:'grow, h 200px')
+		hbox {
+			button(text: 'Set Image', action:updateImageAction)
+			button(text: 'Set Color', action:updateColorAction)
+			//comboBox(id:'colorCombo', items: [], renderer:new ColorComboRenderer(), editable:false)
+		}
 	}
-	widget(preview, id:'preview', constraints:'grow, h 200px', border: titledBorder('Preview'))
 }
-
-
+			
 schemeName.addFocusListener({ controller.schemeNameLostFocus() } as FocusListener)
 schemeEntries.selectionModel.addListSelectionListener(controller)
 schemeEntries.addKeyListener(new SchemeEntryTableKeyListener())

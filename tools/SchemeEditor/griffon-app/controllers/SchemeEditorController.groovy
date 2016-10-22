@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
+import groovy.lang.Closure;
+
 import java.awt.Image
 import java.awt.Rectangle
 import java.io.File;
+import java.util.Map;
 import java.util.zip.ZipFile
+
+import javax.swing.DefaultComboBoxModel
 import javax.swing.ImageIcon
 import javax.swing.JColorChooser
 import javax.swing.JFileChooser
@@ -63,6 +68,25 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     	}
     }
 	
+	// for working with MVC groups
+	def withMVC(Map params = [:], String type, Closure closure) {
+		def result
+		try {
+			result = closure(buildMVCGroup(params, type, type))
+		} catch (e) {
+			e.printStackTrace()
+			//Dialogs.showErrorDialog('Error', e.message)
+		} finally {
+			destroyMVCGroup(type)
+		}
+		return result
+	}
+	
+	def getMVC(String id) {
+		[model: app.models[id], view: app.views[id], controller: app.controllers[id]]
+	}
+
+	
     /**
      * Exit the application
      */
@@ -87,6 +111,8 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     def newScheme = { evt = null -> 
     	updateSchemeFile(null)
     	setScheme(null)
+		setEntry(null)
+		updatePreview()
     }
 	
 	/**
@@ -139,7 +165,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		model.schemeValid = (view.schemeId.text && view.schemeName.text && view.schemeType.selectedItem && model.schemeEntries.size() > 0)
 		setSchemeDirty(true)
     }
-    
+	
     /**
      * Set the selected scheme
      */
@@ -282,13 +308,15 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     }
     
     def updateColor = { evt = null ->
-    	def color = JColorChooser.showDialog(app.appFrames[0], "Choose Color", view.preview.color)
-    	if (color) {
-    		model.entryColor = "${color.red},${color.green},${color.blue}"
-			model.entry.color = "${color.red},${color.green},${color.blue}"
-    	}
-    	schemeChanged()
-		updatePreview()
+		withMVC('ColorChooser', entries:model.schemeEntries, selectedColor:model.entry?.color) { mvc ->
+			def color = mvc.controller.show()
+			if (color) {
+				model.entryColor = color
+				model.entry.color = color
+				schemeChanged()
+				updatePreview()
+			}
+		}
     }
     
     def updateImage = { evt = null ->
@@ -343,7 +371,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	public void valueChanged(ListSelectionEvent e) {
 		if (!e.isAdjusting) {
 			int row = view.schemeEntries.selectedRow
-			if (row == -1) {
+			if (row == -1 && model.entry) {
 				row = model.schemeEntries.indexOf(model.entry)
 			}
 			if (row != -1) {

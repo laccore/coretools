@@ -78,11 +78,11 @@ actions {
 	
 	// entry actions
 	action( id:'addEntryAction',
-		name:'Add',
+		name:'Add Entry',
 		closure: controller.addEntry
 	)
 	action( id:'removeEntryAction',
-		name:'Remove',
+		name:'Remove Entry',
 		enabled: bind { model.entry != null },
 		closure: controller.removeEntry
 	)

@@ -88,7 +88,6 @@ class ColorChooserController implements ListSelectionListener {
 				entries.each { it.color = normColor.toString() }
 			}
 			updateList(model.schemeEntries.findAll { it.color != null }.collect { new EntryColor(it.color as String) })
-			select(normColor)
 		}
 	}
 	

@@ -37,6 +37,12 @@ SwingBuilder.lookAndFeel('system')
 // initialize the coretools platform
 Platform.start()
 
+import griffon.util.Environment
+
+println "### Current Environment = ${Environment.current} ###"
+
+SplashGriffonAddon.display(app)
+
 def getDirPref(prefKey) {
 	def dir = new File(Preferences.userNodeForPackage(PSICATController).get(prefKey, System.getProperty("user.home")))
 	return (dir.exists() && dir.isDirectory()) ? dir : new File(System.getProperty("user.home"))

@@ -19,8 +19,11 @@ import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 
 import javax.swing.JOptionPane
+import javax.swing.SwingUtilities
 
 import griffon.util.Metadata
+
+import griffon.transform.Threading
 
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
@@ -48,12 +51,21 @@ import psicat.util.*
 class PSICATController {
 	def model
 	def view
+	
+	def onOSXAbout = { println "OSX About!" }
+	def onOSXPrefs = { println "OSX Prefs!" }
+	//def onOSXQuit = { println "OSX Quit!" }
+	def onOSXQuit = { actions.exit() }
 
 	private def prefs = Preferences.userNodeForPackage(PSICATController)
 	
 	void mvcGroupInit(Map args) {}
 
 	// for working with MVC groups
+	// brg 6/8/2015: this seems to be the heart of the problem...opening a dialog
+	// is no longer blocking, so we end up checking for results before we have them
+	// and things go awry from there.
+	//@Threading(Threading.Policy.INSIDE_UITHREAD_SYNC)
 	def withMVC(Map params = [:], String type, Closure closure) {
 		def result
 		try {
@@ -62,7 +74,7 @@ class PSICATController {
 			e.printStackTrace()
 			Dialogs.showErrorDialog('Error', e.message)
 		} finally {
-			destroyMVCGroup(type)
+			//app.mvcGroupManager.destroyMVCGroup(type)
 		}
 		return result
 	}
@@ -108,13 +120,16 @@ class PSICATController {
 
 	boolean closeDiagram(diagram) {
 		if (diagram && diagram.controller.close()) {
-			model.project.closeContainer(diagram.model.scene.models)
-			int index = model.openDiagrams.indexOf(diagram)
-			model.openDiagrams.remove(index)
-			view.diagrams.removeTabAt(index)
+			edt {
+				model.project.closeContainer(diagram.model.scene.models)
+				int index = model.openDiagrams.indexOf(diagram)
+				model.openDiagrams.remove(index)
+				view.diagrams.removeTabAt(index)
+				model.status = "Closed section '${diagram.model.name}'"
+			}
 			// 3/31/2014 brg: Call as workaround to avoid MVC group name collision
-			//destroyMVCGroup(diagram.model.id)
-			model.status = "Closed section '${diagram.model.name}'"
+			// 6/18/2015 brg: Holy shit, doLater seems to be the magic trick here...solves all issues
+			doLater { destroyMVCGroup(diagram.model.id) }
 			return true
 		} else {
 			return false
@@ -165,32 +180,49 @@ class PSICATController {
 	def actions = [
 		'exit': { evt -> if (canClose(evt)) app.shutdown() },
 		'newProject': { evt = null ->
-			withMVC('NewProjectWizard') { mvc ->
-				def project = mvc.controller.show()
-				if (project && canClose(evt)) { 
-					openProject(project)
-					if (mvc.model.useCustomSchemes) {
-						actions.chooseSchemes()
-					} else {
-						ProjectLocal.copyDefaultSchemes(project)
-					}					
-					if (mvc.model.importSections) {
-						actions.importImage()
-					}
-				}
-			}
+			//def (m, v, c) = createMVCGroup('NewProjectWizard')
+			//def project = null
+			createMVCGroup('NewProjectWizard')
+			println "i created this thing, screw you!"	
+//			{ m, v, c ->
+//				project = c.show()
+//				println "project = $project"
+//				//				//def project = c.show()
+//								if (project && canClose(evt)) {
+//									println "### Got project, opening..."
+//									openProject(project)
+//								}
+//			}
+//				println "project = $project"
+//				//def project = c.show()
+//				if (project && canClose(evt)) {
+//					println "### Got project, opening..."
+//					openProject(project)
+//					if (mvc.model.useCustomSchemes) {
+//						actions.chooseSchemes()
+//					} else {
+//						ProjectLocal.copyDefaultSchemes(project)
+//					}					
+//					if (mvc.model.importSections) {
+//						actions.importImage()
+//					}
+//				}
 		},
 		'newSection': { evt = null ->
 			withMVC('NewSectionWizard', project: model.project) { mvc ->
 				def section = mvc.controller.show()
+				println "done with this shit"
 				if (section) { model.status = "Created new section '$section'" }
 			}
+			println "fuck you!"
 		},
 		'openProject': { evt = null ->
 			def file = Dialogs.showOpenDirectoryDialog("Select Project Directory/Folder", null, app.windowManager.windows[0])
 			if (file && canClose(evt)) {
-				if (isProject(file)) { 
-					openProject(new DefaultProject(file))
+				if (isProject(file)) {
+					edt {
+						openProject(new DefaultProject(file))
+					}
 				} else {
 					Dialogs.showErrorDialog("Open Project", "The selected directory is not a PSICAT project directory.", app.windowManager.windows[0])
 				}
@@ -206,8 +238,8 @@ class PSICATController {
 			
 			println "openSection: id = $id"
 
-			println "instantiated MVC Groups:"
-			app.mvcGroupManager.groups.values().each() { println it.mvcId }
+//			println "instantiated MVC Groups:"
+//			app.mvcGroupManager.groups.values().each() { println it.mvcId }
 						
 			// check to make sure the diagram isn't open already
 			def open = model.openDiagrams.find { it.model.id == id }
@@ -217,6 +249,7 @@ class PSICATController {
 			} else {
 				print "diagram not open, trying to open..."
 				def diagram = buildMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
+				//def (m, v, c) = createMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
 				if (diagram.controller.open()) {
 					model.openDiagrams << diagram
 					view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
@@ -231,7 +264,9 @@ class PSICATController {
 					diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
 					
 					model.status = "Opened section '${diagram.model.name}'"
-					println "success"
+					println "current MVC Groups:"
+					app.mvcGroupManager.groups.values().each() { println it.mvcId }
+					//println "success"
 				} else {
 					destroyMVCGroup(id)
 					println "failed, destroying MVC group"
@@ -326,13 +361,6 @@ JRE Home: ${System.getProperty("java.home")}
 		'feedback': { evt = null ->
 			LauncherUtils.openURL('http://bitbucket.org/joshareed/coretools/issues/new/')
 		},
-		// brg 3/24/2014: zipped-up export is easy!  
-//		'exportProject': { evt = null ->
-//			def ant = new AntBuilder()
-//			def basedir = new File(model.project.path.toURI())
-//			def zipout = new File("/Users/bgrivna/Desktop/zippo.zip")
-//			ant.zip(basedir: basedir, destfile: zipout)
-//		},
 		'exportDiagram': { evt = null -> ping('exportDiagram')
 			withMVC('ExportDiagramWizard', project: model.project) { mvc ->
 				model.status = mvc.controller.show()

@@ -33,22 +33,37 @@ class NewProjectWizardController {
 	    		model.filePath = file.absolutePath
 	    		if (!model.name) { model.name = file.name }
 	    	}
-    	}
+    	},
+		'create': {
+			createProject()
+			actions.close()
+		},
+		'close': { evt = null ->
+			destroyMVCGroup('NewProjectWizard')
+		}
     ]
 
-    def show() {
-    	if (Dialogs.showCustomDialog("Create New Project", view.root, app.windowManager.windows[0])) {
-    		return createProject()
-    	}
-    }
-	
 	private def createProject() {
 		if (model.file) {
 			Project project = new DefaultProject(model.file)
 			project.name = model.name ?: model.file.name
 			project.origin = model.originTop ? 'top' : 'base'
 			project.saveConfiguration()
-			return project	
+			
+			if (app.controllers.PSICAT.canClose(null)) {
+				app.controllers.PSICAT.openProject(project)
+				if (model.useCustomSchemes) {
+					app.controllers.PSICAT.actions.chooseSchemes()
+				} else {
+					println "copying defaults"
+					doLater {
+						ProjectLocal.copyDefaultSchemes(project)
+					}
+				}
+				if (model.importSections) {
+					app.controllers.PSICAT.actions.importImage()
+				}
+			}
 		} else {
 			throw new IllegalStateException('A directory is required to create a new project')
 		}

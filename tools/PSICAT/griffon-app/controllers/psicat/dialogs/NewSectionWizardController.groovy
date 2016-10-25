@@ -19,6 +19,8 @@ import org.andrill.coretools.geology.models.Image
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.Section
 
+import java.awt.Dialog.ModalityType
+
 import psicat.util.*
 
 class NewSectionWizardController {
@@ -39,14 +41,25 @@ class NewSectionWizardController {
 					model.name = FileUtils.removeExtension(file)
 				}
         	}
-    	}
+    	},
+		'create': { evt = null ->
+			createSection()
+			actions.close()
+		},
+		'close': { evt = null ->
+			destroyMVCGroup('NewSectionWizard')
+		}
     ]
 
     def show() {
-    	if (Dialogs.showCustomDialog("Create New Section", view.root, app.windowManager.windows[0])) {
-    		return createSection()
-    	}
+		edt {
+			view.newSectionDialog.show()
+		}
     }
+    	//if (Dialogs.showCustomDialog("Create New Section", view.root, app.windowManager.windows[0])) {
+    	//	return createSection()
+    	//}
+    //}
 	
 	private def createSection() {
 		if (model.name && model.top && model.base) {

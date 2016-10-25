@@ -35,6 +35,8 @@ import net.miginfocom.swing.MigLayout
 // build our actions
 build(SchemeEditorActions)
 
+def meta = Metadata.current
+
 // restore previous dimensions of main window
 def prefs = Preferences.userNodeForPackage(SchemeEditorController)
 def mainWidth = prefs.getDouble('schemeEditor.mainViewWidth', 300.0) as Integer
@@ -48,7 +50,7 @@ def preview = new PreviewPanel()
 preview.setOpaque(false)
 
 // build our main application
-application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
+application(title: "Scheme Editor ${meta['app.version']}",
 			id:'mainView', size:[mainWidth, mainHeight], location:[xpos,ypos], layout: new MigLayout('fill')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {

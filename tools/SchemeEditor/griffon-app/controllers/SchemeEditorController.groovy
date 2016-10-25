@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import griffon.util.Metadata
+
 import java.awt.Image
 import java.io.File;
 import java.util.zip.ZipFile
@@ -31,6 +33,8 @@ import javax.swing.filechooser.FileFilter
 class SchemeEditorController implements ListSelectionListener {
     def model
     def view
+	
+	def meta = Metadata.current
     
     private SchemeHelper helper
     static File currentOpenDir = new File(System.getProperty("user.home"))
@@ -135,7 +139,7 @@ class SchemeEditorController implements ListSelectionListener {
 	 */
 	def updateSchemeFile(file) {
 		model.schemeFile = file
-		def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}"
+		def baseTitle = "Scheme Editor ${meta['app.version']}"
 		def fileName = file
 		view.mainView.title = baseTitle + (fileName ? " - [$fileName]" : "") 
 	}

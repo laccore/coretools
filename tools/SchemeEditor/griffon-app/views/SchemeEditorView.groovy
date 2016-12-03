@@ -17,12 +17,16 @@ import static griffon.util.GriffonApplicationUtils.*
 import ca.odell.glazedlists.FilterList
 import ca.odell.glazedlists.GlazedLists
 import ca.odell.glazedlists.TextFilterator
+import ca.odell.glazedlists.gui.AdvancedTableFormat
 import ca.odell.glazedlists.gui.TableFormat
 import ca.odell.glazedlists.gui.WritableTableFormat
+import ca.odell.glazedlists.gui.AbstractTableComparatorChooser
 import ca.odell.glazedlists.swing.EventListModel
 import ca.odell.glazedlists.swing.DefaultEventSelectionModel
 import ca.odell.glazedlists.swing.DefaultEventTableModel
 import ca.odell.glazedlists.swing.TextComponentMatcherEditor
+import ca.odell.glazedlists.swing.TableComparatorChooser
+
 
 import java.awt.*
 import java.awt.event.*
@@ -35,6 +39,7 @@ import javax.swing.table.*;
 import javax.swing.BorderFactory
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.event.DocumentListener
@@ -105,17 +110,19 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
 		hbox {
 			button(text: 'Set Image', action:updateImageAction)
 			button(text: 'Set Color', action:updateColorAction)
-			//comboBox(id:'colorCombo', items: [], renderer:new ColorComboRenderer(), editable:false)
 		}
 	}
 }
 			
+		
 schemeName.addFocusListener({ controller.schemeNameLostFocus() } as FocusListener)
 schemeEntries.selectionModel.addListSelectionListener(controller)
 schemeEntries.addKeyListener(new SchemeEntryTableKeyListener())
 schemeId.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
 schemeName.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
 model.schemeEntries.addListEventListener(controller)
+
+TableComparatorChooser.install(schemeEntries, model.schemeEntries, AbstractTableComparatorChooser.SINGLE_COLUMN)
 
 // build our image chooser panel
 panel(id:'imageChooser', layout: new MigLayout('fill')) {
@@ -127,6 +134,7 @@ panel(id:'imageChooser', layout: new MigLayout('fill')) {
     }
 	button(constraints:'right', action:customImageAction)
 }
+
 
 // consume up and down arrow keys and adjust selected row - allowing JTable
 // to handle these messages results in a table change event, which screws
@@ -153,9 +161,10 @@ class SchemeEntryTableKeyListener extends KeyAdapter {
 	}
 }
 
-class SchemeEntryTableFormat implements WritableTableFormat {
+class SchemeEntryTableFormat implements WritableTableFormat, AdvancedTableFormat {
 	def colnames = ['name', 'code']
 	def entries = []
+	def stifleCodeEditWarning = false
 	public SchemeEntryTableFormat(entries) { this.entries = entries }
 	public int getColumnCount() { return 2; }
 	public Object getColumnValue(Object baseObject, int col) {
@@ -164,22 +173,40 @@ class SchemeEntryTableFormat implements WritableTableFormat {
 	}
 	public String getColumnName(int col) { return colnames[col].substring(0,1).toUpperCase() + colnames[col].substring(1) }
 	
-	public boolean isEditable(Object obj, int col) { return col == 0 }
+	public boolean isEditable(Object obj, int col) { return col == 0 || col == 1 }
 	public Object setColumnValue(Object obj, Object newValue, int column) {
 		if (column == 0) {
 			obj.name = newValue
 			if (!obj.code) {
 				obj.code = createUniqueCode(obj.name)
-				def objElt = this.entries.find { obj }
-				if (objElt) {
-					def objIndex = this.entries.indexOf(objElt)
-					this.entries.set(objIndex, objElt) // set object to itself to update EventList
-				}
 			}
+			return obj
+		} else if (column == 1) {
+			def dupElt = this.entries.find { it.code?.equals(newValue) && !it.equals(obj) }
+			if (dupElt) {
+				JOptionPane.showMessageDialog(null, "The code '$newValue' is already used by entry '${dupElt.name}'.",
+										"Duplicate Code", JOptionPane.ERROR_MESSAGE)
+				return null
+			}
+			
+			if (!stifleCodeEditWarning) {
+				def msg = "If this scheme entry is used in an existing PSICAT project, changing its code will break\nthe project's association with the entry, requiring manual correction of the project files.\nDo you want to continue?"
+				def choice = JOptionPane.showOptionDialog(null, msg, "Modify Existing Code?", JOptionPane.DEFAULT_OPTION,
+					JOptionPane.WARNING_MESSAGE, null, ["No", "Yes", "Yes, Stop Asking Me!"] as String[], "No")
+				if (choice == 0) // No
+					return null
+				else if (choice == 2) // "stop asking me!"
+					stifleCodeEditWarning = true
+			}
+			obj.code = newValue
 			return obj
 		}
 		return null
 	}
+	
+	// AdvancedTableFormat methods - make column sorting case-insensitive
+	public Class getColumnClass(int column) { return Object.class }
+	public Comparator getColumnComparator(int column) { return GlazedLists.caseInsensitiveComparator() }
 	
 	private String createUniqueCode(name) {
 		def result = null

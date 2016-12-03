@@ -24,7 +24,7 @@ class SchemeEditorModel {
 	@Bindable boolean schemeValid = false
 	@Bindable boolean schemeDirty = false
 	@Bindable File schemeFile = null
-	List schemeEntries = new SortedList(new BasicEventList(), {a, b -> a.name <=> b.name} as Comparator)
+	List schemeEntries = new SortedList(new BasicEventList(), {a, b -> a.name.toUpperCase() <=> b.name.toUpperCase()} as Comparator)
 	
 	@Bindable Map entry = null
 	@Bindable String entryColor = null

@@ -270,11 +270,21 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	}
 	
     def addEntry = { evt = null ->
-    	def e = [name:'New Entry']
-    	model.schemeEntries << e
-    	setEntry(e)
-		def row = model.schemeEntries.indexOf(model.entry)
-		view.schemeEntries.selectionModel.setSelectionInterval(row, row)
+		if (view.schemeEntries.isEditing()) {
+			view.schemeEntries.cellEditor?.stopCellEditing()
+		}
+		model.schemeEntries.getReadWriteLock().writeLock().lock()
+		try {
+			// must set code to empty string, otherwise a NullPointerException throws a
+			// wrench into table column sorting
+			def e = [name:'New Entry', code:'']
+			model.schemeEntries << e
+			setEntry(e)
+			def row = model.schemeEntries.indexOf(model.entry)
+			view.schemeEntries.selectionModel.setSelectionInterval(row, row)
+		} finally {
+			model.schemeEntries.getReadWriteLock().writeLock().unlock()
+		}
     }
     
     def removeEntry = { evt = null ->

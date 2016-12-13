@@ -288,6 +288,9 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     }
     
     def removeEntry = { evt = null ->
+		if (view.schemeEntries.isEditing()) {
+			view.schemeEntries.cellEditor?.stopCellEditing()
+		}
     	if (model?.entry) {
 			def index = model.schemeEntries.indexOf(model?.entry)
 			model.schemeEntries.remove(index)
@@ -315,6 +318,10 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	    }
     	updatePreview()
         model.ignoreEvents = false
+		if (entry) {
+			def index = model.schemeEntries.indexOf(entry)
+			view.schemeEntries.setRowSelectionInterval(index, index)
+		}
     }
     
     def updateColor = { evt = null ->

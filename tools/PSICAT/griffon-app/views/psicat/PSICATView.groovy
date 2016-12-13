@@ -74,7 +74,7 @@ application(title:"PSICAT ${app.applicationProperties['app.version']} $subversio
 	
 	// status area
 	label(id: 'status', border: emptyBorder([0, 10, 5, 10]), text: bind { model.status }, foreground: Color.darkGray, 
-		font: new Font("Sans Serif", 0, 10), constraints: 'dock south')
+		font: new Font("Sans Serif", 0, 10), constraints: 'dock south, hmin 20')
 }
 
 // listen for tab changes

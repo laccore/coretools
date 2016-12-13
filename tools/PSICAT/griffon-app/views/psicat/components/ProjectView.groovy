@@ -45,20 +45,17 @@ actions {
 	action(id: 'openAction', name: 'Open', closure: controller.&handleOpen)
 }
 
-panel(id:'root', layout: new MigLayout("fill, wrap, insets 0", "", "[][][grow]")) {
+panel(id:'root', layout: new MigLayout("fill, wrap, insets 0", "", "[][][grow][]")) {
 	label(id:'name', horizontalAlignment: CENTER, text: bind { model.name },
 		border: compoundBorder(matteBorder(0, 0, 1, 0, color: Color.lightGray), emptyBorder(5)), constraints:'grow')
 	widget(id:'filterText', filterText, enabled:bind { model.project != null }, mouseClicked: { evt -> filterText.mouseClicked(evt) }, constraints:'growx')
 	scrollPane(constraints: 'grow') {
 		list(id:'sections', model: new DefaultEventListModel(filteredSectionList), mouseClicked: { evt -> controller.handleClick(evt) })
 	}
-	// brg 10/16/2016 buttonbar experiment
-//	hbox(constraints: 'gaptop 0') {
-//		def btnBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 1), BorderFactory.createEmptyBorder(3, 3, 3, 3))
-//		button(imageIcon('/iconic-png/plus-2x.png'), border:btnBorder, background:Color.WHITE)
-//		button(imageIcon('/iconic-png/minus-2x.png'), border:btnBorder, background:Color.WHITE)
-//		button(imageIcon('/iconic-png/cog-2x.png'), border:btnBorder, background:Color.WHITE)
-//	}
+	hbox(constraints: 'gaptop 0') {
+		button("New Section", background:Color.WHITE, enabled: bind { model.project != null }, 
+			actionPerformed: { evt -> app.controllers['PSICAT'].actions.importImage(evt) })
+	}
 }
 
 //handle enter on the section list

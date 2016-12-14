@@ -273,6 +273,7 @@ public class SchemeHelper {
 			tmp.delete()
 		} catch (e) {
 			e.printStackTrace()
+			throw e // rethrow for client to handle
 		}
 	}
 	

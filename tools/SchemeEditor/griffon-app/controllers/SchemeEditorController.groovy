@@ -238,8 +238,14 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	 * Write scheme to file and pop success message
 	 */
 	def saveScheme() {
-		helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
-			entries:model.schemeEntries], model.schemeFile)
+		try {
+			helper.write([id:view.schemeId.text, name:view.schemeName.text, type:view.schemeType.selectedItem,
+				entries:model.schemeEntries], model.schemeFile)
+		} catch (e) {
+			JOptionPane.showMessageDialog(app.appFrames[0], "${model.schemeFile} could not be saved: ${e.message}",
+				"Error Saving Scheme", JOptionPane.ERROR_MESSAGE)
+			return
+		}
 		JOptionPane.showMessageDialog(app.appFrames[0], "${view.schemeName.text} saved!",
 			"Scheme Saved", JOptionPane.INFORMATION_MESSAGE)
 		setSchemeDirty(false)

@@ -320,6 +320,17 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
         model.ignoreEvents = false
 		if (entry) {
 			def index = model.schemeEntries.indexOf(entry)
+			
+			// Handle odd case in which an existing scheme has 2+ entries that are exactly
+			// the same (it is no longer possible to create such schemes, as code uniqueness is
+			// now enforced). When the second (per current sorting) entry is selected in this case,
+			// the matching index is that of the first entry - we try setting the selection to the
+			// first, which triggers another setEntry() call and we loop until crashing (out of heap
+			// memory because we keep trying to load the image to preview). If we find multiple matches
+			// don't update selection! This should prevent the crash.
+			def matchingEntries = model.schemeEntries.findAll { it == entry }
+			if (matchingEntries.size() > 1) return;
+			
 			view.schemeEntries.setRowSelectionInterval(index, index)
 		}
     }

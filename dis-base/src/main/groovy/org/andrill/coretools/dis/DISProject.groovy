@@ -169,10 +169,11 @@ class DISProject extends AbstractProject implements ModelContainer.Listener {
 			// populate the rest if not deleted
 			def state = unitNode?.@status?.text()
 			if (state != 'R') {
+				def curTop = null, curBase = null
 				unitNode.attributes().each { key, value ->					
 					switch(key) {
 						case 'top_interval':	interval.top = (section.top + new Length(value as BigDecimal, 'cm')).cm; break
-						case 'bottom_interval':	interval.base = (section.top + new Length(value as BigDecimal, 'cm')).cm; break
+						case 'bottom_interval':	curBase = new Length(value as BigDecimal, 'cm').cm; break
 						case 'UnitType':		interval.unitType = "dis-units:${value}"; break
 						case 'MajorLithology':	interval.lithology = "dis-lithologies:${value}"; break
 						case 'ratio':			interval.ratio = (value ?: '100') as Integer; break
@@ -211,6 +212,11 @@ class DISProject extends AbstractProject implements ModelContainer.Listener {
 						default:
 							LOGGER.info('Unhandled DIS attribute: {}={}', key, value)
 					}
+				}
+				if (interval.top != null) {
+					interval.base = interval.top + curBase
+				} else {
+					LOGGER.info("Interval top not found, unable to determine base"
 				}
 			}
 			

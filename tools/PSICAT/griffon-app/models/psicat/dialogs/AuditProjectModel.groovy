@@ -27,8 +27,10 @@ class AuditProjectModel {
 	@Bindable def auditResults = new DefaultListModel()
 	@Bindable def undescribedSecs = true
 	@Bindable def noIntervalSecs = true
-	@Bindable def emptyUndescribedInts = true
-	@Bindable def emptyUndescribedSyms = true
+	@Bindable def noneInts = true
+	@Bindable def undescribedInts = true
+	@Bindable def noneSyms = true
+	@Bindable def undescribedSyms = true
 	@Bindable def zeroLengthInts = true 
 	@Bindable def invertedInts = true
 }

@@ -41,15 +41,17 @@ class AuditProjectController {
 	
 	void exportLog() {
 		def file = Dialogs.showSaveDialog("Save Audit Log", null, ".txt", view.auditProjectDialog)
-		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(file));
-			model.auditResults.elements().each {
-				out.write("$it")
-				out.newLine()
+		if (file) {
+			try {
+				BufferedWriter out = new BufferedWriter(new FileWriter(file));
+				model.auditResults.elements().each {
+					out.write("$it")
+					out.newLine()
+				}
+				out.close()
+			} catch (Exception e) {
+				Dialogs.showErrorDialog("Save Log Failed", "Log could not be saved: ${e.message}", view.auditProjectDialog)
 			}
-			out.close()
-		} catch (Exception e) {
-			Dialogs.showErrorDialog("Save Log Failed", "Log could not be saved: ${e.message}", view.auditProjectDialog)
 		}
 	}
 	
@@ -58,12 +60,13 @@ class AuditProjectController {
 		view.progress.indeterminate = true
 		
 		edt { model.auditResults.clear() }
-		
+
+		def auditResults = []
 		model.project.containers.each { containerName ->
-			edt { view.progressText.text = "Auditing $containerName..." }
+			edt { view.progressText.text = "Auditing $containerName, ${auditResults.size} issues found so far." }
 			
 			def container = model.project.openContainer(containerName)
-			def auditResults = []
+
 			def issues = []
 			
 			def secTop = null
@@ -104,20 +107,32 @@ class AuditProjectController {
 				}
 			}
 			
-			if (model.emptyUndescribedInts) {
+			if (model.noneInts || model.undescribedInts) {
 				intervals.each { it ->
-					if (it.lithology == null && it.description == null) {
-						def msg = "Interval $it is type 'None' with no description"
-						issues << msg
+					boolean isNone = false, noDesc = false
+					if (model.noneInts && it.lithology == null) {
+						isNone = true
+					}
+					if (model.undescribedInts && it.description == null) {
+						noDesc = true
+					}
+					if (isNone || noDesc) {
+						issues << "Interval $it " + makeNoneAndOrUndescribedMsg(isNone, noDesc)
 					}
 				}
 			}
 			
-			if (model.emptyUndescribedSyms) {
+			if (model.noneSyms || model.undescribedSyms) {
 				symbols.each { it ->
-					if (it.scheme == null && it.description == null) {
-						def msg = "Symbol $it is type 'None' with no description"
-						issues << msg
+					boolean isNone = false, noDesc = false
+					if (model.noneSyms && it.scheme == null) {
+						isNone = true
+					}
+					if (model.undescribedSyms && it.description == null) {
+						noDesc = true
+					}
+					if (isNone || noDesc) {
+						issues << "Symbol $it " + makeNoneAndOrUndescribedMsg(isNone, noDesc)
 					}
 				}
 			}
@@ -144,10 +159,10 @@ class AuditProjectController {
 			
 			GeoUtils.adjustDown(container, secTop, false)
 			model.project.closeContainer(container)
-			
-			edt {
-				auditResults.each {	model.auditResults.addElement(it) }
-			}
+		}
+		
+		edt {
+			auditResults.each {	model.auditResults.addElement(it) }
 		}
 		
 		view.exportLogButton.enabled = model.auditResults.size > 0
@@ -155,6 +170,17 @@ class AuditProjectController {
 		view.progress.indeterminate = false
 		view.progress.value = 0
 		view.progressText.text = "Audit complete, ${model.auditResults.size} issues found"
+	}
+
+	private makeNoneAndOrUndescribedMsg(isNone, noDesc) {
+		def msg = null
+		if (isNone && noDesc)
+			msg = "has scheme entry 'None' and has no description"
+		else if (isNone)
+			msg = "has scheme entry 'None'"
+		else if (noDesc)
+			msg = "has no description"
+		return msg
 	}
 	
     def actions = [

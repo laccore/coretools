@@ -79,8 +79,10 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 		panel(border: titledBorder("Check Project for Selected Problems"), layout:new MigLayout('fillx, wrap 1'), constraints:'grow') {
 			checkBox(text:'Undescribed Sections', selected: bind(source:model, sourceProperty:'undescribedSecs', mutual:true))
 			checkBox(text:'Sections With No Defined Intervals', selected: bind(source:model, sourceProperty:'noIntervalSecs', mutual:true))
-			checkBox(text:'"None" Intervals Without Descriptions', selected: bind(source:model, sourceProperty:'emptyUndescribedInts', mutual:true))
-			checkBox(text:'"None" Symbols Without Descriptions', selected: bind(source:model, sourceProperty:'emptyUndescribedSyms', mutual:true))
+			checkBox(text:'Intervals With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneInts', mutual:true))
+			checkBox(text:'Undescribed Intervals', selected: bind(source:model, sourceProperty:'undescribedInts', mutual:true))
+			checkBox(text:'Symbols With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneSyms', mutual:true))
+			checkBox(text:'Undescribed Symbols', selected: bind(source:model, sourceProperty:'undescribedSyms', mutual:true))
 			checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
 			checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
 			panel(layout:new MigLayout('insets 5', '[grow][]', ''), constraints:'growx') {
@@ -89,10 +91,10 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 			}
 			label("Click Audit to begin", id:'progressText')
 		}
-		panel(border: titledBorder('Audit Log'), layout:new MigLayout('fill, wrap, insets 5'), constraints:'grow') {
+		panel(border: titledBorder('Audit Log - double-click an issue to open section diagram'), layout:new MigLayout('fill, wrap, insets 5'), constraints:'grow') {
 			scrollPane(constraints:'grow') {
 				auditLog = list(id:'logList', model:bind(source:model, sourceProperty:'auditResults', mutual:true),
-					cellRenderer:new AuditElementRenderer(), constraints:'grow', toolTipText:"Double-click an issue to open the section's diagram")
+					cellRenderer:new AuditElementRenderer(), constraints:'grow', toolTipText:"Double-click an issue to open the associated section's diagram")
 				auditLog.addMouseListener(new AuditLogMouseListener(app))
 			}
 			button(id:'exportLogButton', action:exportLogAction, constraints:'align right, dock south', enabled:false)

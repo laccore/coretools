@@ -215,6 +215,9 @@ class GeoUtils {
 	
 	// return difference between topmost and bottommost model in modelList 
 	static getLength(modelList) {
+		if (modelList.size() == 0)
+			return 0
+
 		def diff = getMaxBase(modelList) - getMinTop(modelList)
 		return diff.to('m').value
 	}

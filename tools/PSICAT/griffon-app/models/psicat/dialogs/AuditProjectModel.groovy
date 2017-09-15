@@ -33,6 +33,7 @@ class AuditProjectModel {
 	@Bindable def undescribedSyms = true
 	@Bindable def zeroLengthInts = true 
 	@Bindable def invertedInts = true
+	@Bindable def missingSchemeEntries = true
 }
 
 class AuditResult {

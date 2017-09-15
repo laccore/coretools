@@ -85,6 +85,8 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 			checkBox(text:'Undescribed Symbols', selected: bind(source:model, sourceProperty:'undescribedSyms', mutual:true))
 			checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
 			checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
+			checkBox(text:'Missing Scheme Entries', selected: bind(source:model, sourceProperty:'missingSchemeEntries', mutual:true),
+				toolTipText:"Scheme entries used in project diagrams that are missing from the project's schemes")
 			panel(layout:new MigLayout('insets 5', '[grow][]', ''), constraints:'growx') {
 				progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
 				button(id:'auditButton', action:auditAction, constraints:'align right')

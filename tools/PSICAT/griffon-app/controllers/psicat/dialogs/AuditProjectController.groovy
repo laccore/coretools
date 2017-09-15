@@ -22,12 +22,14 @@ import org.andrill.coretools.model.edit.CreateCommand
 import org.andrill.coretools.model.edit.CompositeCommand
 import org.andrill.coretools.model.edit.DeleteCommand
 import org.andrill.coretools.geology.GCommand
-
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.models.Occurrence
 import org.andrill.coretools.model.scheme.Scheme
 import org.andrill.coretools.model.scheme.SchemeEntry
+import org.andrill.coretools.model.scheme.SchemeManager
 import org.andrill.coretools.ui.widget.swing.SchemeEntryWidget
+
+import org.andrill.coretools.Platform
 
 import psicat.util.*
 
@@ -155,6 +157,30 @@ class AuditProjectController {
 				}
 			}
 			
+			if (model.missingSchemeEntries) {
+				intervals.each { it ->
+					if (it.lithology) {
+						def scheme = it.lithology.scheme
+						def code = it.lithology.code
+						if (!validSchemeEntry(scheme, code)) {
+							def msg = "Lithology scheme entry $scheme:$code not found in project schemes"
+							issues << msg
+						}
+					}
+				}
+				
+				symbols.each { it ->
+					if (it.scheme) {
+						def scheme = it.scheme.scheme
+						def code = it.scheme.code
+						if (scheme && code && !validSchemeEntry(scheme, code)) {
+							def msg = "Symbol scheme entry ${scheme}:${code} not found in project schemes"
+							issues << msg
+						}
+					}
+				}
+			}
+			
 			if (issues.size() > 0) { auditResults << new AuditResult(containerName, issues)	}
 			
 			GeoUtils.adjustDown(container, secTop, false)
@@ -170,6 +196,16 @@ class AuditProjectController {
 		view.progress.indeterminate = false
 		view.progress.value = 0
 		view.progressText.text = "Audit complete, ${model.auditResults.size} issues found"
+	}
+	
+	private boolean validSchemeEntry(String schemeId, String code) {
+		def valid = false
+		def scheme = Platform.getService(SchemeManager.class)?.getScheme(schemeId)
+		if (scheme) {
+			def entry = scheme.getEntry(code)
+			if (entry) valid = true
+		}
+		return valid
 	}
 
 	private makeNoneAndOrUndescribedMsg(isNone, noDesc) {

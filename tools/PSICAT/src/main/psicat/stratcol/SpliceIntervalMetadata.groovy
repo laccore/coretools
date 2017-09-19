@@ -133,13 +133,17 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
 	}
 	
+	private parseSection(fullSectionName) {
+		return fullSectionName.substring(fullSectionName.lastIndexOf('-') + 1)
+	}
+	
 	// return list of section names, starting with startSec, ending with endSec,
 	// and including any sections that fall between the two
 	private getSectionNames(startSec, endSec) {
 		def startnum, endnum
 		try {
-			startnum = startSec[-1] as Integer
-			endnum = endSec[-1] as Integer
+			startnum = parseSection(startSec) as Integer
+			endnum = parseSection(endSec) as Integer
 		} catch (e) {
 			//errbox("Parse Error", "Couldn't get section number")
 			return []

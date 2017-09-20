@@ -18,8 +18,8 @@ package psicat.stratcol
 
 import au.com.bytecode.opencsv.CSVReader
 
+import psicat.stratcol.SpliceIntervalMetadata
 import psicat.stratcol.StratColumnMetadataTypes as scmt
-//import psciat.stratcol.StratColumnMetadata
 
 import psicat.util.CustomFileFilter
 import psicat.util.Dialogs
@@ -32,7 +32,7 @@ class StratColumnMetadataUtils {
 		reader.close()
 		if (firstRow.length == 3)
 			type = scmt.SectionMetadataFile
-		else if (firstRow.length == 15)
+		else if ((firstRow.length == 15 || firstRow.length == 16) && SpliceIntervalMetadata.isValid(openMetadataFile(mdFile)))
 			 type = scmt.SpliceIntervalFile
 		return type
 	}
@@ -62,6 +62,6 @@ class StratColumnMetadataUtils {
 	
 	static File chooseMetadataFile(parent=null) {
 		def csvFilter = new CustomFileFilter(description: "CSV Files (*.csv)", extensions: [".csv"])
-		return Dialogs.showOpenDialog("Select Section Metadata File", csvFilter, parent)
+		return Dialogs.showOpenDialog("Select a Section Metadata or Splice Interval File", csvFilter, parent)
 	}
 }

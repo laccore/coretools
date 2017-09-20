@@ -22,10 +22,27 @@ import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
 import psicat.stratcol.StratColumnMetadataUtils as utils
+import psicat.stratcol.SpliceIntervalReader
 
 import psicat.util.GeoUtils
 
 class SpliceIntervalMetadata implements StratColumnMetadata {
+	public static final String Site = "Site"
+	public static final String Hole = "Hole"
+	public static final String Core = "Core"
+	public static final String CoreType = "Core Type"
+	public static final String TopSection = "Top Section";
+	public static final String TopOffset = "Top Offset";
+	public static final String TopCCSF = "Top Depth CCSF-A";
+	public static final String BottomSection = "Bottom Section";
+	public static final String BottomOffset = "Bottom Offset";
+	public static final String BottomCCSF = "Bottom Depth CCSF-A";
+	
+	public static boolean isValid(csvreader) {
+		def reader = new SpliceIntervalReader(csvreader)
+		return reader.hasColumns([Site, Hole, Core, CoreType, TopSection, TopOffset, TopCCSF, BottomSection, BottomOffset, BottomCCSF])
+	}
+	
 	private metadataPath = null
 	private metadata = null
 	private sectionMapping = null
@@ -50,38 +67,34 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	def parse(project) throws Exception {
 		def sectionMapping = []
 		def metadata = []
-		def reader = utils.openMetadataFile(metadataPath)
+		def reader = new SpliceIntervalReader(utils.openMetadataFile(metadataPath))
 		reader.readAll().eachWithIndex { row, rowIndex ->
-			if (rowIndex > 0) { // skip header row
-				def startSecDepth, endSecDepth, startMbsf, endMbsf, startMcd, endMcd
-				try {
-					startSecDepth = row[5] as BigDecimal
-					endSecDepth = row[9] as BigDecimal
-					startMbsf = row[6] as BigDecimal
-					endMbsf = row[10] as BigDecimal
-					startMcd = row[7] as BigDecimal
-					endMcd = row[11] as BigDecimal
-				} catch (e) {
-					throw new Exception("Couldn't convert text to number at row ${rowIndex + 1}: ${e.toString()}", e)
-				}
+			def startSecDepth, endSecDepth, startMcd, endMcd
+			try {
+				startSecDepth = row[TopOffset] as BigDecimal
+				endSecDepth = row[BottomOffset] as BigDecimal
+				startMcd = row[TopCCSF] as BigDecimal
+				endMcd = row[BottomCCSF] as BigDecimal
+			} catch (e) {
+				throw new Exception("Couldn't convert text to number at row ${rowIndex + 1}: ${e.toString()}", e)
+			}
+			
+			//println "Interval $index:"
+			def startSec = makeSectionName(row, TopSection)
+			//println "   Start section: $startSec at depth $startSecDepth"
+			def endSec = makeSectionName(row, BottomSection)
+			//println "   End section: $endSec at depth $endSecDepth"
+			
+			def projectSections = []
+			def sectionNames = getSectionNames(startSec, endSec)
+			sectionNames.eachWithIndex { it, sectionIndex ->
+				def projSec = utils.findSection(it, project.containers, true)
+				sectionMapping << ['metadataSection':it, 'section':projSec]
 				
-				//println "Interval $index:"
-				def startSec = makeSectionName(row, 4)
-				//println "   Start section: $startSec at depth $startSecDepth"
-				def endSec = makeSectionName(row, 8)
-				//println "   End section: $endSec at depth $endSecDepth"
-				
-				def projectSections = []
-				def sectionNames = getSectionNames(startSec, endSec)
-				sectionNames.eachWithIndex { it, sectionIndex ->
-					def projSec = utils.findSection(it, project.containers, true)
-					sectionMapping << ['metadataSection':it, 'section':projSec]
-					
-					if (projSec) { projectSections << projSec }
-				}
-				if (projectSections.size() > 0) {
-					metadata << ['startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth, 'sections':projectSections]
-				}
+				if (projSec) { projectSections << projSec }
+			}
+			if (projectSections.size() > 0) {
+				metadata << ['startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth, 'sections':projectSections]
 			}
 		}
 		
@@ -124,12 +137,12 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		return drawData.sort { it.top }
 	}
 	
-	private makeSectionName(siRow, secIndex, expName=null) {
-		def site = siRow[0]
-		def hole = siRow[1]
-		def core = siRow[2]
-		def tool = siRow[3]
-		def sec = siRow[secIndex]
+	private makeSectionName(siRow, secCol, expName=null) {
+		def site = siRow[Site]
+		def hole = siRow[Hole]
+		def core = siRow[Core]
+		def tool = siRow[CoreType]
+		def sec = siRow[secCol]
 		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
 	}
 	

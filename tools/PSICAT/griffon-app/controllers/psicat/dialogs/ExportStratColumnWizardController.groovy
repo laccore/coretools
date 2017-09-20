@@ -395,7 +395,12 @@ class ExportStratColumnWizardController {
 		
 		updateProgress(10, "Preparing data...")
 		
-		model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project)
+		try {
+			model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project)
+		} catch (e) {
+			errbox("Export Error", "Error processing metadata: ${e.getMessage()}")
+			return
+		}
 		
 		// create PDF
 		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))

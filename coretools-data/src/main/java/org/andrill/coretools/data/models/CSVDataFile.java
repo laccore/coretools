@@ -42,7 +42,7 @@ public class CSVDataFile implements Model, DataSource {
 	protected char separator;
 	protected char quote;
 	protected int skipLines;
-	protected int column;
+	protected int column; // index of the 'x' column, typically depth
 
 	public CSVDataFile(final String path, final String separator, final String quote, final int skipLines,
 	        final int column) {

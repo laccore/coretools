@@ -117,7 +117,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			def intervalLength = secMap.endMcd - secMap.startMcd
 			println "totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength"
 			
-			if (totalModelLength > intervalLength || totalModelLength == 0) {
+			if (totalModelLength > intervalLength) {
 				def scalingFactor = intervalLength / totalModelLength
 				sectionModels.each { key, modelList -> GeoUtils.scaleModels(modelList, scalingFactor) }
 			}

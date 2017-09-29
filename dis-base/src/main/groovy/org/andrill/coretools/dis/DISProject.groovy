@@ -216,7 +216,7 @@ class DISProject extends AbstractProject implements ModelContainer.Listener {
 				if (interval.top != null) {
 					interval.base = interval.top + curBase
 				} else {
-					LOGGER.info("Interval top not found, unable to determine base"
+					LOGGER.info("Interval top not found, unable to determine base")
 				}
 			}
 			

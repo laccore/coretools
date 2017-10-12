@@ -47,11 +47,11 @@ import groovy.lang.MissingPropertyException
 	}
 	
 	Length(String str) {
-		this(str, Locale.getDefault())
+		this(str, Locale.ENGLISH)
 	}
 	
 	Length(String str, Locale locale) {
-		NumberFormat format = NumberFormat.getInstance(locale ?: Locale.getDefault())
+		NumberFormat format = NumberFormat.getInstance(locale ?: Locale.ENGLISH)
 		str = str.trim().toLowerCase()
 		if (str.isNumber()) {
 			value = format.parse(str) as BigDecimal

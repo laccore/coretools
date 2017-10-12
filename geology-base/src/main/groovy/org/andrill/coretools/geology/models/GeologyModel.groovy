@@ -159,7 +159,7 @@ abstract class GeologyModel implements Model {
 	public double getIndexMax() { (double) Math.max(top?.to("m")?.value ?: 0, base?.to("m")?.value ?: 0) }
 	
 	protected format(value) {
-		def formatter = NumberFormat.getInstance()
+		def formatter = NumberFormat.getInstance(Locale.ENGLISH)
 		formatter.applyPattern('0.0##')
 		switch(value.class) {
 			case Length: return "${formatter.format(value.value)} ${value.unit}"

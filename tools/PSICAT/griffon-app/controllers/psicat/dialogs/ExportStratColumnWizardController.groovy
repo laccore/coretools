@@ -24,8 +24,9 @@ import java.awt.Polygon;
 import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.apache.log4j.Logger
+import org.apache.log4j.FileAppender
+import org.apache.log4j.SimpleLayout
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -48,7 +49,7 @@ class ExportStratColumnWizardController {
     def model
     def view
 	
-	private static Logger logger = LoggerFactory.getLogger(ExportStratColumnWizardController.class)
+	private static Logger logger = Logger.getLogger(ExportStratColumnWizardController.class)
 	
 	def PAGE_HEIGHT = 72 * 60 // 60" 
 	def PAGE_WIDTH = 612 // 8.5"
@@ -347,6 +348,12 @@ class ExportStratColumnWizardController {
 	def preExport() {
 		usedLiths.clear()
 		usedOccs.clear()
+		
+		logger.removeAllAppenders()
+		def logPath = FileUtils.removeExtension(model.exportPath) + ".log"
+		def appender = new FileAppender(new SimpleLayout(), logPath, false)
+		logger.addAppender(appender)
+		logger.setAdditivity(false)
 	}
 	
 	void errbox(title, message) {
@@ -376,7 +383,8 @@ class ExportStratColumnWizardController {
 		}
 		def totalIntervalLength = bottomDepth - topDepth
 		setScaleFactor(totalIntervalLength)
-		logger.info("Content height = ${CONTENT_HEIGHT}, works out to $scaleFactor pix/m, or ${1.0/scaleFactor} m/pix")
+		logger.info("Starting strat column export to ${model.exportPath}...")
+		logger.info("Content height = ${CONTENT_HEIGHT}pix, works out to $scaleFactor pix/m, or ${1.0/scaleFactor} m/pix")
 
 		// parse alternate grain sizes if necessary...
 		def altGSMap = null
@@ -396,7 +404,7 @@ class ExportStratColumnWizardController {
 		updateProgress(10, "Preparing data...")
 		
 		try {
-			model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project)
+			model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project, logger)
 		} catch (e) {
 			errbox("Export Error", "Error processing metadata: ${e.getMessage()}")
 			return
@@ -429,7 +437,7 @@ class ExportStratColumnWizardController {
 				
 				// now grab intervals and draw them - curint is simply the Model that is an Interval
 				sitdata.siIntervals.eachWithIndex { sectionDrawData, sectionIndex ->
-					logger.info("- ${sectionDrawData.sectionName} -")
+					logger.info("- Drawing ${sectionDrawData.sectionName}... -")
 					def modelList = sectionDrawData.models
 					
 					if (model.drawSectionNames) {
@@ -456,7 +464,7 @@ class ExportStratColumnWizardController {
 						def pattern = mod.lithology
 						def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
 						if (pattern && !entry) {
-							logger.info("no scheme entry found for $pattern, mapping to None lithology")
+							logger.warn("no scheme entry found for $pattern, mapping to None lithology")
 							entry = noneSchemeEntry
 						}
 						def gsTop = mod.grainSizeTop ?: gsdef() // TODO: gsdef() check here for missing grain sizes
@@ -483,22 +491,22 @@ class ExportStratColumnWizardController {
 									logger.info("nextSec top ${nextSec.top} - curSec base ${sitdata.base} < 1px ($pixSize)")
 								}
 							} else if (nextTop) {
-								logger.info("\n==> next top ${nextTop} - curSec base $b < 1px ($pixSize)???\n==>")
+								logger.info("next top ${nextTop} - curSec base $b < 1px ($pixSize)?")
 								if (Math.abs(nextTop - b) < pixSize) {
 									nextSecTopY = depth2pix(nextTop) + ybase
-									logger.info("\n====>\n====> next metadata interval top ${nextTop} - curSec base $b < 1px ($pixSize)\n====>\n")
+									logger.info("next metadata interval top ${nextTop} - curSec base $b < 1px ($pixSize)")
 									//height = nextSecTopY - y
 								}
 							}
 							if (nextSecTopY) 
 								height = nextSecTopY - y
 						}
-						logger.info("y = $y, height = $height")
+						logger.info("y = $y, physical height = ${b - t}, pixel height = $height")
 
 						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
 						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
 						drawInterval(g2, entry, xbase, xur, xlr, y, height, model.drawIntervalBorders)
-						if (!entry) println "### ERROR No lithology entry for $mod"
+						if (!entry) logger.warn("No lithology entry for $mod")
 						usedLiths << entry
 						
 						if (model.drawSymbols) {
@@ -536,6 +544,7 @@ class ExportStratColumnWizardController {
 		g2.dispose()
 		document.close()
 
+		logger.info("Export complete!\n########################\n\n")
 		updateProgress(100, "Export complete!")
 	}
 	

@@ -31,7 +31,12 @@ class SectionMetadata implements StratColumnMetadata {
 	}
 	public int getType() { return types.SectionMetadataFile }
 	public String getTypeName() { return "Section Metadata" }
-	public getDrawData(project) { return createDrawData(project) }
+	public getDrawData(project, logger) {
+		GeoUtils.setLogger(logger) 
+		def drawData = createDrawData(project, logger)
+		GeoUtils.setLogger(null)
+		return drawData
+	}
 	public mapSections(project) {
 		 parse(project.containers)
 		 return this.metadata
@@ -70,7 +75,7 @@ class SectionMetadata implements StratColumnMetadata {
 	
 	// return list of top/base ranges and models to be drawn,
 	// *only* for project sections mapped from metadata sections
-	def createDrawData(project) {
+	def createDrawData(project, logger) {
 		def intervalsToDraw = []
 		this.metadata.findAll { it.section != null }.each {
 			// gather and zero base models for each section

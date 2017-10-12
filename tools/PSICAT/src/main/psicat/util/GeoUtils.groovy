@@ -32,7 +32,11 @@ import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.DefaultModelManager
 
 class GeoUtils {
-	private static Logger logger = LoggerFactory.getLogger(GeoUtils.class)
+	private static logger = LoggerFactory.getLogger(GeoUtils.class)
+	
+	static setLogger(def logger) {
+		GeoUtils.logger = logger ?: LoggerFactory.getLogger(GeoUtils.class)
+	}
 	
 	// parse alternate grain size CSV file: row 1 should be a valid Scale string, remaining rows
 	// consist of code and grain size columns. Returns map with 'scale' for scale string, 'gs' map 
@@ -50,7 +54,6 @@ class GeoUtils {
 		if (reader) {
 			def entries = reader.readAll()
 			entries.eachWithIndex { row, index ->
-				//println "row ${index + 1}: $row"
 				if (index == 0) { // parse and verify scale
 					try {
 						def testScale = new Scale(row[0])
@@ -113,7 +116,7 @@ class GeoUtils {
 	
 	// cull models out of range, trim models that overlap range
 	static getTrimmedModels(project, secname, min, max) {
-		println "Trimming $secname, min = $min, max = $max"
+		logger.info("Trimming $secname, min = $min, max = $max")
 		def trimmedModels = []
 		def projContainer = project.openContainer(secname)
 		def cursec = copyContainer(projContainer)
@@ -130,36 +133,36 @@ class GeoUtils {
 			if (min) {
 				def cmp = mod.base.compareTo(min)
 				if (cmp == -1 || cmp == 0) {
-					println "   $mod out of range or base == $min, culling"
+					logger.info("   $mod out of range or base == $min, culling")
 					continue;
 				}
 				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {
-					print "   $mod top above $min, trimming..."
+					logger.info("   $mod top above $min, trimming")
 					mod.top = min.to('m')
-					println "$mod"
+					logger.info("$mod")
 				}
 			}
 			if (max) {
 				def cmp = mod.top.compareTo(max)
 				if (cmp == 1 || cmp == 0) {
-					println "   $mod out of range or top == $max, culling"
+					logger.info("   $mod out of range or top == $max, culling")
 					continue;
 				}
 				if (mod.top.compareTo(max) == -1 && mod.base.compareTo(max) == 1) {
-					print "   $mod bot below $max, trimming..."
+					logger.info("   $mod bot below $max, trimming...")
 					mod.base = max.to('m')
-					println "$mod"
+					logger.info("$mod")
 				}
 			}
 			trimmedModels << mod
 		}
 		
-		println "   pre-zeroBase: trimmedModels = $trimmedModels"
+		logger.info("   pre-zeroBase: trimmedModels = $trimmedModels")
 		
 		// now that we've trimmed, need to zero base *again* so scaling works properly
 		zeroBase(trimmedModels)
 		
-		println "   post-zeroBase: trimmedModels = $trimmedModels"
+		logger.info("   post-zeroBase: trimmedModels = $trimmedModels")
 		return trimmedModels
 	}
 	
@@ -176,21 +179,20 @@ class GeoUtils {
 			it.base *= scale
 		}
 	}
-	
-	// TODO MAKE MORE THINGS STATUS SO METHODS CAN BE CALLED!
+
 	static compressModels(models, drilledLength) {
 		if (models.size() > 0) {
 			def maxBase = getMaxBase(models)
 			def scalingFactor = 1.0
 			if (maxBase.value > 0.0) // avoid divide by zero
 				scalingFactor = drilledLength / maxBase.value
-			println "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor"
+			logger.info( "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor")
 			if (scalingFactor < 1.0) {
-				println "   Downscaling models..."
+				logger.info("   Downscaling models...")
 				scaleModels(models, scalingFactor)
-				println "   Downscaled: $models"
+				logger.info("   Downscaled: $models")
 			} else {
-				println "   Scaling factor >= 1.0, leaving models as-is"
+				logger.info("   Scaling factor >= 1.0, leaving models as-is")
 			}
 		}
 	}

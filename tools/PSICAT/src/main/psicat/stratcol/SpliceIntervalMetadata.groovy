@@ -26,6 +26,9 @@ import psicat.stratcol.SpliceIntervalReader
 
 import psicat.util.GeoUtils
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 class SpliceIntervalMetadata implements StratColumnMetadata {
 	public static final String Site = "Site"
 	public static final String Hole = "Hole"
@@ -51,7 +54,12 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	}
 	public int getType() { return types.SpliceIntervalFile }
 	public String getTypeName() { return "Splice Interval" }
-	public getDrawData(project) { return createDrawData(project) }
+	public getDrawData(project, logger) { 
+		GeoUtils.setLogger(logger)
+		def drawData = createDrawData(project, logger)
+		GeoUtils.setLogger(null)
+		return drawData
+	}
 	public getTop() {
 		return this.metadata?.collect { it.startMcd }.min()
 	}
@@ -91,10 +99,11 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 				def projSec = utils.findSection(it, project.containers, true)
 				sectionMapping << ['metadataSection':it, 'section':projSec]
 				
-				if (projSec) { projectSections << projSec }
+				if (projSec) { projectSections << ['projSec':projSec, 'sectionNum':parseSection(it)] }
 			}
 			if (projectSections.size() > 0) {
-				metadata << ['startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'endSecDepth':endSecDepth, 'sections':projectSections]
+				metadata << ['startMcd':startMcd, 'endMcd':endMcd, 'startSecDepth':startSecDepth, 'startSec':row[TopSection],
+					'endSec':row[BottomSection], 'endSecDepth':endSecDepth, 'sections':projectSections]
 			}
 		}
 		
@@ -102,20 +111,24 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		this.sectionMapping = sectionMapping
 	}
 	
-	def createDrawData(project) {
+	def createDrawData(project, logger) {
 		def drawData = []
 		this.metadata.eachWithIndex { secMap, index ->
 			def secTop = new Length(secMap.startSecDepth, 'cm')
 			def secBase = new Length(secMap.endSecDepth, 'cm')
 			def sectionModels = [:]
 			def totalModelLength = 0
-			secMap.sections.eachWithIndex { sec, secIndex ->
-				def trimmedModels = GeoUtils.getTrimmedModels(project, sec, secIndex == 0 ? secTop : null, secIndex == secMap.sections.size() - 1 ? secBase : null)
+			secMap.sections.eachWithIndex { section, secIndex ->
+				def sectionName = section.projSec
+				def sectionNum = section.sectionNum
+				def trimMin = (sectionNum == secMap.startSec) ? secTop : null
+				def trimMax = (sectionNum == secMap.endSec) ? secBase : null
+				def trimmedModels = GeoUtils.getTrimmedModels(project, sectionName, trimMin, trimMax)
 				totalModelLength += GeoUtils.getLength(trimmedModels)
-				sectionModels[sec] = trimmedModels
+				sectionModels[sectionName] = trimmedModels
 			}
 			def intervalLength = secMap.endMcd - secMap.startMcd
-			println "totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength"
+			logger.info("totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength")
 			
 			if (totalModelLength > intervalLength) {
 				def scalingFactor = intervalLength / totalModelLength
@@ -127,7 +140,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			sectionModels.each { section, models ->
 				def base = top + GeoUtils.getLength(models)
 				def sdd = new SectionDrawData(section, top, base, models)
-				println "Created $sdd"
+				logger.info("Created $sdd")
 				intervalModels << sdd
 				top = base
 			}
@@ -158,12 +171,10 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			startnum = parseSection(startSec) as Integer
 			endnum = parseSection(endSec) as Integer
 		} catch (e) {
-			//errbox("Parse Error", "Couldn't get section number")
 			return []
 		}
 		
 		if (endnum < startnum) {
-			//errbox("Data Error", "End section $endnum precedes start section $startnum")
 			return []
 		}
 		

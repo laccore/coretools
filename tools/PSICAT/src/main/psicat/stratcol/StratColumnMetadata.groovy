@@ -20,7 +20,7 @@ interface StratColumnMetadata {
 	public int getType()
 	public String getTypeName()
 	public mapSections(project)
-	public getDrawData(project)
+	public getDrawData(project, logger)
 	public getTop()
 	public getBase()
 }

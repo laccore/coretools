@@ -43,10 +43,10 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 		if (models.add(model)) {
 			model.setContainer(this);
 			for (Listener l : listeners) {
-				LOGGER.debug("Notifiying {} of added model", l);
+				//LOGGER.debug("Notifiying {} of added model", l);
 				l.modelAdded(model);
 			}
-			LOGGER.debug("Added model {}", model);
+			//LOGGER.debug("Added model {}", model);
 		}
 	}
 
@@ -67,7 +67,7 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 	 */
 	public void addListener(final Listener listener) {
 		listeners.add(listener);
-		LOGGER.debug("Added listener {}", listener);
+		//LOGGER.debug("Added listener {}", listener);
 	}
 
 	/**
@@ -98,10 +98,10 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 		if (models.remove(model)) {
 			model.setContainer(null);
 			for (Listener l : listeners) {
-				LOGGER.debug("Notifiying {} of removed model", l);
+				//LOGGER.debug("Notifiying {} of removed model", l);
 				l.modelRemoved(model);
 			}
-			LOGGER.debug("Removed model {}", model);
+			//LOGGER.debug("Removed model {}", model);
 		}
 	}
 
@@ -122,7 +122,7 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 	 */
 	public void removeListener(final Listener listener) {
 		listeners.remove(listener);
-		LOGGER.debug("Removed listener {}", listener);
+		//LOGGER.debug("Removed listener {}", listener);
 	}
 
 	/**
@@ -138,10 +138,10 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 	public void update(final Model model) {
 		if (models.contains(model)) {
 			for (Listener l : listeners) {
-				LOGGER.debug("Notifiying {} of updated model", l);
+				//LOGGER.debug("Notifiying {} of updated model", l);
 				l.modelUpdated(model);
 			}
-			LOGGER.debug("Updated model {}", model);
+			//LOGGER.debug("Updated model {}", model);
 		}
 	}
 }

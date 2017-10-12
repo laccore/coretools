@@ -38,6 +38,25 @@ if (!uuid) {
 GoogleAnalytics ga = new GoogleAnalytics("UA-64269312-1")
 ga.post(new PageViewHit("http://www.laccore.org", "launch: UUID=$uuid"))
 
+def defLoc = Locale.getDefault()
+def warnStr = """\
+Non-English system language detected.
+We recommend that you set your system language to US English when using PSICAT.
+
+Otherwise, note that PSICAT requires input of decimals with a dot (3.1415),
+not a comma (3,1415). Imported tables must also follow this protocol."""
+
+if (prefs.getBoolean('psicat.showCommaDecimalWarning', true) && defLoc.getDisplayLanguage() != "English") {
+	JCheckBox prompt = new JCheckBox("Don't show this warning again")
+	String[] options = ["OK"]
+
+	JOptionPane.showOptionDialog(app.appFrames[0], [warnStr] as Object[], "Warning",
+			JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0])
+	if (prompt.isSelected()) {
+		prefs.putBoolean('psicat.showCommaDecimalWarning', false)
+	}
+}
+
 // prompt to re-open last project
 if (prefs.getBoolean('psicat.promptReopenLastProject', true)) {
 	String name = prefs.get('psicat.lastProjectName', null)

@@ -64,6 +64,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     	doOutside {
     		model.standardImages.each() { m ->
     			m.icon = helper.iconify(m?.image)
+				m.custom = false
     		}
     	}
     }
@@ -178,16 +179,33 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	    		view.schemeEntries.clearSelection()
 	    		model.schemeEntries.clear()
 	    		model.schemeEntries.addAll(scheme.entries)
+				addCustomImages(scheme)
 	    	} else {
 	    		view.schemeId.text = ""
 	    		view.schemeName.text = ""
 	    		view.schemeType.selectedItem = null
 	    		view.schemeEntries.clearSelection()
 	    		model.schemeEntries.clear()
+				removeCustomImages()
 	    	}
 			setSchemeDirty(false)
     	}
     }
+	
+	// add/remove non-standard images from loaded/closed scheme to/from imageChooser 
+	def pathToFile(String path) { return path.substring(path.lastIndexOf("/") + 1) }
+	def addCustomImages(scheme) {
+		def stdImageNames = model.standardImages.collect { pathToFile(it.image) }
+		def customImages = scheme.entries.findAll() { pathToFile(it.image).endsWith("png") && !(pathToFile(it.image) in stdImageNames) }.unique() { it.image }
+		customImages.each {
+			model.standardImages << [name:pathToFile(it.image), image:it.image, icon:helper.iconify(it.image), custom:true]
+		}
+	}
+	def removeCustomImages() {
+		def culledCustom = model.standardImages.findAll() { !(it.custom) }
+		model.standardImages.clear()
+		model.standardImages.addAll(culledCustom)
+	}
     
 	/**
 	 * Update model.schemeFile reference and mainView's title bar
@@ -394,7 +412,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	    if ( fc.showDialog(app.appFrames[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
 	    	currentOpenDir = fc.currentDirectory
 	    	def f = fc.selectedFile
-	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm())]
+	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm()), custom:true]
 	    	model.standardImages << m
 	    	doLater {
 	    		view.standardImages.setSelectedValue(m, true)

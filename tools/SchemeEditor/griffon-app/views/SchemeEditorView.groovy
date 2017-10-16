@@ -231,7 +231,10 @@ class SchemeEntryTableFormat implements WritableTableFormat, AdvancedTableFormat
 class EntryListRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean hasFocus) {
 	    def label = super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
-	    if (value?.name) { label.text = value.name }
+		def labelText = ""
+	    if (value?.name) { labelText += value.name }
+		if (value?.custom) { labelText += " (custom)" }
+		label.text = labelText
 	    if (value?.icon) { label.icon = value.icon } 
 	    return label;
 	}

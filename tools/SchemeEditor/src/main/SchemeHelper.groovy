@@ -23,6 +23,7 @@ import java.awt.TexturePaint
 import java.util.jar.JarFile
 import java.util.zip.ZipFileimport java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+
 import javax.imageio.ImageIO
 import javax.swing.Icon
 import javax.swing.ImageIcon
@@ -68,6 +69,24 @@ public class SchemeHelper {
 		return code
 	}
 	
+	static String createUniqueCode(name, schemeEntries) {
+		def result = null
+		def baseCode = codeFromName(name)
+		int suffixNum = 1
+		def suffix = ""
+		while (true) {
+			def code = baseCode + suffix
+			if (schemeEntries.find { it.code?.equals(code) } != null) {
+				suffix = "$suffixNum"
+				suffixNum++
+			} else {
+				result = code
+				break
+			}
+		}
+		return result
+	}
+
 	/**
 	 * Parses an image from a path.
 	 */

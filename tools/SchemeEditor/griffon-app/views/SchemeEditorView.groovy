@@ -178,7 +178,7 @@ class SchemeEntryTableFormat implements WritableTableFormat, AdvancedTableFormat
 		if (column == 0) {
 			obj.name = newValue
 			if (!obj.code) {
-				obj.code = createUniqueCode(obj.name)
+				obj.code = SchemeHelper.createUniqueCode(obj.name, entries)
 			}
 			return obj
 		} else if (column == 1) {
@@ -206,25 +206,7 @@ class SchemeEntryTableFormat implements WritableTableFormat, AdvancedTableFormat
 	
 	// AdvancedTableFormat methods - make column sorting case-insensitive
 	public Class getColumnClass(int column) { return Object.class }
-	public Comparator getColumnComparator(int column) { return GlazedLists.caseInsensitiveComparator() }
-	
-	private String createUniqueCode(name) {
-		def result = null
-		def baseCode = SchemeHelper.codeFromName(name)
-		int suffixNum = 1
-		def suffix = ""
-		while (true) {
-			def code = baseCode + suffix
-			if (this.entries.find { it.code?.equals(code) } != null) {
-				suffix = "$suffixNum"
-				suffixNum++
-			} else {
-				result = code	
-				break
-			}
-		}
-		return result
-	}
+	public Comparator getColumnComparator(int column) { return GlazedLists.caseInsensitiveComparator() }	
 }
 
 // Choose Image list cell renderer

@@ -298,15 +298,17 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 			view.schemeEntries.cellEditor?.stopCellEditing()
 		}
 		model.schemeEntries.getReadWriteLock().writeLock().lock()
+
 		try {
-			// must set code to empty string, otherwise a NullPointerException throws a
-			// wrench into table column sorting
-			def e = [name:'New Entry', code:'']
-			model.schemeEntries << e
-			setEntry(e)
-			def row = model.schemeEntries.indexOf(model.entry)
-			view.schemeEntries.selectionModel.setSelectionInterval(row, row)
-		} finally {
+			def entryName = JOptionPane.showInputDialog(app.appFrames[0], "New Entry Name:")
+			if (entryName) {
+				def e = [name:entryName, code:SchemeHelper.createUniqueCode(entryName, model.schemeEntries)]
+				model.schemeEntries << e
+				setEntry(e)
+				def row = model.schemeEntries.indexOf(model.entry)
+				view.schemeEntries.selectionModel.setSelectionInterval(row, row)
+			}
+    	} finally {
 			model.schemeEntries.getReadWriteLock().writeLock().unlock()
 		}
     }

@@ -348,12 +348,20 @@ class ExportStratColumnWizardController {
 	def preExport() {
 		usedLiths.clear()
 		usedOccs.clear()
-		
-		logger.removeAllAppenders()
-		def logPath = FileUtils.removeExtension(model.exportPath) + ".log"
-		def appender = new FileAppender(new SimpleLayout(), logPath, false)
-		logger.addAppender(appender)
-		logger.setAdditivity(false)
+		initLogging()
+	}
+	
+	def initLogging() {
+		if (model.exportLog) {
+			def logPath = FileUtils.removeExtension(model.exportPath) + ".log"
+			def appender = new FileAppender(new SimpleLayout(), logPath, false)
+			logger.addAppender(appender)
+			logger.setAdditivity(false)
+		}
+	}
+	
+	def shutdownLogging() {
+		if (model.exportLog) logger.removeAllAppenders()
 	}
 	
 	void errbox(title, message) {
@@ -545,6 +553,7 @@ class ExportStratColumnWizardController {
 		document.close()
 
 		logger.info("Export complete!\n########################\n\n")
+		shutdownLogging()
 		updateProgress(100, "Export complete!")
 	}
 	

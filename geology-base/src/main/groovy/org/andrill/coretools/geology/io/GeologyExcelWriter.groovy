@@ -37,13 +37,20 @@ class GeologyExcelWriter {
 	void setSchemeManager(manager) { this.schemeManager = manager }
 	
 	// containers: map of containers keyed on section ID
-	void write(containerMap, stream) {
+	void write(containerMap, stream, progressListener=null) {
 		workbook = Workbook.createWorkbook(stream)
-		containerMap.each { sectionID, container ->
-			container.models.each {	addModelData(it, sectionID) }
+		containerMap.eachWithIndex { sectionID, container, index ->
+			container.models.each {	
+				addModelData(it, sectionID)
+				updateProgress(progressListener, index / containerMap.size(), "Exporting $sectionID...")
+			}
 		}
 		workbook.write()
 		workbook.close()
+	}
+	
+	void updateProgress(listener, text, pct) {
+		if (listener) listener.progressChanged(text, pct)
 	}
 	
 	void addModelData(model, sectionID) {

@@ -20,6 +20,7 @@ import psicat.util.*
 
 actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
+	action(id: 'exportAction', name:'Export', closure: controller.actions.export)
 }
 
 // dirty trick here: use eachSection item but label it "All Sections" to indicate everything will end up in the same spreadsheet
@@ -34,5 +35,12 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	
 	label('File:')
 	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
-	button(action: browseAction)
+	button(action: browseAction, constraints:'wrap')
+	
+	separator(constraints: 'span, growx, wrap')
+	
+	panel(layout:new MigLayout('insets 0','[grow][]',''), constraints:'span, growx') {
+		progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
+		button(id:'exportBtn', action: exportAction)
+	}
 }

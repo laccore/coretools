@@ -36,42 +36,66 @@ class ExportTabularWizardController {
 			}
 			def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], app.appFrames[0])
 			if (file) { model.filePath = file.absolutePath }
+		},
+		'export': {
+			if (!model.filePath) {
+				Dialogs.showErrorDialog("Error", "Please choose a destination file.", view.root)
+			} else {
+				doOutside {
+					view.exportBtn.enabled = false
+					view.progress.value = 0
+					view.progress.string = "Preparing data..."
+					exportTabular(app.controllers['exportTabularSections'].copyContainers(), view.format.selectedItem)
+					view.exportBtn.enabled = true
+				}
+			}
 		}
 	]
 	
 	def show() {
-		if (Dialogs.showCustomDialog(model.title, view.root, app.appFrames[0])) {
-			return exportTabular(app.controllers['exportTabularSections'].copyContainers(), view.format.selectedItem)
-		} else {
-			return ''
+		Dialogs.showCustomOneButtonDialog(model.title, view.root, app.appFrames[0])
+		return ''
+	}
+	
+	def progressChanged(pct, text) {
+		edt {
+			view.progress.value = (pct * 100.0).intValue()
+			view.progress.string = text
 		}
 	}
 
 	// export selected containers' contents into a single Workbook
 	private def exportTabular(containers, format) {
-		containers.each { k, v ->
-			// assume single section per container - adjust model depths to section depth
-			def section = v.find { it.modelType == "Section" }
-			GeoUtils.adjustUp(v, section.top)
-		}
-		
-		// determine output file path
-		def defaultName = containers.size() > 1 ? model.project.name : (containers.keySet() as List)[0]
-		def file = model.getFile(defaultName)
-		def name = file.name
-		int i = name.lastIndexOf('.')
-		if (name.lastIndexOf('.') == -1) {
-			name = "${name}.${format.toLowerCase()}"
-		}
+		try {
+			containers.each { k, v ->
+				// assume single section per container - adjust model depths to section depth
+				def section = v.find { it.modelType == "Section" }
+				GeoUtils.adjustUp(v, section.top)
+			}
 			
-		// write
-		def manager = Platform.getService(SchemeManager.class)
-		def writer = Platform.getService(GeologyExcelWriter.class)
-		if (writer) {
-			writer.setSchemeManager(manager)
-			new File(file.parentFile, name).withOutputStream { writer.write(containers, it) }
+			// determine output file path
+			def defaultName = containers.size() > 1 ? model.project.name : (containers.keySet() as List)[0]
+			def file = model.getFile(defaultName)
+			def name = file.name
+			int i = name.lastIndexOf('.')
+			if (name.lastIndexOf('.') == -1) {
+				name = "${name}.${format.toLowerCase()}"
+			}
+				
+			// write
+			def manager = Platform.getService(SchemeManager.class)
+			def writer = Platform.getService(GeologyExcelWriter.class)
+			if (writer) {
+				writer.setSchemeManager(manager)
+				new File(file.parentFile, name).withOutputStream { writer.write(containers, it, this) }
+			}
+			
+			progressChanged(100, "Export complete!")
+			
+			return "Exported " + (containers.size() == 1 ? (containers.keySet() as List)[0] : 'each section')
+		} catch (Exception e) {
+			Dialogs.showErrorDialog("Error", "Exception thrown: ${e.message}", view.root)
+			progressChanged(0, "Export failed.")
 		}
-		
-		return "Exported " + (containers.size() == 1 ? (containers.keySet() as List)[0] : 'each section')
 	}
 }

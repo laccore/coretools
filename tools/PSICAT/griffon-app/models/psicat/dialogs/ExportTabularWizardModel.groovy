@@ -23,7 +23,7 @@ class ExportTabularWizardModel {
 	String title = "Export Tabular"
 	def project
 	
-	@Bindable String filePath
+	@Bindable String filePath = null
 	
 	File getFile(String defaultName) {
 		def path = filePath ?: defaultName

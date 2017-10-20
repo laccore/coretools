@@ -439,8 +439,12 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	public void listChanged(ListEvent listChanges) { schemeChanged() }
 	
 	public void schemeNameLostFocus(event) {
+		// use scheme name to auto-populate scheme ID field if it's empty
 		if (view.schemeName.text.length() > 0 && view.schemeId.text.length() == 0) {
-			view.schemeId.text = SchemeHelper.codeFromName(view.schemeName.text, ".")
+			def sid = view.schemeName.text.toLowerCase()
+			sid = sid.replaceAll(/[ -]{1,}/, ".") // convert spaces and hyphens to dots
+			sid = sid.replaceAll(/[^a-z0-9.]/, "") // remove non-alphanumerics except for dots
+			view.schemeId.text = sid
 		}
 	}
 }

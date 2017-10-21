@@ -193,7 +193,9 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     }
 	
 	// add/remove non-standard images from loaded/closed scheme to/from imageChooser 
-	def pathToFile(String path) { return path.substring(path.lastIndexOf("/") + 1) }
+	def pathToFile(String path) { 
+		return path != null ? path.substring(path.lastIndexOf("/") + 1) : ""
+	}
 	def addCustomImages(scheme) {
 		def stdImageNames = model.standardImages.collect { pathToFile(it.image) }
 		def customImages = scheme.entries.findAll() { pathToFile(it.image).endsWith("png") && !(pathToFile(it.image) in stdImageNames) }.unique() { it.image }
@@ -365,8 +367,8 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		withMVC('ColorChooser', entries:model.schemeEntries, selectedColor:model.entry?.color) { mvc ->
 			def color = mvc.controller.show()
 			if (color) {
-				model.entryColor = color
-				model.entry.color = color
+				model.entryColor = color.toString()
+				model.entry.color = color.toString()
 				schemeChanged()
 				updatePreview()
 			}

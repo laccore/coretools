@@ -436,7 +436,8 @@ class ExportStratColumnWizardController {
 		def offsetSectionName = false
 		model.sortedMetadata.eachWithIndex { sitdata, sitIndex ->
 			if (sitdata.top < topDepth || sitdata.base > bottomDepth) {
-				logger.info("Skipping ${sitdata.section} [${sitdata.top} - ${sitdata.base} outside of depth range [$topDepth - $bottomDepth]")
+				def secname = sitdata.siIntervals.size() > 0 ? sitdata.siIntervals[0].sectionName : "Unknown section"
+				logger.info("Skipping $secname: range [${sitdata.top} - ${sitdata.base}] isn't entirely within strat column depth range [$topDepth - $bottomDepth]")
 			} else {
 				logger.info("--- Interval $sitIndex ---")
 				updateProgress(10 + (sitIndex / model.sortedMetadata.size() * 90).intValue(), "Exporting data...")

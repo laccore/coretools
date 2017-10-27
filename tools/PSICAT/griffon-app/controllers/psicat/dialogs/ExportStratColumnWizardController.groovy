@@ -373,7 +373,7 @@ class ExportStratColumnWizardController {
 		preExport()
 
 		if (model.drawGrainSize && !model.useProjectGrainSize && !model.alternateGrainSizePath) {
-			errbox("Export Error", "A default grain size file must be selected.")
+			errbox("Export Error", "A grain size file must be selected.")
 			return
 		}
 		
@@ -402,7 +402,7 @@ class ExportStratColumnWizardController {
 				model.grainSizeScale = new Scale(altGSData['scale'])
 				altGSMap = altGSData['gs']
 			} catch (e) {
-				errbox("Export Error", "Couldn't parse default grain size file: ${e.getMessage()}")
+				errbox("Export Error", "Couldn't parse grain size file: ${e.getMessage()}")
 				return
 			}
 		} else { // ...or use project's grain size
@@ -568,7 +568,7 @@ class ExportStratColumnWizardController {
 			}
 		},
 		'chooseAlternateGrainSize': { evt = null ->
-			def file = Dialogs.showOpenDialog("Choose Default Grain Size File", CustomFileFilter.CSV, app.appFrames[0])
+			def file = Dialogs.showOpenDialog("Choose Grain Size File", CustomFileFilter.CSV, app.appFrames[0])
 			if (file) { model.alternateGrainSizePath = file.absolutePath }
 		},
 		'doExport': { evt = null ->

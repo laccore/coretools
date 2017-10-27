@@ -63,7 +63,7 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 			buttonGroup().with {
 				add radioButton(text:"Project Grain Sizes", selected:bind(source:model, sourceProperty:'useProjectGrainSize', mutual:true),
 					enabled:bind { model.drawGrainSize })
-				add radioButton(text:"Default Values", selected:bind { !model.useProjectGrainSize }, enabled:bind { model.drawGrainSize })
+				add radioButton(text:"Grain Size File", selected:bind { !model.useProjectGrainSize }, enabled:bind { model.drawGrainSize })
 			}
 		}
 		hbox(constraints:'growx, wrap') {

@@ -19,6 +19,7 @@ import java.awt.Desktop
 
 import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
+import java.util.regex.Pattern
 
 import javax.swing.JOptionPane
 
@@ -210,28 +211,45 @@ class PSICATController {
 	}
 	
 	// is version1 >= version2?
+	// assumes semantic versioning: X.Y.Z-optional prerelease]
+	// X.Y.Z is considered later than X.Y.Z-prerelease
 	boolean isLatestVersion(version1, version2) {
 		def latest = null
-		
-		def v1 = version1.split('\\.')
-		def v2 = version2.split('\\.')
+		def v1 = parseVersion(version1)
+		def v2 = parseVersion(version2)
 
-		int index = 0
-		def comp = 0
-		while (index < v1.size() && index < v2.size()) {
-			comp = Integer.parseInt(v1[index]) <=> Integer.parseInt(v2[index])
+		for (int index = 1; index <= 3; index++) {
+			def comp = Integer.parseInt(v1.group(index)) <=> Integer.parseInt(v2.group(index))
 			if (comp != 0) {
 				latest = (comp == 1) // implies v1 > v2, thus result = true
 				break
 			}
-			index++
 		}
 		
-		// if equivalent up to this point, longer version is greater
-		if (latest == null)
-			latest = v1.size() >= v2.size()
-			
-		latest
+		// if equivalent up to this point, check for prerelease label
+		if (latest == null) {
+			def v1pr = v1.group(5) // group 4 is the hyphen or underscore prefix, group 5 is the prerelease
+			def v2pr = v2.group(5)
+			if (v1pr && !v2pr) {
+				latest = false
+			} else {
+				// latest = true because:
+				// - v1 has no prerelease and v2 does implying v1 is latest, or
+				// - neither has a prerelease so they're equal, thus v1 is latest, or
+				// - both have a prerelease but we can't compare them, call v1 latest by default.
+				latest = true
+			}
+		}
+		return latest
+	}
+	
+	private parseVersion(version) {
+		// X.Y.Z are required. Version may include - or _ prefixed prerelease label.
+		String regex = "([0-9]+)\\.([0-9]+)\\.([0-9]+)([-_])?([A-Za-z][A-Za-z0-9.+]+)?"
+		def pattern = Pattern.compile(regex)
+		def matcher = pattern.matcher(version)
+		matcher.matches()
+		return matcher
 	}
 
 	// our action implementations

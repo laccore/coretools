@@ -24,7 +24,11 @@ import org.andrill.coretools.model.DefaultProject
 import psicat.PSICATController
 
 
-app.controllers.PSICAT.actions.versionCheckSilent()
+try {
+	app.controllers.PSICAT.actions.versionCheckSilent()
+} catch (Exception e) {
+	JOptionPane.showMessageDialog(app.appFrames[0], "Update check failed: ${e.message}")
+}
 
 // load or create unique user ID
 def prefs = Preferences.userNodeForPackage(PSICATController)

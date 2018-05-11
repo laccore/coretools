@@ -18,13 +18,21 @@ package psicat.dialogs
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Project
 
+import java.io.File;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+
 import psicat.util.*
 
 class NewProjectWizardController {
     def model
     def view
 
-    void mvcGroupInit(Map args) {}
+    void mvcGroupInit(Map args) {
+		// gather default lithology and symbol schemes
+		model.lithologySchemes = getDefaultSchemes('lithology')
+		model.symbolSchemes = getDefaultSchemes('symbol')
+	}
 
     def actions = [
 	    'browse': { evt = null ->
@@ -38,6 +46,12 @@ class NewProjectWizardController {
 
     def show() {
     	if (Dialogs.showCustomDialog("Create New Project", view.root, app.appFrames[0])) {
+			def defLith = view.lithologyScheme.getSelectedItem()?.toString()
+			def defSym = view.symbolScheme.getSelectedItem()?.toString()
+			if (defLith)
+				model.defaultSchemePaths.add(model.lithologySchemes[defLith])
+			if (defSym)
+				model.defaultSchemePaths.add(model.symbolSchemes[defSym])
     		return createProject()
     	}
     }
@@ -53,5 +67,59 @@ class NewProjectWizardController {
 		} else {
 			throw new IllegalStateException('A directory is required to create a new project')
 		}
+	}
+	
+	private def getDefaultSchemes(type) {
+		def schemes = [:]
+		def res = new File("resources")
+		if (res.exists() && res.isDirectory()) {
+			res.listFiles().each { f ->
+				if (f.name.endsWith(".jar")) {
+					def schemeInfo = getSchemeInfo(f)
+					if (schemeInfo && schemeInfo.type == type) {
+						schemes[schemeInfo.name] = f.absolutePath
+					}
+				}
+			}
+		}
+		println "found $schemes schemes of type $type"
+		return schemes
+	}
+	
+	// return Map of scheme name, id, and type
+	private def getSchemeInfo(File f) {
+		def schemeInfo = null
+		try {
+			JarFile jf = new JarFile(f);
+			ZipEntry ze = jf.getEntry("scheme.xml");
+			def stream = jf.getInputStream(ze);
+			schemeInfo = read(stream, true);
+		} catch (Exception e) {
+			System.out.println("Couldn't get scheme info for ${f.absolutePath}");
+		}
+		return schemeInfo
+	}
+
+	// Read a scheme from a stream.
+	// brg 5/9/2018 shamelessly stolen from coretools/tools/SchemeEditor/src/main/SchemeHelper.groovy
+	private def read(stream, skipEntries=false) {
+		def scheme = [ id:"", name:"", type:"", entries:[] ]
+		
+		def xml = new XmlSlurper()
+		def root = xml.parse(stream)
+		scheme.id = root?.@id?.toString()
+		scheme.name = root?.@name?.toString()
+		scheme.type = root?.@type?.toString()
+		if (skipEntries) return scheme
+		root.entry.each { e ->
+			def props = [:]
+			e.property.each { p ->
+				if (p?.@name && p?.@value) {
+					props[p.@name.toString()] = p.@value.toString()
+				}
+			}
+			scheme.entries << props
+		}
+		return scheme
 	}
 }

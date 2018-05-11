@@ -29,7 +29,7 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	button(action: browseAction, constraints: 'wrap')
 
 	// project name
-	label('Name:')
+	label('Project Name:')
 	textField(text: bind(source: model, sourceProperty:'name', mutual:true), constraints: 'growx, span, wrap')
 	
 	// project type
@@ -45,8 +45,14 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 		add radioButton(text: 'Default', selected: bind { !model.useCustomSchemes }, constraints:'split')
 		add radioButton(text: 'Custom', selected: bind(source: model, sourceProperty: 'useCustomSchemes', mutual:true), constraints:'wrap')
 	}
+	
+	// default lithology and symbol scheme combos
+	label('Default Lithologies:', enabled:bind { !model.useCustomSchemes }, constraints:'gapleft 15')
+	comboBox(id:'lithologyScheme', items: model.lithologySchemes.keySet() as List, constraints:'wrap', enabled:bind { !model.useCustomSchemes })
+	label('Default Symbols:', enabled:bind { !model.useCustomSchemes }, constraints:'gapleft 15')
+	comboBox(id:'symbolScheme', items: model.symbolSchemes.keySet() as List, constraints:'wrap', enabled:bind { !model.useCustomSchemes })
 	separator(constraints: 'growx, span, wrap')
 	
 	// import sections
-	checkBox(text: 'Open Import Sections wizard', selected: bind(source: model, sourceProperty: 'importSections', mutual:true), constraints: 'span')
+	checkBox(text: 'Open Import Sections Wizard after project creation', selected: bind(source: model, sourceProperty: 'importSections', mutual:true), constraints: 'span')
 }

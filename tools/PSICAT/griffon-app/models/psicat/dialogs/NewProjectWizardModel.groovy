@@ -25,6 +25,9 @@ import psicat.util.Dialogs
 	boolean originTop = true
 	boolean importSections = false
 	boolean useCustomSchemes = false
+	Map lithologySchemes = [:]
+	Map symbolSchemes = [:]
+	List defaultSchemePaths = []
 
 	File getFile() {
 		if (!filePath) return null

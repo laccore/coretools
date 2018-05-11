@@ -95,17 +95,13 @@ class ProjectLocal {
 		return projSchemeFile
 	}
 	
-	static void copyDefaultSchemes(project) {
-		def res = new File("resources")
-		if (res.exists() && res.isDirectory()) {
-			def prefix = project.name.replace(" ", "") 
-			def schemeFiles = []
-			res.eachFile {
-				if (it.isFile() && it.name.endsWith(".jar"))
-					schemeFiles.add(copySchemeToProject(it, project.path, prefix))
-			}
-			loadSchemes(schemeFiles)
+	static void copyDefaultSchemes(project, schemePaths) {
+		def schemeFiles = []
+		def prefix = project.name.replace(" ", "")
+		schemePaths.each {
+			schemeFiles.add(copySchemeToProject(new File(it), project.path, prefix))
 		}
+		loadSchemes(schemeFiles)
 	}
 	
 	static void updateSchemeManager(schemeFiles) {

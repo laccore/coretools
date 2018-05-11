@@ -263,7 +263,7 @@ class PSICATController {
 					if (mvc.model.useCustomSchemes) {
 						actions.chooseSchemes()
 					} else {
-						ProjectLocal.copyDefaultSchemes(project)
+						ProjectLocal.copyDefaultSchemes(project, mvc.model.defaultSchemePaths)
 					}					
 					if (mvc.model.importSections) {
 						actions.importImage()

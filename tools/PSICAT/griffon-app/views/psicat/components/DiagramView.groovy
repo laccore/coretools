@@ -16,12 +16,15 @@
 package psicat.components
 
 import java.awt.geom.Point2D
+import java.awt.event.KeyEvent
 
 import org.andrill.coretools.scene.Selection 
+import org.andrill.coretools.scene.Scene
 import org.andrill.coretools.scene.Scene.ScenePart
 import org.andrill.coretools.ui.ScenePanel
 import org.andrill.coretools.ui.ScenePanel.Orientation
-import org.andrill.coretools.ui.ScenePanel.SelectionProvider 
+import org.andrill.coretools.ui.ScenePanel.SelectionProvider
+import org.andrill.coretools.ui.ScenePanel.KeySelectionProvider
 
 scrollPane(id:'viewer', columnHeaderView: widget(new ScenePanel(null, ScenePart.HEADER, Orientation.VERTICAL), id:'header'), constraints: 'grow', border: emptyBorder(0)) {
 	widget(new ScenePanel(null, ScenePart.CONTENTS, Orientation.VERTICAL), id: 'contents')
@@ -50,3 +53,45 @@ contents.selectionProvider = { scene, e ->
 		return (o == null) ? Selection.EMPTY : new Selection(o)
 	}
 } as SelectionProvider
+
+// customize keyboard-based selection
+// Shift+UP selects next object of same type above
+// Shift+DOWN selects next object of same type below
+contents.keySelectionProvider = { scene, e ->
+	def newSelection = null
+	if (e.getKeyCode() == KeyEvent.VK_DOWN && e.isShiftDown()) {
+		newSelection = getNextObject(scene)
+	} else if (e.getKeyCode() == KeyEvent.VK_UP && e.isShiftDown()) {
+		newSelection = getNextObject(scene, false)
+	}
+	return newSelection
+} as KeySelectionProvider
+
+// In the specified Scene, if an Object is selected, find the 'next' Object of
+// the same type in the specified direction and return it as a Selection.
+def getNextObject(Scene s, boolean lower=true) {
+	def cur = s.selection.firstObject
+	def sel = null
+	if (cur) {
+		def mods = cur.container.models.collect { it } // container.models is immutable but we need to sort
+		mods.sort { it.top.to('m').value }
+		if (lower) {
+			// all non-cur objects of cur's type with top depth >= cur.top or greater index
+			// in mods if top depth == cur.top
+			def siblings = mods.findAll { it != cur && it.modelType == cur.modelType && 
+				(it.top.compareTo(cur.top) > 0 ||
+				(it.top.compareTo(cur.top) == 0 && mods.indexOf(it) > mods.indexOf(cur))) }
+			sel = siblings.min { Math.abs(cur.top.minus(it.top).to('m').value) }
+		} else {
+			// all non-cur objects of cur's type with top depth <= cur.top or lesser index
+			// in mods if top depth == cur.top
+			def siblings = mods.findAll { it != cur && it.modelType == cur.modelType && 
+				(it.top.compareTo(cur.top) < 0 || (it.top.compareTo(cur.top) == 0 &&
+				mods.indexOf(it) < mods.indexOf(cur))) }
+			// Want selection order to be opposite of 'lower' block. Given [a,b,c] where a == b == c,
+			// min() returns a because it's first in the list, but we want c first, thus reverse().
+			sel = siblings.reverse().min { Math.abs(cur.top.minus(it.top).to('m').value) }
+		}
+	}
+	return sel == null ? s.selection : new Selection(sel)
+}

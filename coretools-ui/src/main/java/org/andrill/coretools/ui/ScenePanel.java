@@ -84,11 +84,21 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 		Selection getSelection(Scene scene, SceneMouseEvent event);
 	}
 
+	public interface KeySelectionProvider {
+		Selection getSelection(Scene scene, SceneKeyEvent event);
+	}
+
 	private static final long serialVersionUID = 1L;
 	private static final SelectionProvider DEFAULT_PROVIDER = new SelectionProvider() {
 		public Selection getSelection(final Scene scene, final SceneMouseEvent e) {
 			Object o = scene.findAt(new Point2D.Double(e.getX(), e.getY()), e.getTarget());
 			return (o == null) ? Selection.EMPTY : new Selection(o);
+		}
+	};
+
+	private static final KeySelectionProvider DEFAULT_KEY_SELECTION_PROVIDER = new KeySelectionProvider() {
+		public Selection getSelection(final Scene scene, final SceneKeyEvent e) {
+			return scene.getSelection(); // return existing selection by default
 		}
 	};
 
@@ -102,6 +112,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	protected int height = 0;
 	protected AtomicBoolean repainting = new AtomicBoolean(false);
 	protected SelectionProvider selectionProvider = DEFAULT_PROVIDER;
+	protected KeySelectionProvider keySelectionProvider = DEFAULT_KEY_SELECTION_PROVIDER;
 	protected int scrollUnits = 20;
 	
 	/**
@@ -313,7 +324,12 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	public void keyPressed(final KeyEvent e) {
 		if (isFocusOwner() && isEditable()) {
 			if (handler != null) {
-				updateFeedback(handler.keyPressed(new SceneKeyEvent(this, part, e)));
+				SceneKeyEvent ske = new SceneKeyEvent(this, part, e);
+				Selection sel = keySelectionProvider.getSelection(scene, ske);
+				if (sel != null) {
+					scene.setSelection(sel);
+					updateFeedback(handler.keyPressed(ske));
+				}
 			} else {
 				updateFeedback(null);
 			}
@@ -590,6 +606,10 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public void setSelectionProvider(final SelectionProvider selectionProvider) {
 		this.selectionProvider = (selectionProvider == null ? DEFAULT_PROVIDER : selectionProvider);
+	}
+
+	public void setKeySelectionProvider(final KeySelectionProvider ksp) {
+		this.keySelectionProvider = (ksp == null ? DEFAULT_KEY_SELECTION_PROVIDER : ksp);
 	}
 
 	protected void updateFeedback(final Feedback feedback) {

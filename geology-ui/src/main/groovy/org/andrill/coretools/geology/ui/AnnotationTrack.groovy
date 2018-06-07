@@ -21,7 +21,10 @@ import java.awt.Color
 import java.awt.Font
 import java.text.DecimalFormat
 import org.andrill.coretools.graphics.GraphicsContext
-/**
+
+import org.andrill.coretools.geology.models.Occurrence
+
+/**
  * A track to draw Annotation models and descriptions on other models.
  * 
  * @author Josh Reed (jareed@andrill.org)
@@ -57,7 +60,7 @@ class AnnotationTrack extends GeologyTrack {
 		def rects = [:]
 		onpage.eachWithIndex { m, i ->
 			text[m] = wrap(m, graphics, font, boldFont, bounds.width - 2*PADDING)
-			def r = mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
+			def r = m instanceof Occurrence ? mrect_midpoint(m, bounds.x + PADDING, bounds.width - 2*PADDING) : mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
 			r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
 			rects[m] = r
 			if (i > 0) {

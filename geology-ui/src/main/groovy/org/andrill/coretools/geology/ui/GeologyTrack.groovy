@@ -213,6 +213,12 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 		def b = pts(m.base.to(units).value, bounds)
 		rect(x, t, w, b - t)
 	}
+	def mrect_midpoint(m, x = bounds.x, w = bounds.width) {
+		def t = pts(m.top.to(units).value, bounds)
+		def b = pts(m.base.to(units).value, bounds)
+		def y = (m.top.compareTo(m.base) == 0 ? t : t + (b - t)/2.0)
+		rect(x, y, w, b - t)
+	}
 	
 	// common properties and conversions
 	def getFont()   	{ new Font("SanSerif", Font.PLAIN, 12) }

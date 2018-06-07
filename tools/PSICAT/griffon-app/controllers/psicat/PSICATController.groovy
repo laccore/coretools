@@ -396,7 +396,7 @@ class PSICATController {
 
 PSICAT is a graphical tool for creating and editing core description and stratigraphic column diagrams.
 
-JRE Version: ${System.getProperty("java.version")}
+JRE Version: ${System.getProperty("java.version")} (${System.getProperty("sun.arch.data.model")}-bit)
 JRE Vendor: ${System.getProperty("java.vendor")}
 JRE Home: ${System.getProperty("java.home")}
 		""".toString(), app.appFrames[0])

@@ -399,6 +399,7 @@ PSICAT is a graphical tool for creating and editing core description and stratig
 JRE Version: ${System.getProperty("java.version")} (${System.getProperty("sun.arch.data.model")}-bit)
 JRE Vendor: ${System.getProperty("java.vendor")}
 JRE Home: ${System.getProperty("java.home")}
+Working Dir: ${System.getProperty("user.dir")}
 		""".toString(), app.appFrames[0])
 		},
 		'documentation': { evt = null ->

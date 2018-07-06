@@ -32,7 +32,7 @@ class StratColumnMetadataUtils {
 		reader.close()
 		if (firstRow.length == 3)
 			type = scmt.SectionMetadataFile
-		else if ((firstRow.length == 15 || firstRow.length == 16) && SpliceIntervalMetadata.isValid(openMetadataFile(mdFile)))
+		else if (SpliceIntervalMetadata.isValid(openMetadataFile(mdFile)))
 			 type = scmt.SpliceIntervalFile
 		return type
 	}

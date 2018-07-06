@@ -34,21 +34,24 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	public static final String Hole = "Hole"
 	public static final String Core = "Core"
 	public static final String CoreType = "Core Type"
-	public static final String TopSection = "Top Section";
-	public static final String TopOffset = "Top Offset";
-	public static final String TopCCSF = "Top Depth CCSF-A";
-	public static final String BottomSection = "Bottom Section";
-	public static final String BottomOffset = "Bottom Offset";
-	public static final String BottomCCSF = "Bottom Depth CCSF-A";
+	public static final String Tool = "Tool"
+	public static final String TopSection = "Top Section"
+	public static final String TopOffset = "Top Offset"
+	public static final String TopCCSF = "Top Depth CCSF-A"
+	public static final String BottomSection = "Bottom Section"
+	public static final String BottomOffset = "Bottom Offset"
+	public static final String BottomCCSF = "Bottom Depth CCSF-A"
 	
 	public static boolean isValid(csvreader) {
 		def reader = new SpliceIntervalReader(csvreader)
-		return reader.hasColumns([Site, Hole, Core, CoreType, TopSection, TopOffset, TopCCSF, BottomSection, BottomOffset, BottomCCSF])
+		def alts = [(CoreType): Tool] // accepted alternate names
+		return reader.hasColumns([Site, Hole, Core, CoreType, TopSection, TopOffset, TopCCSF, BottomSection, BottomOffset, BottomCCSF], alts)
 	}
 	
 	private metadataPath = null
 	private metadata = null
 	private sectionMapping = null
+	private toolHeaderName = null
 	public SpliceIntervalMetadata(metadataPath) {
 		this.metadataPath = metadataPath
 	}
@@ -76,6 +79,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		def sectionMapping = []
 		def metadata = []
 		def reader = new SpliceIntervalReader(utils.openMetadataFile(metadataPath))
+		this.toolHeaderName = reader.toolHeaderName
 		reader.readAll().eachWithIndex { row, rowIndex ->
 			def startSecDepth, endSecDepth, startMcd, endMcd
 			try {
@@ -154,7 +158,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		def site = siRow[Site]
 		def hole = siRow[Hole]
 		def core = siRow[Core]
-		def tool = siRow[CoreType]
+		def tool = siRow[this.toolHeaderName]
 		def sec = siRow[secCol]
 		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
 	}

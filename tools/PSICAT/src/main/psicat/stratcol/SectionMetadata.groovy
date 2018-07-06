@@ -86,7 +86,7 @@ class SectionMetadata implements StratColumnMetadata {
 			GeoUtils.compressModels(models, drilledLength)
 			
 			def intervalModels = [new SectionDrawData(it.section, it.top, it.base, models)]
-			intervalsToDraw.add(['top':it.top, 'base':it.base, 'siIntervals':intervalModels])
+			intervalsToDraw.add(['top':it.top, 'base':it.base, 'drawData':intervalModels])
 		}
 		
 		return intervalsToDraw.sort { it.top }

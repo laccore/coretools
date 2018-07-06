@@ -411,6 +411,7 @@ class ExportStratColumnWizardController {
 		
 		updateProgress(10, "Preparing data...")
 		
+		// gather draw data
 		try {
 			model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project, logger)
 		} catch (e) {
@@ -418,7 +419,7 @@ class ExportStratColumnWizardController {
 			return
 		}
 		
-		// create PDF
+		// create destination PDF
 		Document document = new Document(new Rectangle(PAGE_WIDTH, PAGE_HEIGHT))
 		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(model.exportPath))
 		document.open();
@@ -434,18 +435,19 @@ class ExportStratColumnWizardController {
 		g2.setStroke(new BasicStroke(0.3F))
 		
 		def offsetSectionName = false
-		model.sortedMetadata.eachWithIndex { sitdata, sitIndex ->
-			if (sitdata.top < topDepth || sitdata.base > bottomDepth) {
-				def secname = sitdata.siIntervals.size() > 0 ? sitdata.siIntervals[0].sectionName : "Unknown section"
-				logger.info("Skipping $secname: range [${sitdata.top} - ${sitdata.base}] isn't entirely within strat column depth range [$topDepth - $bottomDepth]")
+		// each element of metadata contains a depth range and the models to be drawn in that range
+		model.sortedMetadata.eachWithIndex { mdElt, mdIndex ->
+			if (mdElt.top < topDepth || mdElt.base > bottomDepth) {
+				def secname = mdElt.drawData.size() > 0 ? mdElt.drawData[0].sectionName : "Unknown section"
+				logger.info("Skipping $secname: range [${mdElt.top} - ${mdElt.base}] isn't entirely within strat column depth range [$topDepth - $bottomDepth]")
 			} else {
-				logger.info("--- Interval $sitIndex ---")
-				updateProgress(10 + (sitIndex / model.sortedMetadata.size() * 90).intValue(), "Exporting data...")
+				logger.info("--- Interval $mdIndex ---")
+				updateProgress(10 + (mdIndex / model.sortedMetadata.size() * 90).intValue(), "Exporting data...")
 				
-				def nextTop = sitIndex + 1 < model.sortedMetadata.size() ? model.sortedMetadata[sitIndex + 1].top : null 
+				def nextTop = mdIndex + 1 < model.sortedMetadata.size() ? model.sortedMetadata[mdIndex + 1].top : null 
 				
-				// now grab intervals and draw them - curint is simply the Model that is an Interval
-				sitdata.siIntervals.eachWithIndex { sectionDrawData, sectionIndex ->
+				// draw models
+				mdElt.drawData.eachWithIndex { sectionDrawData, sectionIndex ->
 					logger.info("- Drawing ${sectionDrawData.sectionName}... -")
 					def modelList = sectionDrawData.models
 					
@@ -469,13 +471,15 @@ class ExportStratColumnWizardController {
 						def y = depth2pix(t) + ybase
 						def bot = depth2pix(b) + ybase
 						
-						// use alternate grain size if necessary
+						// force pattern-less Intervals to None lithology
 						def pattern = mod.lithology
 						def entry = pattern ? getSchemeEntry(pattern.scheme, pattern.code) : noneSchemeEntry
 						if (pattern && !entry) {
 							logger.warn("no scheme entry found for $pattern, mapping to None lithology")
 							entry = noneSchemeEntry
 						}
+						
+						// use alternate grain size if necessary						
 						def gsTop = mod.grainSizeTop ?: gsdef() // TODO: gsdef() check here for missing grain sizes
 						def gsBase = mod.grainSizeBase ?: gsdef()
 						if (model.drawGrainSize && !model.useProjectGrainSize) {
@@ -493,11 +497,11 @@ class ExportStratColumnWizardController {
 						if (intervalIndex == intervals.size() - 1) {
 							def nextSecTopY = null
 							def pixSize = 1.0 / scaleFactor
-							if (sectionIndex < sitdata.siIntervals.size() - 1) {
-								def nextSec = sitdata.siIntervals[sectionIndex + 1]
-								if (nextSec.top - sitdata.base < pixSize) {
+							if (sectionIndex < mdElt.drawData.size() - 1) {
+								def nextSec = mdElt.drawData[sectionIndex + 1]
+								if (nextSec.top - mdElt.base < pixSize) {
 									nextSecTopY = depth2pix(nextSec.top) + ybase
-									logger.info("nextSec top ${nextSec.top} - curSec base ${sitdata.base} < 1px ($pixSize)")
+									logger.info("nextSec top ${nextSec.top} - curSec base ${mdElt.base} < 1px ($pixSize)")
 								}
 							} else if (nextTop) {
 								logger.info("next top ${nextTop} - curSec base $b < 1px ($pixSize)?")
@@ -512,16 +516,19 @@ class ExportStratColumnWizardController {
 						}
 						logger.info("y = $y, physical height = ${b - t}, pixel height = $height")
 
+						// draw Interval, determining drawn width from grain size
 						def xur = xbase + (model.drawGrainSize ? gsoff(gsTop) : STRAT_WIDTH)
 						def xlr = xbase + (model.drawGrainSize ? gsoff(gsBase) : STRAT_WIDTH)
 						drawInterval(g2, entry, xbase, xur, xlr, y, height, model.drawIntervalBorders)
 						if (!entry) logger.warn("No lithology entry for $mod")
 						usedLiths << entry
 						
+						// draw symbols/Occurrences
 						if (model.drawSymbols) {
-							// find Occurrences in this Interval and draw
+							// find Occurrences in the range of the current Interval
 							def intervalOccs = occs.findAll { (it.base.value + it.top.value) / 2.0 > mod.top.value && (it.base.value + it.top.value) / 2.0 < mod.base.value }
 	
+	 						// aggregate if needed
 							if (model.aggregateSymbols) {
 								def usedEntries = new HashSet()
 								def aggregatedOccs = []
@@ -531,7 +538,7 @@ class ExportStratColumnWizardController {
 								intervalOccs = aggregatedOccs
 							}
 							
-							// draw interval's occurrences starting from interval's rightmost edge (x) and top (y)
+							// draw Occurrences starting from interval's rightmost edge (x) and top (y)
 							def OCC_SPACE = 2
 							def occRowWidth = OCC_SPACE * 2 // pad between end of lithology and start of occurrence
 							intervalOccs.each { o ->

@@ -115,6 +115,8 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		this.sectionMapping = sectionMapping
 	}
 	
+	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
+	// 'drawData':list of PSICAT models to be drawn in that range]
 	def createDrawData(project, logger) {
 		def drawData = []
 		this.metadata.eachWithIndex { secMap, index ->
@@ -149,7 +151,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 				top = base
 			}
 			
-			drawData << ['top':secMap.startMcd, 'base':secMap.endMcd, 'siIntervals':intervalModels]
+			drawData << ['top':secMap.startMcd, 'base':secMap.endMcd, 'drawData':intervalModels]
 		}
 		return drawData.sort { it.top }
 	}

@@ -17,10 +17,17 @@
 package psicat.stratcol
 
 interface StratColumnMetadata {
-	public int getType()
-	public String getTypeName()
+	public int getType() // StratColumnMetadataTypes type
+	public String getTypeName() // name of metadata type
+	
+	// map metadata sections to those in project, return map with elements of
+	// form metadata section:project section
 	public mapSections(project)
+
+	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
+	// 'siIntervals':list of PSICAT models to be drawn in that range]
 	public getDrawData(project, logger)
-	public getTop()
-	public getBase()
+
+	public getTop() // get topmost depth in metadata
+	public getBase() // get bottommost depth in metadata
 }

@@ -94,7 +94,7 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		label('File:')
 		textField(text: bind(source:model, sourceProperty:'exportPath', mutual:true), constraints:'growx')
 		button(action:chooseExport, constraints:'wrap')
-		checkBox(text:"Include log detailing export process", selected:bind(source:model, sourceProperty:'exportLog', mutual:true), constraints:'span,wrap')
+		checkBox(text:"Export text log detailing process", selected:bind(source:model, sourceProperty:'exportLog', mutual:true), constraints:'span,wrap')
 	}
 	
 	panel(layout: new MigLayout('','[grow][]',''), constraints:'growx') {

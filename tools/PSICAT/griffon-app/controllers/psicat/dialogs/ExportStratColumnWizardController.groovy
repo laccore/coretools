@@ -38,12 +38,14 @@ import com.lowagie.text.pdf.PdfWriter;
 import org.andrill.coretools.Platform;
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.io.GeologyExcelWriter
 import org.andrill.coretools.geology.ui.Scale
 import org.andrill.coretools.model.scheme.Scheme
 import org.andrill.coretools.model.scheme.SchemeEntry
 import org.andrill.coretools.model.scheme.SchemeManager
 
 import psicat.util.*
+import psicat.stratcol.StratColumnMetadataTypes
 
 class ExportStratColumnWizardController {
     def model
@@ -560,9 +562,28 @@ class ExportStratColumnWizardController {
 		g2.dispose()
 		document.close()
 
+		if (model.exportTabular) { exportTabularData(logger) }
+
 		logger.info("Export complete!\n########################\n\n")
 		shutdownLogging()
 		updateProgress(100, "Export complete!")
+
+	}
+
+	def exportTabularData(logger) {
+		updateProgress(95, "Exporting tabular data...")
+		def tabContainers = model.stratColumnMetadata.getContainers(model.project, logger)
+		try {
+			def manager = Platform.getService(SchemeManager.class)
+			def excelWriter = Platform.getService(GeologyExcelWriter.class)
+			if (excelWriter) {
+				def excelPath = model.exportPath.replace(".pdf", ".xls")
+				excelWriter.setSchemeManager(manager)
+				new File(excelPath).withOutputStream { excelWriter.write(tabContainers, it) }
+			}
+		} catch (Exception e) {
+			logger.info("Couldn't write tabular: ${e.message}")
+		}
 	}
 	
     def actions = [
@@ -596,6 +617,9 @@ class ExportStratColumnWizardController {
 					model.stratColumnMetadata = mvc.model.stratColumnMetadata
 					model.startDepth = model.stratColumnMetadata.getTop()
 					model.endDepth = model.stratColumnMetadata.getBase()
+					def enable = (model.stratColumnMetadata.type == StratColumnMetadataTypes.SpliceIntervalFile)
+					view.exportTabular.enabled = enable
+					if (!enable) { model.exportTabular = false }
 					confirmed = true
 				}
 			}

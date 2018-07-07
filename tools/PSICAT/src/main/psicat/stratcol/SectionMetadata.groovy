@@ -91,4 +91,7 @@ class SectionMetadata implements StratColumnMetadata {
 		
 		return intervalsToDraw.sort { it.top }
 	}
+
+	// unimplemented, no need for SectionMetadata tabular export at present
+	def getContainers(project, logger) { return [] }
 }

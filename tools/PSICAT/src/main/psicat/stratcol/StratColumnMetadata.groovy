@@ -28,6 +28,10 @@ interface StratColumnMetadata {
 	// 'siIntervals':list of PSICAT models to be drawn in that range]
 	public getDrawData(project, logger)
 
+	// Return list of ModelContainers with models' depths adjusted to reflect top MCD depth of interval.
+	// Used for exporting tabular data.
+	public getContainers(project, logger)
+
 	public getTop() // get topmost depth in metadata
 	public getBase() // get bottommost depth in metadata
 }

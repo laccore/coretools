@@ -41,4 +41,5 @@ import psicat.util.Dialogs
 	@Bindable boolean useProjectGrainSize = true
 	@Bindable boolean drawDms = false
 	@Bindable boolean exportLog = false
+	@Bindable boolean exportTabular = false
 }

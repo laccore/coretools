@@ -16,6 +16,7 @@
 
 package psicat.stratcol
 
+import org.andrill.coretools.model.DefaultContainer
 import org.andrill.coretools.geology.models.Length
 
 import psicat.stratcol.SectionDrawData
@@ -119,27 +120,8 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	// 'drawData':list of PSICAT models to be drawn in that range]
 	def createDrawData(project, logger) {
 		def drawData = []
-		this.metadata.eachWithIndex { secMap, index ->
-			def secTop = new Length(secMap.startSecDepth, 'cm')
-			def secBase = new Length(secMap.endSecDepth, 'cm')
-			def sectionModels = [:]
-			def totalModelLength = 0
-			secMap.sections.eachWithIndex { section, secIndex ->
-				def sectionName = section.projSec
-				def sectionNum = section.sectionNum
-				def trimMin = (sectionNum == secMap.startSec) ? secTop : null
-				def trimMax = (sectionNum == secMap.endSec) ? secBase : null
-				def trimmedModels = GeoUtils.getTrimmedModels(project, sectionName, trimMin, trimMax)
-				totalModelLength += GeoUtils.getLength(trimmedModels)
-				sectionModels[sectionName] = trimmedModels
-			}
-			def intervalLength = secMap.endMcd - secMap.startMcd
-			logger.info("totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength")
-			
-			if (totalModelLength > intervalLength) {
-				def scalingFactor = intervalLength / totalModelLength
-				sectionModels.each { key, modelList -> GeoUtils.scaleModels(modelList, scalingFactor) }
-			}
+		this.metadata.each { secMap ->
+			def sectionModels = gatherModels(project, logger, secMap)
 			
 			def intervalModels = []
 			def top = secMap.startMcd
@@ -155,7 +137,50 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		}
 		return drawData.sort { it.top }
 	}
-	
+
+	// To export tabular data via an ExcelGeologyWriter, a list of ModelContainers is required.
+	def getContainers(project, logger) {
+		def containers = [:]
+		this.metadata.each { secMap ->
+			def sectionModels = gatherModels(project, logger, secMap)
+
+			// offset all models by secMap.startMcd and throw them in a container
+			sectionModels.each { sectionName, modelList ->
+				GeoUtils.offsetModels(modelList, new Length(secMap.startMcd, 'm'))
+				def c = new DefaultContainer()
+				c.addAll(modelList)
+				containers[sectionName] = c
+			}
+		}
+		return containers
+	}
+
+	// return a list of models within secMap.startSecDepth and secMap.endSecDepth, trimmed
+	// to fit start/endSecDepth and downscaled to fit the secMap.startMcd to secMap.endMcd interval
+	private gatherModels(project, logger, secMap) {
+		def sectionModels = [:]
+		def secTop = new Length(secMap.startSecDepth, 'cm')
+		def secBase = new Length(secMap.endSecDepth, 'cm')
+		def totalModelLength = 0
+		secMap.sections.eachWithIndex { section, secIndex ->
+			def sectionName = section.projSec
+			def sectionNum = section.sectionNum
+			def trimMin = (sectionNum == secMap.startSec) ? secTop : null
+			def trimMax = (sectionNum == secMap.endSec) ? secBase : null
+			def trimmedModels = GeoUtils.getTrimmedModels(project, sectionName, trimMin, trimMax)
+			totalModelLength += GeoUtils.getLength(trimmedModels)
+			sectionModels[sectionName] = trimmedModels
+		}
+		def intervalLength = secMap.endMcd - secMap.startMcd
+		logger.info("totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength")
+		
+		if (totalModelLength > intervalLength) {
+			def scalingFactor = intervalLength / totalModelLength
+			sectionModels.each { key, modelList -> GeoUtils.scaleModels(modelList, scalingFactor) }
+		}
+		return sectionModels
+	}
+
 	private makeSectionName(siRow, secCol, expName=null) {
 		def site = siRow[Site]
 		def hole = siRow[Hole]

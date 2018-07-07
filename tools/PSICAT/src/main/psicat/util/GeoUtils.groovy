@@ -102,6 +102,8 @@ class GeoUtils {
 		}
 	}
 	
+	// find smallest top depth of models in modelList - subtract that
+	// depth from all models in modelList
 	static zeroBase(modelList) {
 		def minDepth = null
 		modelList.each {
@@ -115,6 +117,7 @@ class GeoUtils {
 	}
 	
 	// cull models out of range, trim models that overlap range
+	// min and max are section depths - Lengths in cm
 	static getTrimmedModels(project, secname, min, max) {
 		logger.info("Trimming $secname, min = $min, max = $max")
 		def trimmedModels = []

@@ -94,7 +94,10 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {
 		label('File:')
 		textField(text: bind(source:model, sourceProperty:'exportPath', mutual:true), constraints:'growx')
 		button(action:chooseExport, constraints:'wrap')
-		checkBox(text:"Export text log detailing process", selected:bind(source:model, sourceProperty:'exportLog', mutual:true), constraints:'span,wrap')
+		checkBox(id:'exportTabular', text:"Export spliced data in tabular format (.xls) alongside PDF",
+			selected:bind(source:model, sourceProperty:'exportTabular', mutual:true), constraints:'span,wrap')
+		checkBox(text:"Export text log detailing process", selected:bind(source:model, sourceProperty:'exportLog', mutual:true),
+			constraints:'span,wrap')
 	}
 	
 	panel(layout: new MigLayout('','[grow][]',''), constraints:'growx') {

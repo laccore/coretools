@@ -222,9 +222,10 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	 */
 	def updateTitle() {
 		doLater {
-			def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}"
+			def subversion = app.applicationProperties['app.subversion'] ? " ${app.applicationProperties['app.subversion']}" : ""
+			def baseTitle = "Scheme Editor ${app.applicationProperties['app.version']}" + "$subversion"
 			def fileName = model.schemeFile?.name
-			def newTitle = baseTitle + (fileName ? " - [$fileName]" : "- [New Untitled Scheme]") + (model.schemeDirty ? "*" : "")
+			def newTitle = baseTitle + (fileName ? " - [$fileName]" : " - [New Untitled Scheme]") + (model.schemeDirty ? "*" : "")
 			view.mainView.title = newTitle
 		}
 	}

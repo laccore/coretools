@@ -59,13 +59,15 @@ def mainHeight = prefs.getDouble('schemeEditor.mainViewHeight', 600.0) as Intege
 def xpos = prefs.getDouble('schemeEditor.mainViewX', 50.0) as Integer
 def ypos = prefs.getDouble('schemeEditor.mainViewY', 50.0) as Integer
 
+def subversion = app.applicationProperties['app.subversion'] ?: ""
+
 // force PreviewPanel borders to redraw correctly by pretending panel is non-opaque,
 // otherwise artifacts appear in borders around preview image on Win
 def preview = new PreviewPanel()
 preview.setOpaque(false)
 
 // build our main application
-application(title: "Scheme Editor ${app.applicationProperties['app.version']}",
+application(title: "Scheme Editor ${app.applicationProperties['app.version']} $subversion",
 			id:'mainView', size:[mainWidth, mainHeight], location:[xpos,ypos], layout: new MigLayout('fill', '', '[][grow][]')) {
 	menuBar() {
 		menu(text: 'File', mnemonic: 'F') {

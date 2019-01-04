@@ -58,17 +58,30 @@ class AnnotationTrack extends GeologyTrack {
 		// wrap our description to the column width
 		def text = [:]
 		def rects = [:]
-		onpage.eachWithIndex { m, i ->
-			text[m] = wrap(m, graphics, font, boldFont, bounds.width - 2*PADDING)
-			def r = m instanceof Occurrence ? mrect_midpoint(m, bounds.x + PADDING, bounds.width - 2*PADDING) : mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
-			r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
-			rects[m] = r
-			if (i > 0) {
-				def prev = rects[onpage[i-1]]
-				int overlap = prev.maxY - r.minY
-				if (overlap > 0) {
-					r.translate(0, overlap)
+		while (true) {
+			onpage.eachWithIndex { m, i ->
+				text[m] = wrap(m, graphics, font, boldFont, bounds.width - 2*PADDING)
+				def r = m instanceof Occurrence ? mrect_midpoint(m, bounds.x + PADDING, bounds.width - 2*PADDING) : mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
+				r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
+				rects[m] = r
+				if (i > 0) {
+					def prev = rects[onpage[i-1]]
+					int overlap = prev.maxY - r.minY
+					if (overlap > 0) {
+						r.translate(0, overlap)
+					}
 				}
+			}
+			// Will all annotations fit in available space? If not, decrement
+			// font size and repeat until text fits or font is size 1,
+			// at which point we have to give up.
+			def totalTextHeight = rects.values().sum { it.height }
+			def availableSpace = bounds.height
+			if (totalTextHeight > availableSpace && font.size > 1) {
+				font = font.deriveFont((float)(font.size - 1))
+				boldFont = font.deriveFont(Font.BOLD)
+			} else {
+				break
 			}
 		}
 		

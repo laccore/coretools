@@ -18,7 +18,10 @@ package org.andrill.coretools.geology.ui
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Rectangle
-import java.awt.geom.Rectangle2Dimport java.math.RoundingModeimport org.andrill.coretools.geology.models.*
+import java.awt.geom.Rectangle2D
+import java.math.RoundingMode
+
+import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.geology.ui.event.MovePolicy
@@ -26,7 +29,9 @@ import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.model.Model;
 import org.andrill.coretools.model.edit.Command;
 import org.andrill.coretools.model.edit.EditableProperty;
-import org.andrill.coretools.scene.Scene.Originimport org.andrill.coretools.scene.event.Feedbackimport org.andrill.coretools.scene.event.DefaultFeedback
+import org.andrill.coretools.scene.Scene.Origin
+import org.andrill.coretools.scene.event.Feedback
+import org.andrill.coretools.scene.event.DefaultFeedback
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.SceneMouseEvent
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
@@ -73,8 +78,8 @@ class OccurrenceTrack extends GeologyTrack {
 		if (r.height < ss) { r = rect(r.x, r.y - (ss - r.height)/2, r.width, ss) }
 
 		// adjust for overlap
-		def offset = new Length("1 m").to(units).value
-		def intersecting = index.get(mmin(m) - offset, mmax(m)).findAll(filter) as List
+		def offset = new Length("1 m").value
+		def intersecting = index.get(mmin_meters(m) - offset, mmax_meters(m)).findAll(filter) as List
 		int index = intersecting.indexOf(m)
 		if (index > 0) {
 			def overlap = intersecting[0..index - 1].find { r.intersects(layout(it)) }
@@ -150,25 +155,30 @@ class OccurrenceTrack extends GeologyTrack {
 		rect2d(r.x + bounds.x, r.y, r.width, r.height)
 	}
 
+	// get min and max of a Model in meters, the unit expected by GeologyModelIndex
+	def mmin_meters(Model m) { new Length(mmin(m), units).to('m').value }
+	def mmax_meters(Model m) { new Length(mmax(m), units).to('m').value }
+
 	void modelAdded(Model m) {
 		//super.modelAdded(m)
-		def offset = new Length("1 m").to(units).value
-		index.get(mmin(m) - offset, mmax(m) + offset).findAll(filter).each { cache.remove(it) }
+		def offset = new Length("1 m").value
+		index.get(mmin_meters(m) - offset, mmax_meters(m) + offset).findAll(filter).each { cache.remove(it) }
 		invalidate()
 	}
 	void modelRemoved(Model m) {
 		//super.modelRemoved(m)
-		def offset = new Length("1 m").to(units).value
-		index.get(mmin(m) - offset, mmax(m) + offset).findAll(filter).each { cache.remove(it) }
+		def offset = new Length("1 m").value
+		index.get(mmin_meters(m) - offset, mmax_meters(m) + offset).findAll(filter).each { cache.remove(it) }
 		invalidate()
 	}
 	void modelUpdated(Model m) {
 		//super.modelUpdated(m);
-		def offset = new Length("1 m").to(units).value
+		def offset = new Length("1 m").value
 		def r = cache[m]?.bounds
 		if (r) {
-			def min = phys(r.minY, bounds) - offset
-			def max = phys(r.maxY, bounds) + offset
+			// use physM to ensure results in meters, the unit expected by GeologyModelIndex
+			def min = physM(r.minY, bounds) - offset
+			def max = physM(r.maxY, bounds) + offset
 			index.get(min, max).findAll(filter).each { cache.remove(it) }
 		}
 		invalidate()

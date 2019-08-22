@@ -145,11 +145,15 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			def sectionModels = gatherModels(project, logger, secMap)
 
 			// offset all models by secMap.startMcd and throw them in a container
+			def top = secMap.startMcd
 			sectionModels.each { sectionName, modelList ->
-				GeoUtils.offsetModels(modelList, new Length(secMap.startMcd, 'm'))
+				GeoUtils.offsetModels(modelList, new Length(top, 'm'))
 				def c = new DefaultContainer()
 				c.addAll(modelList)
 				containers[sectionName] = c
+
+				def base = top + GeoUtils.getLength(modelList)
+				top = base
 			}
 		}
 		return containers

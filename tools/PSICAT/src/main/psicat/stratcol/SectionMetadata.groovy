@@ -38,8 +38,8 @@ class SectionMetadata implements StratColumnMetadata {
 		return drawData
 	}
 	public mapSections(project) {
-		 parse(project.containers)
-		 return this.metadata
+		parse(project.containers)
+		return this.metadata
 	}
 
 	// consider only metadata sections which have a corresponding project section	

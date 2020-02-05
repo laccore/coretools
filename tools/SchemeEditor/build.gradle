@@ -1,7 +1,11 @@
-manifest.mainAttributes(
-    'Implementation-Title': 'PSICAT',
-    'Implementation-Version': version
-)
+jar {
+	manifest {
+		mainAttributes(
+			'Implementation-Title': 'PSICAT',
+			'Implementation-Version': version
+		)
+	}
+}
 
 // standard configuration
 getLogging().captureStandardOutput()
@@ -10,6 +14,9 @@ configurations { compile }
 // add additional repositories here if you need them
 repositories {
 	//mavenCentral()
+	flatDir {
+		dirs '../../deps'
+	}
 }
 
 // add any dependencies you want downloaded as part of the bootstrap process
@@ -20,7 +27,7 @@ dependencies {
 }
 
 // copies in the dependencies
-task 'init' << {
+task 'init' {
 	mkdir('lib')
 	
 	// download any dependencies and put them in lib/
@@ -35,34 +42,34 @@ task 'init' << {
 }
 
 // overwrite the tasks provided by the Groovy/Java plugin
-task clean(overwrite: true)		<< { /* griffon 'clean' */ }
-task assemble(overwrite: true)	<< { /* griffon 'compile' */ }
-task check(overwrite: true)		<< { /* griffon 'test-app' */ }
-task build(overwrite: true)		<< { /* griffon 'test-app' */ }
+// task clean(overwrite: true)		<< { /* griffon 'clean' */ }
+// task assemble(overwrite: true)	<< { /* griffon 'compile' */ }
+// task check(overwrite: true)		<< { /* griffon 'test-app' */ }
+// task build(overwrite: true)		<< { /* griffon 'test-app' */ }
 
 // additional run-related tasks
-task 'run-app'(dependsOn: init)			<< { griffon 'run-app' }
-task 'debug-app'(dependsOn: init)		<< { griffon 'run-app -debug' }
-task 'run-webstart'(dependsOn: init)	<< { griffon 'run-webstart' }
-task 'run-applet'(dependsOn: init)		<< { griffon 'run-applet' }
+// task 'run-app'(dependsOn: init)			<< { griffon 'run-app' }
+// task 'debug-app'(dependsOn: init)		<< { griffon 'run-app -debug' }
+// task 'run-webstart'(dependsOn: init)	<< { griffon 'run-webstart' }
+// task 'run-applet'(dependsOn: init)		<< { griffon 'run-applet' }
 
 // packaging tasks
-task 'package'(dependsOn: [clean, init])	<< { griffon 'create-all-launchers' }
+// task 'package'(dependsOn: [clean, init])	<< { griffon 'create-all-launchers' }
 
 // call out to the griffon command
-def griffon(target) {
-	if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-		println "SchemeEditor: griffon.bat $target"
-		ant.exec(executable: 'griffon.bat', dir: projectDir, failonerror: true) {
-			arg(value: target)
-		}	
-	} else {
-		println "SchemeEditor: griffon $target"
-		ant.exec(executable: 'griffon', dir: projectDir, failonerror: true) {
-			arg(value: target)
-		}
-	}
-}
+// def griffon(target) {
+// 	if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+// 		println "SchemeEditor: griffon.bat $target"
+// 		ant.exec(executable: 'griffon.bat', dir: projectDir, failonerror: true) {
+// 			arg(value: target)
+// 		}	
+// 	} else {
+// 		println "SchemeEditor: griffon $target"
+// 		ant.exec(executable: 'griffon', dir: projectDir, failonerror: true) {
+// 			arg(value: target)
+// 		}
+// 	}
+// }
 
 // if you want to use the gradle wrapper
 /*

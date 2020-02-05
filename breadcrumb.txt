@@ -1,0 +1,53 @@
+February 4 2020
+
+Getting PSICAT building on the hot LacCore MPB was challenging, due in large part
+to ancient griffon and gradle. Ran into SSL issues trying to use Gradle 1.3, so
+dependencies couldn't be downloaded. Attempting to copy over .griffon and .gradle
+dirs from older laptops where PSICAT builds also proved fruitless.
+
+Ultimately got it working by incrementally building coretools, coretools-data, etc
+in Gradle 6.  I was unable to retrieve remote dependencies in Gradle 6, so ultimately
+copied over all the required .jar files from an existing working project into coretools/deps.
+Then futzed around and found that adding
+
+flatDir {
+    dirs '../deps'
+}
+
+to the build.gradle repositories {} element was enough to build the coretools lib.
+
+Each project's build.gradle needed to be updated - for the coretools etc. subprojects
+this involved changing
+
+manifest.mainAttributes {
+    // [attributes]
+}
+
+to Gradle 6 compliant
+
+jar {
+    manifest {
+        attributes(
+            // [attributes]
+        )
+    }
+}
+
+. With those changes in place, I was able to incrementally build coretools, coretools-data,
+and so on by progressively uncommenting those projects in settings.gradle.  Once those built,
+I moved onto building PSICAT and SchemeEditor.
+
+The PSICAT and SchemeEditor build.gradle files were more complex...updated their manifest element
+as above.  Had to remove all "<<" in task definitions.  Then commented all other tasks out...they
+remain in commented state, need to dig into re-enabling them for packaging purposes once we have
+need of another build.
+
+After these changes, I was still unable to call e.g. "gradle init" from the PSICAT and SchemeEditor
+dirs as I was in the past.  However, calling "gradle tools:PSICAT:init" from the root coretools dirs
+worked correctly.
+
+Launching PSICAT still failed due to lack of the installer plugin (so fucking annoying that it requires
+the plugin even for tasks that don't use it).  I copied griffon-installer-0.4.zip from a working laptop's
+.griffon/0.2/plugins dir into that dir on the LacCore MPB.  This too was insufficient!  Griffon 0.2 also
+wants the fucking .xml plugin list!  Once that was copied into .griffon/0.2 (not .griffon/0.2/plugins),
+calling "griffon run-app" in tools/PSICAT finally launched the app correctly, yay!

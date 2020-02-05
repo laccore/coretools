@@ -1,7 +1,11 @@
-manifest.mainAttributes(
-    'Implementation-Title': 'DIS-specific Models',
-    'Implementation-Version': version
-)
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'DIS-specific Models',
+            'Implementation-Version': version
+        )
+    }
+}
 
 dependencies {
     compile project(":coretools")

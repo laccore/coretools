@@ -54,7 +54,7 @@ class AnnotationTrack extends GeologyTrack {
 		def font = annotFont
 		def boldFont = font.deriveFont(Font.BOLD)
 		def letterHeight = graphics.getStringBounds(font, "MMMMMggggg").getHeight()
-		
+
 		// wrap our description to the column width
 		def text = [:]
 		def rects = [:]
@@ -64,11 +64,19 @@ class AnnotationTrack extends GeologyTrack {
 				def r = m instanceof Occurrence ? mrect_midpoint(m, bounds.x + PADDING, bounds.width - 2*PADDING) : mrect(m, bounds.x + PADDING, bounds.width - 2*PADDING)
 				r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
 				rects[m] = r
+			}
+			// Occurrence annotations are placed at the vertical center of the Occurence's
+			// range, meaning we can no longer assume elements of onpage are in depth order.
+			// Now that we've gathered all annotation rects, sort list from top to bottom,
+			// then adjust for overlaps as needed.
+			def rectsToSort = rects.values().asList()
+			rectsToSort.sort { it.minY }
+			rectsToSort.eachWithIndex { curRect, i ->
 				if (i > 0) {
-					def prev = rects[onpage[i-1]]
-					int overlap = prev.maxY - r.minY
+					def prev = rectsToSort[i-1]
+					int overlap = prev.maxY - curRect.minY
 					if (overlap > 0) {
-						r.translate(0, overlap)
+						curRect.translate(0, overlap)
 					}
 				}
 			}

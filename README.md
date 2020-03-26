@@ -7,7 +7,7 @@ PSICAT is a desktop application intended to capture Initial Core Description (IC
 
 Description data can be exported in a variety of forms: as tabular data, diagrams in common vector (PDF, SVG) and raster formats (BMP, JPG, PNG), or as a stratigraphic column diagram comprising a user-defined set of core sections.
 
-PSICAT is available for Windows and Macintosh. It also runs under [WINE](https://www.winehq.org/) on Linux systems. See the [Releases](https://github.com/laccore/coretools/releases) page for downloads.
+PSICAT is available for Windows and Macintosh. The Windows build runs under [WINE](https://www.winehq.org/) on Linux systems. See the [Releases](https://github.com/laccore/coretools/releases) page for downloads.
 
 These [video tutorials](https://www.youtube.com/playlist?list=PLLHxfH9IrTIMit13zSZs91_IJBMfNEUYi) describe basic and more advanced features of PSICAT.
 

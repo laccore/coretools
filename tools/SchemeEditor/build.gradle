@@ -40,8 +40,21 @@ task copyDependencies() {
 	}
 }
 
-final javaRuntimeFile = 'jre8'
-task packageMac() {
+task packageCheck() {
+	doLast {
+		if (!javaRuntimeDir.exists()) {
+			throw new Error("Error: javaRuntimeDir ${javaRuntimeDir.absolutePath} does not exist.")
+		}
+		if (javaRuntimeFile == null) {
+			throw new Error("Error: javaRuntimeFile var is null.\nTo resolve, update javaRuntimeFile var with your Java 8 runtime in build.gradle.")
+		}
+		if (javaRuntimeDir.listFiles().find { it.name.equals(javaRuntimeFile) } == null) {
+			throw new Error("Error: Missing Java runtime file '${javaRuntimeFile}' in ${javaRuntimeDir.absolutePath}")
+		}	
+	}
+}
+
+task packageMac(dependsOn: packageCheck) {
 	doLast {
 		def app = file('dist/mac/SchemeEditor.app')
 		if (app.exists()) {

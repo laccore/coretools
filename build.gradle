@@ -34,7 +34,7 @@ allprojects {
 	version = '1.0.2'
 
 	// Directory and filename of Java runtime, required for packaging
-	project.ext.javaRuntimeDir = file('../../package/java_runtime/mac')
+	project.ext.javaRuntimeDir = file("${project.rootDir}/package/java_runtime/mac")
 	project.ext.javaRuntimeFile = 'jre8'
 }
 

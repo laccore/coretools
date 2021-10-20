@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<string>true</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>PSICAT</string>
+	<key>CFBundleGetInfoString</key>
+	<string>:version</string>
+	<key>CFBundleIconFile</key>
+	<string>PSICAT.icns</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>PSICAT</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.2</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>:version</string>
+	<key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+	<key>LSEnvironment</key>
+	<dict>
+		<key>JAVA_HOME</key>
+		<string>Contents/Frameworks/:java_runtime/Contents/Home</string>
+	</dict>
+	<key>JavaX</key>
+	<dict>
+		<key>ClassPath</key>
+		<array>
+:classpath
+		</array>
+		<key>JVMVersion</key>
+		<string>1.8</string>
+		<key>MainClass</key>
+		<string>griffon.application.SingleFrameApplication</string>
+		<key>Properties</key>
+		<dict>
+			<key>com.apple.mrj.application.apple.menu.about.name</key>
+			<string>PSICAT</string>
+		</dict>
+		<key>SplashFile</key>
+		<string>psicat.gif</string>
+		<key>WorkingDirectory</key>
+		<string>$APP_PACKAGE/Contents/</string>
+	</dict>
+</dict>
+</plist>

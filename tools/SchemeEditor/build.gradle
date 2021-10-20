@@ -1,7 +1,7 @@
 jar {
 	manifest {
-		mainAttributes(
-			'Implementation-Title': 'PSICAT',
+		attributes(
+			'Implementation-Title': 'SchemeEditor',
 			'Implementation-Version': version
 		)
 	}
@@ -13,10 +13,7 @@ configurations { compile }
 
 // add additional repositories here if you need them
 repositories {
-	//mavenCentral()
-	flatDir {
-		dirs '../../deps'
-	}
+	mavenCentral()
 }
 
 // add any dependencies you want downloaded as part of the bootstrap process
@@ -27,16 +24,89 @@ dependencies {
 }
 
 // copies in the dependencies
-task 'init' {
-	mkdir('lib')
-	
-	// download any dependencies and put them in lib/
-	project.configurations?.compile?.each { dep ->
-		if (!dep.name.startsWith('groovy-all')) {
-			println "Copying ${dep.name} to SchemeEditor"
-			ant.zip(destfile: new File('lib', dep.name)) {
-				zipfileset(src: dep, excludes: "log4j*")
+task copyDependencies() {
+	doLast {
+		mkdir('lib')
+		
+		// download any dependencies and put them in lib/
+		project.configurations?.compile?.each { dep ->
+			if (!dep.name.startsWith('groovy-all')) {
+				println "Copying ${dep.name} to SchemeEditor"
+				ant.zip(destfile: new File('lib', dep.name)) {
+					zipfileset(src: dep, excludes: "log4j*")
+				}
 			}
+		}
+	}
+}
+
+final javaRuntimeFile = 'jre8'
+task packageMac() {
+	doLast {
+		def app = file('dist/mac/SchemeEditor.app')
+		if (app.exists()) {
+			// copy application JARs into bundle
+			copy {
+				println "Found dist/mac/SchemeEditor.app package, copying in JARs from tools/SchemeEditor/staging..."
+				into 'dist/mac/SchemeEditor.app/Contents/Resources/Java'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
+		} else {
+			println "No dist/mac/SchemeEditor.app found, building from scratch..."
+			mkdir(app)
+
+			// copy the .app bundle skeleton
+			copy {
+				into app
+				from 'package/mac'
+			}
+
+			// copy application JARs into bundle
+			copy {
+				into 'dist/mac/SchemeEditor.app/Contents/Resources/Java'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
+
+			// update our Info.plist
+			def classpath = file('staging').listFiles().findAll { it.name.endsWith('.jar') }.sort().collect { file ->
+				'\t\t\t<string>\\$JAVAROOT/' + file.name + '</string>'
+			}
+			def plist = file('dist/mac/SchemeEditor.app/Contents/Info.plist')
+			def text = plist.text.toString()
+			text = text.replaceAll(':version', version) // add our version
+			text = text.replaceAll(':classpath', classpath.join('\n'))
+			text = text.replaceAll(':java_runtime', javaRuntimeFile)
+			plist.write(text)
+
+			// make our app executable...needed?
+			ant.chmod(file:"dist/mac/SchemeEditor.app/Contents/MacOS/SchemeEditor", perm:"ugo+rx")
+
+			// codesign the app so Mac users are only pestered by the "Do you want SchemeEditor
+			// to allow incoming network connections" dialog once...otherwise it appears
+			// at every launch.
+			exec {
+				println "Code signing app package"
+				workingDir 'dist/mac'
+				commandLine 'codesign', '--force', '--deep', '--sign', '-', 'SchemeEditor.app'
+				standardOutput = new ByteArrayOutputStream()
+				println standardOutput.toString()
+			}
+
+			// copy Java runtime into bundle
+			copy {
+				from '../../package/java_runtime/mac'
+				into 'dist/mac/SchemeEditor.app/Contents/Frameworks'
+				include "${javaRuntimeFile}/**"
+			}
+
+		// 	// tar and zip up app bundle
+		// 	def tarfile = "Corelyzer-${version}.tar.gz"
+		// 	println "Creating tarball ${tarfile}"
+		// 	ant.exec(executable: 'tar', dir: 'dist/mac') {
+		// 		arg(value: 'czvf')
+		// 		arg(value: tarfile)
+		// 		arg(value: 'Corelyzer.app')
+		// 	}
 		}
 	}
 }
@@ -54,7 +124,7 @@ task 'init' {
 // task 'run-applet'(dependsOn: init)		<< { griffon 'run-applet' }
 
 // packaging tasks
-// task 'package'(dependsOn: [clean, init])	<< { griffon 'create-all-launchers' }
+// task 'package'(dependsOn: [clean, init]) { griffon 'create-all-launchers' }
 
 // call out to the griffon command
 // def griffon(target) {

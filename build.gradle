@@ -2,12 +2,7 @@ allprojects {
 	apply plugin: 'groovy'
 	
 	repositories {
-       	// mavenCentral()
-		// maven {url 'https://maven.java.net/service/local/staging/deploy/maven2/'}
-		// maven {url 'https://repo.opennms.org/maven2/'}
-		flatDir {
-			dirs '../deps'
-		}
+       	mavenCentral() // this seems to work again?
 	}
 	
 	configurations {
@@ -15,166 +10,62 @@ allprojects {
 	}
 
 	dependencies {
+		// brg 11/30/2020 - 'gradle test' fails on implementation line below with 'illegal reflective accesss'.
+		// Builds without issue e.g. 'gradle assemble' as long as we don't test e.g. 'gradle build' (which builds
+		// and runs tests).
 		implementation 'org.codehaus.groovy:groovy-all:1.6.4'
-		// compile fileTree(dir: '../deps', include: ['*.jar'])
+		// compile fileTree(dir: 'deps', include: ['*.jar'])
 		compile 'com.google.collections:google-collections:1.0-rc2'
 		compile 'com.google.inject:guice:2.0'
 		compile 'com.google.inject.extensions:guice-multibindings:2.0'
 		compile 'aopalliance:aopalliance:1.0'
-		compile 'org.slf4j:slf4j-api:1.5.8'
+		compile 'org.slf4j:slf4j-api:1.7.5'
+		runtime 'org.slf4j:slf4j-log4j12:1.7.5'
+		// testRuntime 'org.slf4j:slf4j-api:1.5.8' // tests seem to depend on 1.5.8? Why??? But now they don't??????
+		// testCompile 'org.slf4j:slf4j-simple:1.5.8'
 		compile 'xerces:xerces:2.3.0' // brg 2/19/2014: needed on Windows, not on OSX for some reason?
 		testCompile 'junit:junit:3.8.2'
-		runtime 'org.slf4j:slf4j-simple:1.5.8'
 	}
-	
-	sourceCompatibility = 1.5
-	targetCompatibility = 1.5 
-	version = '1.0.0'
+
+	java {
+		sourceCompatibility = JavaVersion.VERSION_1_6
+		targetCompatibility = JavaVersion.VERSION_1_6
+	}
+	version = '1.0.2'
+
 }
 
-// task 'assemble-jars'(dependsOn: build) {
-// 	File distDir = new File(buildDir, 'libs')
-//     distDir.mkdirs()
-//     subprojects.findAll { it.name != 'examples' && it.name != 'scripting' }.each { project ->
-// 		project.configurations?.compile?.files { dep -> dep.group != 'unspecified' }.each { dep ->
-// 			ant.zip(destfile: new File(distDir, dep.name)) {
-// 				zipfileset(src:dep, excludes:"log4j*")
-// 			}
-// 		}
-		
-// 		copy {
-// 			from new File(project.buildDir, 'libs')
-// 			into distDir
-// 			include '*.jar'
-// 		}
-//     }
-// }
+// Griffon 0.2 requires compilation with Java 6
+final javaHome = '/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
+def javaExecutablesPath = new File(javaHome, 'bin')
+def javaExecutables = [:].withDefault { execName ->
+	def executable = new File(javaExecutablesPath, execName)
+	assert executable.exists(): "There is no ${execName} executable in ${javaExecutablesPath}"
+	executable
+}
+tasks.withType(AbstractCompile) {
+	options.with {
+		fork = true
+		forkOptions.javaHome = file(javaHome)
+	}
+}
 
-task 'package-psicat'(dependsOn: [':tools:SchemeEditor:package', ':tools:PSICAT:package']) {
-	// our tools
-	def psicat = new File('tools/PSICAT')
-	def schemeEditor = new File('tools/SchemeEditor')
-	
-	// create our packages directory structure
-	// def linux = new File(buildDir, 'packages/linux')
-	def mac = new File(buildDir, 'packages/mac')
-	def windows = new File(buildDir, 'packages/windows')
-	// def jar = new File(buildDir, 'packages/jar')
-    // linux.mkdirs()
-    mac.mkdirs()
-    windows.mkdirs()
-    // jar.mkdirs()
-	
-	// copy our resources
-	// ant.copy(toDir: new File(linux, 'PSICAT/resources')) {
-	// 	fileset(dir: new File('resources'), includes: '*')
-	// }
-	ant.copy(toDir: new File(mac, 'PSICAT/resources')) {
-		fileset(dir: new File('resources'), includes: '*')
-	}
-	ant.copy(toDir: new File(windows, 'PSICAT/resources')) {
-		fileset(dir: new File('resources'), includes: '*')
-	}
-	// ant.copy(toDir: new File(jar, 'PSICAT/resources')) {
-	// 	fileset(dir: new File('resources'), includes: '*')
-	// }
-	
-	// build linux package
-	// ant.copy(toDir: new File(linux, 'PSICAT')) {
-	// 	fileset(dir: new File(psicat, 'installer/linux/dist')) {
-	// 		include(name: 'bin/**')
-	// 		include(name: 'lib/**')
-	// 	}
-	// }
-	// ant.copy(toDir: new File(linux, 'PSICAT/tools/SchemeEditor')) {
-	// 	fileset(dir: new File(schemeEditor, 'installer/linux/dist')) {
-	// 		include(name: 'bin/**')
-	// 		include(name: 'lib/**')
-	// 	}
-	// }
-	// ant.chmod(perm: "+x", dir: new File(linux, 'PSICAT/bin'), includes: '*')
-	// ant.chmod(perm: "+x", dir: new File(linux, 'PSICAT/tools/SchemeEditor/bin'), includes: '*')
-	// ant.tar(destFile: new File(linux, "PSICAT-linux-${version}.tar.gz"), compression: 'gzip') {
-	// 	tarfileset(dir:linux, mode:"755") {
-	// 		include(name: 'PSICAT/bin/*')
-	// 		include(name: 'PSICAT/tools/SchemeEditor/bin/*')
-	// 	}
-	// 	tarfileset(dir:linux) {
-	// 		include(name: "PSICAT/**")
-	// 		exclude(name: 'PSICAT/bin/*')
-	// 		exclude(name: 'PSICAT/tools/SchemeEditor/bin/*')
-	// 	}
-	// }
-	
-	// build mac package
-	ant.copy(toDir: new File(mac, 'PSICAT')) {
-		fileset(dir: new File(psicat, 'installer/mac/dist')) {
-			include(name: 'PSICAT.app/**')
+task 'assemble-jars'(dependsOn: build) {
+	doLast {
+		File distDir = new File(buildDir, 'libs')
+		distDir.mkdirs()
+		subprojects.findAll { it.name != 'examples' && it.name != 'scripting' }.each { project ->
+			project.configurations?.compile?.files { dep -> dep.group != 'unspecified' }.each { dep ->
+				ant.zip(destfile: new File(distDir, dep.name)) {
+					zipfileset(src:dep, excludes:"log4j*")
+				}
+			}
+			
+			copy {
+				from new File(project.buildDir, 'libs')
+				into distDir
+				include '*.jar'
+			}
 		}
 	}
-	ant.copy(toDir: new File(mac, 'PSICAT/tools/SchemeEditor')) {
-		fileset(dir: new File(schemeEditor, 'installer/mac/dist')) {
-			include(name: 'SchemeEditor.app/**')
-		}
-	}
-	ant.chmod(perm: "+x", file: new File(mac, 'PSICAT/PSICAT.app/Contents/MacOS/PSICAT'))
-	ant.chmod(perm: "+x", file: new File(mac, 'PSICAT/tools/SchemeEditor/SchemeEditor.app/Contents/MacOS/SchemeEditor'))
-
-	// create a semi-valid code signature so users don't see the "[app] is damaged and
-	// can't be opened. You should move it to the Trash." message from GateKeeper,
-	// introduced in OS X 10.7.5. To create a truly legit signature, one must pony up $99
-	// to join Apple's Developer Program, awesome!
-	ant.exec(executable:"codesign") { 
-		arg(line:"-s - --force ${mac}/PSICAT/PSICAT.app")
-	}
-	ant.exec(executable:"codesign") {
-		arg(line: "-s - --force ${mac}/PSICAT/tools/SchemeEditor/SchemeEditor.app")
-	}
-
-	if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
-		ant.exec(executable: "hdiutil") {
-			arg(line:"create -srcfolder ${mac} -volname PSICAT ${mac}/PSICAT-mac-${version}.dmg" )
-		}
-	}
-	ant.tar(destFile: new File(mac, "PSICAT-mac-${version}.tar.gz"), compression: 'gzip') {
-		tarfileset(dir:mac, mode:"755") {
-			include(name: 'PSICAT/PSICAT.app/Contents/MacOS/PSICAT')
-			include(name: 'PSICAT/tools/SchemeEditor/SchemeEditor.app/Contents/MacOS/SchemeEditor')
-		}
-		tarfileset(dir:mac) {
-			include(name: "PSICAT/**")
-			exclude(name: 'PSICAT/PSICAT.app/Contents/MacOS/PSICAT')
-			exclude(name: 'PSICAT/tools/SchemeEditor/SchemeEditor.app/Contents/MacOS/SchemeEditor')
-		}
-	}
-	
-	// build windows package
-	ant.copy(toDir: new File(windows, 'PSICAT')) {
-		fileset(dir: new File(psicat, 'installer/win/dist')) {
-			include(name: 'PSICAT.exe')
-			include(name: 'msvcr71.dll')
-			include(name: 'lib/**')
-		}
-	}
-	ant.copy(toDir: new File(windows, 'PSICAT/tools/SchemeEditor')) {
-		fileset(dir: new File(schemeEditor, 'installer/win/dist')) {
-			include(name: 'SchemeEditor.exe')
-			include(name: 'msvcr71.dll')
-			include(name: 'lib/**')
-		}
-	}
-	ant.zip(destFile: new File(windows, "PSICAT-windows-${version}.zip"), basedir: windows, includes: 'PSICAT/**')
-	
-	// build jar package
-	// ant.copy(toDir: new File(jar, 'PSICAT')) {
-	// 	fileset(dir: new File(psicat, 'installer/jar/dist')) {
-	// 		include(name: 'PSICAT*.jar')
-	// 	}
-	// }
-	// ant.copy(toDir: new File(jar, 'PSICAT/tools/SchemeEditor')) {
-	// 	fileset(dir: new File(schemeEditor, 'installer/jar/dist')) {
-	// 		include(name: 'SchemeEditor*.jar')
-	// 	}
-	// }
-	// ant.zip(destFile: new File(jar, "PSICAT-jar-${version}.zip"), basedir: jar, includes: 'PSICAT/**')
 }

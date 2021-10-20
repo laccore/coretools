@@ -80,6 +80,7 @@ class AnnotationTrack extends GeologyTrack {
 			if (totalTextHeight > availableSpace && font.size > 1) {
 				font = font.deriveFont((float)(font.size - 1))
 				boldFont = font.deriveFont(Font.BOLD)
+				letterHeight = graphics.getStringBounds(font, "MMMMMggggg").getHeight()
 			} else {
 				break
 			}

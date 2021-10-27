@@ -92,14 +92,14 @@ task packagePSICATMac() {
 		}
 
 		// clear existing bundle to avoid failed copy of JRE contents
-		delete "tools/PSICAT/dist/mac/PSICAT.app"
+		delete "dist/mac/PSICAT-${version}/PSICAT.app"
 		copy {
 			into app
 			from "tools/PSICAT/dist/mac"  // PSICAT app bundle
 		}
 
 		// clear existing bundle to avoid failed copy of JRE contents
-		delete "tools/SchemeEditor/dist/mac/SchemeEditor.app"
+		delete "dist/mac/PSICAT-${version}/SchemeEditor.app"
 		copy {
 			into app
 			from "tools/SchemeEditor/dist/mac" // SchemeEditor app bundle
@@ -118,7 +118,7 @@ task packagePSICATMac() {
 		// tar and zip up the entire package
 		exec {
 			workingDir "dist/mac"
-			commandLine "tar", "cfvz", "PSICAT-${version}.tar.gz", "."
+			commandLine "tar", "cfvz", "PSICAT-${version}.tar.gz", "PSICAT-${version}"
 		}
 	}
 }

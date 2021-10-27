@@ -1,7 +1,11 @@
-manifest.mainAttributes(
-    'Implementation-Title': 'Core Tools Platform Model API',
-    'Implementation-Version': version
-)
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'Core Tools Platform Model API',
+            'Implementation-Version': version
+        )
+    }
+}
 
 dependencies {
     compile project(":coretools")

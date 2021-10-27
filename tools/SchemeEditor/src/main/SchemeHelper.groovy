@@ -21,7 +21,8 @@ import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.TexturePaint
 import java.util.jar.JarFile
-import java.util.zip.ZipFileimport java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 import javax.imageio.ImageIO
@@ -38,7 +39,11 @@ import com.lowagie.text.pdf.PdfWriter
 
 public class SchemeHelper {
 	public IMAGE_EXTENSIONS = ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff']
-		/**	 * Create a new SchemeHelper	 */	public SchemeHelper() { }
+	
+	/**
+	 * Create a new SchemeHelper
+	 */
+	public SchemeHelper() { }
 
 	/**
 	 * Parse a color from a RGB tuple, e.g. '100,100,100'.
@@ -100,7 +105,10 @@ public class SchemeHelper {
 			return null
 		}
 	}
-		/**	 * Creates an icon for a path.	 */
+	
+	/**
+	 * Creates an icon for a path.
+	 */
 	Icon iconify(path) {
     	def image = parseImage(path)
 		if (image) {
@@ -119,7 +127,11 @@ public class SchemeHelper {
     		if (path.startsWith("rsrc:/")) {
 				url =  getClass()?.getResource(path.substring(5))
 				if (url == null) {
-					File cacheFile = new File(cacheDir, path.substring(path.lastIndexOf('/') + 1))
+					// 10/20/2021 brg: Ensure cacheDir isn't null, otherwise we run into
+					// an ambiguous overload error in the File c'tor (is the first arg a
+					// String or File?).
+					def safeCacheDir = cacheDir ?: new File(".")
+					File cacheFile = new File(safeCacheDir, path.substring(path.lastIndexOf('/') + 1))
 					if (cacheFile.exists()) {
 						url = cacheFile.toURL()
 					}
@@ -138,12 +150,13 @@ public class SchemeHelper {
 	// problems: 1) certain images suddenly stopped loading and 2) (sometimes) crashes
 	// on OSX. We now cache images as files in a temp directory, which has proven more
 	// reliable so far (despite my crude implementation).
-    private cacheDir = null
+    private File cacheDir = null
 	
 	/**
 	 * Adds a file to the cache
 	 */
-	def add(url) {		initCacheDir()
+	def add(url) {
+		initCacheDir()
 		ZipFile jar = new ZipFile(url.getPath())
 		jar.entries().each {
 			def dotIndex = it.name.lastIndexOf('.')

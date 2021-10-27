@@ -1,7 +1,11 @@
-manifest.mainAttributes(
-    'Implementation-Title': 'PSICAT',
-    'Implementation-Version': version
-)
+jar {
+	manifest {
+		attributes(
+			'Implementation-Title': 'PSICAT',
+			'Implementation-Version': version
+		)
+	}
+}
 
 // standard configuration
 getLogging().captureStandardOutput()
@@ -11,7 +15,7 @@ configurations {
 
 // add additional repositories here if you need them
 repositories {
-	//mavenCentral()
+	mavenCentral()
 }
 
 // add any dependencies you want downloaded as part of the bootstrap process
@@ -22,8 +26,8 @@ dependencies {
 	compile 'net.sourceforge.jexcelapi:jxl:2.6.3'
 	compile 'com.miglayout:miglayout:3.7'
 	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
-	compile 'org.slf4j:slf4j-log4j12:1.7.5'
-    compile 'log4j:log4j:1.2.16'
+	// compile 'org.slf4j:slf4j-api:1.7.5' // need to include at all since it's a dep at the root level?
+    compile 'log4j:log4j:1.2.17'
     compile 'xalan:xalan:2.7.1'
     compile 'org.json:json:20140107'
     compile 'com.brsanthu:google-analytics-java:1.1.2'
@@ -41,61 +45,160 @@ dependencies {
 }
 
 // copies in the dependencies
-task 'init' << {
-	mkdir('lib')
-	
-	// download any dependencies and put them in lib/
-	project.configurations?.compile?.each { dep ->
-		if (!dep.name.startsWith('groovy-all')) {
-			println "Copying ${dep.name} to PSICAT"
-			ant.zip(destfile: new File('lib', dep.name)) {
-				zipfileset(src: dep, excludes: "log4j*")
+task copyDependencies() {
+	doLast {
+		mkdir('lib')
+		
+		// download any dependencies and put them in lib/
+		project.configurations?.compile?.each { dep ->
+			if (!dep.name.startsWith('groovy-all')) {
+				println "Copying ${dep.name} to PSICAT"
+				ant.zip(destfile: new File('lib', dep.name)) {
+					zipfileset(src: dep, excludes: "log4j*")
+				}
+			}
+		}
+	}
+}
+
+task packageWin(dependsOn: ':packageCheckWin') {
+	doLast {
+		def app = file('dist/win/PSICAT')
+		if (app.exists()) {
+			println "Found dist/win/PSICAT dir, copying in JARs from staging dir..."
+			copy {
+				into 'dist/win/PSICAT/lib'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
+		} else {
+			println "No dist/win/PSICAT dir found, creating..."
+			mkdir(app)
+
+			// copy application files
+			copy {
+				into app
+				from 'package/win'
+			}
+
+			copy {
+				into 'dist/win/PSICAT/lib'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
+
+			// copy Java runtime into bundle
+			copy {
+				from '../../package/java_runtime/win'
+				into 'dist/win/PSICAT/'
+				include "${javaRuntimeFile}/**"
+			}
+		}
+	}
+}
+
+task packageMac(dependsOn: ':packageCheckMac') {
+	doLast {
+		def app = file('dist/mac/PSICAT.app')
+		if (!app.exists()) {
+			println "No dist/mac/PSICAT.app found, building from scratch..."
+			mkdir(app)
+
+			// copy the .app bundle skeleton
+			copy {
+				into app
+				from 'package/mac'
+			}
+
+			// copy application JARs into bundle
+			copy {
+				into 'dist/mac/PSICAT.app/Contents/Resources/Java'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
+
+			// update our Info.plist
+			def classpath = file('staging').listFiles().findAll { it.name.endsWith('.jar') }.sort().collect { file ->
+				'\t\t\t<string>\\$JAVAROOT/' + file.name + '</string>'
+			}
+			def plist = file('dist/mac/PSICAT.app/Contents/Info.plist')
+			def text = plist.text.toString()
+			text = text.replaceAll(':version', version) // add our version
+			text = text.replaceAll(':classpath', classpath.join('\n'))
+			text = text.replaceAll(':java_runtime', javaRuntimeFile)
+			plist.write(text)
+
+			// make our app executable...needed?
+			ant.chmod(file:"dist/mac/PSICAT.app/Contents/MacOS/PSICAT", perm:"ugo+rx")
+
+			// codesign the app so Mac users are only pestered by the "Do you want PSICAT
+			// to allow incoming network connections" dialog once...otherwise it appears
+			// at every launch.
+			exec {
+				println "Code signing app package"
+				workingDir 'dist/mac'
+				commandLine 'codesign', '--force', '--deep', '--sign', '-', 'PSICAT.app'
+				standardOutput = new ByteArrayOutputStream()
+				println standardOutput.toString()
+			}
+
+			// copy Java runtime into bundle
+			copy {
+				from '../../package/java_runtime/mac'
+				into 'dist/mac/PSICAT.app/Contents/Frameworks'
+				include "${javaRuntimeFile}/**"
+			}
+		} else {
+			println "Found dist/mac/PSICAT.app package, copying in JARs from staging dir..."
+			copy {
+				into 'dist/mac/PSICAT.app/Contents/Resources/Java'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
 			}
 		}
 	}
 }
 
 // overwrite the tasks provided by the Groovy/Java plugin
-task clean(overwrite: true)		<< { /* griffon 'clean' */ }
-task assemble(overwrite: true)	<< { /* griffon 'compile' */ }
-task check(overwrite: true)		<< { /* griffon 'test-app' */ }
-task build(overwrite: true)		<< { /* griffon 'test-app' */ }
+// task clean(overwrite: true)		<< { /* griffon 'clean' */ }
+// task assemble(overwrite: true)	<< { /* griffon 'compile' */ }
+// task check(overwrite: true)		<< { /* griffon 'test-app' */ }
+// task build(overwrite: true)		<< { /* griffon 'test-app' */ }
 
 // additional run-related tasks
-task 'run-app'(dependsOn: init)			<< { 
-	// copy our resources into staging
-	mkdir('staging')
-	def sep = File.separatorChar
-	copy {
-		from "..${sep}.."
-		into 'staging'
-		include "resources${sep}**"
-	}
+// task run-app() { 
+// 	dependsOn: init
+
+// 	// copy our resources into staging
+// 	mkdir('staging')
+// 	def sep = File.separatorChar
+// 	copy {
+// 		from "..${sep}.."
+// 		into 'staging'
+// 		include "resources${sep}**"
+// 	}
 	
-	griffon 'run-app' 
-}
-task 'debug-app'(dependsOn: init)		<< { griffon 'run-app -debug' }
-task 'run-webstart'(dependsOn: init)	<< { griffon 'run-webstart' }
-task 'run-applet'(dependsOn: init)		<< { griffon 'run-applet' }
-task 'test-app'(dependsOn: init)		<< { griffon 'test-app' }
+// 	griffon 'run-app' 
+// }
+// task 'debug-app'(dependsOn: init)		<< { griffon 'run-app -debug' }
+// task 'run-webstart'(dependsOn: init)	<< { griffon 'run-webstart' }
+// task 'run-applet'(dependsOn: init)		<< { griffon 'run-applet' }
+// task 'test-app'(dependsOn: init)		<< { griffon 'test-app' }
 
 // packaging tasks
-task 'package'(dependsOn: [clean, init])	<< { griffon 'create-all-launchers' }
+// task 'package'(dependsOn: [clean, init]) { griffon 'create-all-launchers' }
 
 // call out to the griffon command
-def griffon(target) {
-	if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-		println "PSICAT: griffon.bat $target"
-		ant.exec(executable: 'griffon.bat', dir: projectDir, failonerror: true) {
-			arg(value: target)
-		}	
-	} else {
-		println "PSICAT: griffon $target"
-		ant.exec(executable: 'griffon', dir: projectDir, failonerror: true) {
-			arg(value: target)
-		}
-	}
-}
+// def griffon(target) {
+// 	println "In griffon() with target=$target"
+// 	if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+// 		println "PSICAT: griffon.bat $target"
+// 		ant.exec(executable: 'griffon.bat', dir: projectDir, failonerror: true) {
+// 			arg(value: target)
+// 		}	
+// 	} else {
+// 		println "PSICAT: griffon $target"
+// 		ant.exec(executable: 'griffon', dir: projectDir, failonerror: true) {
+// 			arg(value: target)
+// 		}
+// 	}
+// }
 
 // if you want to use the gradle wrapper
 /*

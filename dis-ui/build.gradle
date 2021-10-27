@@ -1,7 +1,11 @@
-manifest.mainAttributes(
-    'Implementation-Title': 'DIS-specific UI',
-    'Implementation-Version': version
-)
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'DIS-specific UI',
+            'Implementation-Version': version
+        )
+    }
+}
 
 dependencies {
 	compile project(":dis-base")

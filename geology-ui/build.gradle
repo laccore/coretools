@@ -1,7 +1,11 @@
-manifest.mainAttributes(
-    'Implementation-Title': 'Geology UI',
-    'Implementation-Version': version
-)
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'Geology UI',
+            'Implementation-Version': version
+        )
+    }
+}
 
 dependencies {
     compile project(":geology-base")

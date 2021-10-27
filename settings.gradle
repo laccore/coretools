@@ -1,1 +1,11 @@
-include 'coretools', 'coretools-model', 'coretools-data', 'coretools-graphics', 'coretools-scene', 'coretools-ui', 'coretools-misc', 'geology-base', 'geology-ui', 'dis-base', 'dis-ui', 'tools:scripting', 'tools:SchemeEditor', 'tools:PSICAT'
+include 'coretools', 'coretools-model', 'coretools-data', 'coretools-graphics', 'coretools-scene', 'coretools-ui', 'coretools-misc', 'geology-base', 'geology-ui', 'dis-base', 'dis-ui', ':tools:PSICAT', 'tools:SchemeEditor'
+
+// brg 10/14/2021 including PSICAT as :tools:PSICAT causes the tools dir
+// to be 'built' into an empty JAR. The below is a workaround. Thanks to
+// https://stackoverflow.com/questions/21015353/gradle-intermediate-dir-of-multiproject-not-subproject
+// include 'PSICAT'
+// project(':PSICAT').projectDir = file('tools/PSICAT')
+// include 'SchemeEditor'
+// project(':SchemeEditor').projectDir = file('tools/SchemeEditor')
+// include 'scripting'
+// project(':scripting').projectDir = file('tools/scripting')

@@ -61,17 +61,44 @@ task copyDependencies() {
 	}
 }
 
-task packageMac(dependsOn: ':packageCheck') {
+task packageWin(dependsOn: ':packageCheckWin') {
 	doLast {
-		def app = file('dist/mac/PSICAT.app')
+		def app = file('dist/win/PSICAT')
 		if (app.exists()) {
-			// copy application JARs into bundle
+			println "Found dist/win/PSICAT dir, copying in JARs from staging dir..."
 			copy {
-				println "Found dist/mac/PSICAT.app package, copying in JARs from staging dir..."
-				into 'dist/mac/PSICAT.app/Contents/Resources/Java'
+				into 'dist/win/PSICAT/lib'
 				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
 			}
 		} else {
+			println "No dist/win/PSICAT dir found, creating..."
+			mkdir(app)
+
+			// copy application files
+			copy {
+				into app
+				from 'package/win'
+			}
+
+			copy {
+				into 'dist/win/PSICAT/lib'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
+
+			// copy Java runtime into bundle
+			copy {
+				from '../../package/java_runtime/win'
+				into 'dist/win/PSICAT/'
+				include "${javaRuntimeFile}/**"
+			}
+		}
+	}
+}
+
+task packageMac(dependsOn: ':packageCheckMac') {
+	doLast {
+		def app = file('dist/mac/PSICAT.app')
+		if (!app.exists()) {
 			println "No dist/mac/PSICAT.app found, building from scratch..."
 			mkdir(app)
 
@@ -118,15 +145,12 @@ task packageMac(dependsOn: ':packageCheck') {
 				into 'dist/mac/PSICAT.app/Contents/Frameworks'
 				include "${javaRuntimeFile}/**"
 			}
-
-		// 	// tar and zip up app bundle
-		// 	def tarfile = "Corelyzer-${version}.tar.gz"
-		// 	println "Creating tarball ${tarfile}"
-		// 	ant.exec(executable: 'tar', dir: 'dist/mac') {
-		// 		arg(value: 'czvf')
-		// 		arg(value: tarfile)
-		// 		arg(value: 'Corelyzer.app')
-		// 	}
+		} else {
+			println "Found dist/mac/PSICAT.app package, copying in JARs from staging dir..."
+			copy {
+				into 'dist/mac/PSICAT.app/Contents/Resources/Java'
+				from file('staging').listFiles().findAll { it.name.endsWith('.jar') }
+			}
 		}
 	}
 }

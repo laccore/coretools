@@ -10,9 +10,6 @@ allprojects {
 	}
 
 	dependencies {
-		// brg 11/30/2020 - 'gradle test' fails on implementation line below with 'illegal reflective accesss'.
-		// Builds without issue e.g. 'gradle assemble' as long as we don't test e.g. 'gradle build' (which builds
-		// and runs tests).
 		implementation 'org.codehaus.groovy:groovy-all:1.6.4'
 		compile 'com.google.collections:google-collections:1.0-rc2'
 		compile 'com.google.inject:guice:2.0'
@@ -30,8 +27,7 @@ allprojects {
 	}
 	version = '1.0.2'
 
-	// Directory and filename of Java runtime, required for packaging
-	project.ext.javaRuntimeDir = file("${project.rootDir}/package/java_runtime/mac")
+	// Java runtime dir, required for packaging
 	project.ext.javaRuntimeFile = 'jre8'
 }
 
@@ -50,9 +46,27 @@ tasks.withType(AbstractCompile) {
 	}
 }
 
-task packageCheck() {
+
+task packageCheckMac() {
 	doLast {
-		println "Checking for Java runtime dir and JRE..."
+		def javaRuntimeDir = file("${project.rootDir}/package/java_runtime/mac")
+		println "Checking for Mac Java runtime dir and JRE..."
+		if (!javaRuntimeDir.exists()) {
+			throw new Error("Error: javaRuntimeDir ${javaRuntimeDir.absolutePath} does not exist.")
+		}
+		if (javaRuntimeFile == null) {
+			throw new Error("Error: javaRuntimeFile var is null.\nTo resolve, update javaRuntimeFile var with your Java 8 runtime in build.gradle.")
+		}
+		if (javaRuntimeDir.listFiles().find { it.name.equals(javaRuntimeFile) } == null) {
+			throw new Error("Error: Missing Java runtime file '${javaRuntimeFile}' in ${javaRuntimeDir.absolutePath}")
+		}	
+	}
+}
+
+task packageCheckWin() {
+	doLast {
+		def javaRuntimeDir = file("${project.rootDir}/package/java_runtime/win")
+		println "Checking for Windows Java runtime dir and JRE..."
 		if (!javaRuntimeDir.exists()) {
 			throw new Error("Error: javaRuntimeDir ${javaRuntimeDir.absolutePath} does not exist.")
 		}
@@ -66,8 +80,8 @@ task packageCheck() {
 }
 
 // Package PSICAT, SchemeEditor app bundles and resource files into a bundle
-// ready for distribution.
-task packageMac() {
+// ready for Mac distribution.
+task packagePSICATMac() {
 	dependsOn ':tools:PSICAT:packageMac'
 	dependsOn ':tools:SchemeEditor:packageMac'
 
@@ -77,11 +91,15 @@ task packageMac() {
 			println "${app.absolutePath} not found, creating."
 		}
 
+		// clear existing bundle to avoid failed copy of JRE contents
+		delete "tools/PSICAT/dist/mac/PSICAT.app"
 		copy {
 			into app
 			from "tools/PSICAT/dist/mac"  // PSICAT app bundle
 		}
 
+		// clear existing bundle to avoid failed copy of JRE contents
+		delete "tools/SchemeEditor/dist/mac/SchemeEditor.app"
 		copy {
 			into app
 			from "tools/SchemeEditor/dist/mac" // SchemeEditor app bundle
@@ -105,6 +123,41 @@ task packageMac() {
 	}
 }
 
+// Package PSICAT, SchemeEditor executables and resource files into a bundle
+// ready for Windows distribution.
+task packagePSICATWin() {
+	dependsOn ':tools:PSICAT:packageWin'
+	dependsOn ':tools:SchemeEditor:packageWin'
+
+	doLast {
+		def app = file("dist/win/PSICAT-${version}")
+		if (!app.exists()) {
+			println "${app.absolutePath} not found, creating."
+		}
+
+		copy {
+			into app
+			from "tools/PSICAT/dist/win/PSICAT"  // PSICAT dir contents
+		}
+
+		copy {
+			into app
+			from "tools/SchemeEditor/dist/win" // entire SchemeEditor dir
+		}
+
+		copy { // legacy schemes
+			into new File(app, "legacy schemes")
+			from "legacy schemes"
+		}
+
+		copy { // modern schemes
+			into new File(app, "resources")
+			from "resources"			
+		}
+	}
+}
+
+// old, likely obsolete
 task 'assemble-jars'(dependsOn: build) {
 	doLast {
 		File distDir = new File(buildDir, 'libs')

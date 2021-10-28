@@ -28,6 +28,8 @@
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>
     <true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>There was an error while launching the application. Please click OK to display a dialog with more information or cancel and view the syslog for details.</string>	
 	<key>LSEnvironment</key>
 	<dict>
 		<key>JAVA_HOME</key>

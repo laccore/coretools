@@ -107,12 +107,13 @@ task packagePSICATMac() {
 
 		copy { // legacy schemes
 			into new File(app, "legacy schemes")
-			from "legacy schemes"
+			from "schemes/legacy"
 		}
 
 		copy { // modern schemes
 			into new File(app, "resources")
-			from "resources"			
+			from "schemes"
+			exclude "legacy"
 		}
 
 		// tar and zip up the entire package

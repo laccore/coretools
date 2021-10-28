@@ -116,13 +116,13 @@ task packageMac(dependsOn: ':packageCheckMac') {
 			// codesign the app so Mac users are only pestered by the "Do you want SchemeEditor
 			// to allow incoming network connections" dialog once...otherwise it appears
 			// at every launch.
-			exec {
-				println "Code signing app package"
-				workingDir 'dist/mac'
-				commandLine 'codesign', '--force', '--deep', '--sign', '-', 'SchemeEditor.app'
-				standardOutput = new ByteArrayOutputStream()
-				println standardOutput.toString()
-			}
+			// exec {
+			// 	println "Code signing app package"
+			// 	workingDir 'dist/mac'
+			// 	commandLine 'codesign', '--force', '--deep', '--sign', '-', 'SchemeEditor.app'
+			// 	standardOutput = new ByteArrayOutputStream()
+			// 	println standardOutput.toString()
+			// }
 
 			// copy Java runtime into bundle
 			copy {

@@ -1,28 +1,27 @@
 # ignored files
 *.class
 *.DS_Store
+.classpath
+.project
+breadcrumb.txt
 
 # ignored directories
+.gradle/
 build/
 **/build/
-.gradle/
+dist/
 
-tools/PSICAT/installer/jar/**
-tools/PSICAT/installer/jsmooth/**
-tools/PSICAT/installer/mac/**
-tools/PSICAT/installer/windows/**
-tools/PSICAT/installer/linux/**
+# ignore subdirs but not files
+package/java_runtime/mac/*/ 
+package/java_runtime/win/*/
+
+bin/
+.settings/
 
 tools/PSICAT/lib/**
 tools/PSICAT/griffon-app/resources/iconic-png
 tools/PSICAT/staging
 tools/PSICAT/target
-
-tools/SchemeEditor/installer/jar/**
-tools/SchemeEditor/installer/jsmooth/**
-tools/SchemeEditor/installer/mac/**
-tools/SchemeEditor/installer/windows/**
-tools/SchemeEditor/installer/linux/**
 
 tools/SchemeEditor/lib/**
 tools/SchemeEditor/staging

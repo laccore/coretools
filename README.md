@@ -3,11 +3,19 @@ PSICAT
 
 ![PSICAT mascot](https://github.com/laccore/coretools/blob/master/tools/PSICAT/img/psicat.gif)
 
-PSICAT is a desktop application intended to capture Initial Core Description (ICD) data.
+PSICAT is a desktop application for capturing Initial Core Description (ICD) data.
 
-Description data can be exported in a variety of forms: as tabular data, diagrams in common vector (PDF, SVG) and raster formats (BMP, JPG, PNG), or as a stratigraphic column diagram comprising a user-defined set of core sections.
 
-PSICAT is available for Windows and Macintosh. The Windows build runs under [WINE](https://www.winehq.org/) on Linux systems. See the [Releases](https://github.com/laccore/coretools/releases) page for downloads.
+Captured description data can be exported in a variety of forms:
+- tabular data (Excel)
+- diagrams in common vector (PDF, SVG) and raster formats (BMP, JPG, PNG)
+- stratigraphic column diagram comprising a user-defined set of core sections
+
+PSICAT is available for Windows, Macintosh, and Linux.
+
+Pre-built Windows (.exe) and Mac (.app) applications are provided. See the [releases](https://github.com/laccore/coretools/releases) page for downloads.
+
+On Linux systems, PSICAT can be built and run from source code using the "For Developers" instructions below. If you'd rather not build from scratch, the Windows build runs on Linux under [WINE](https://www.winehq.org/).
 
 These [video tutorials](https://www.youtube.com/playlist?list=PLLHxfH9IrTIMit13zSZs91_IJBMfNEUYi) describe basic and more advanced features of PSICAT.
 
@@ -25,22 +33,21 @@ For Developers: Building PSICAT and SchemeEditor
 Getting PSICAT up and running from source code is challenging, but it can be done!
 Please [contact the CSD Facility](https://cse.umn.edu/csd/about-us) if you need assistance.
 
-The following instructions are for a macOS environment. Binaries for both Mac and Windows
-can be built on a Mac.
+The following instructions are for a macOS or Linux environment. Binaries for both Mac and Windows can be built on a Mac or Linux machine.
 
 ### Requirements
 
 ##### Griffon 0.2
-PSICAT is based on version 0.2 of the [Griffon Framework](https://griffon-framework.org), which is quite old!
-It can be downloaded from the [Wayback Machine](https://web.archive.org/web/20150527101132/http://griffon.codehaus.org/Download).
+PSICAT is based on version 0.2 of the [Griffon Framework](https://griffon-framework.org), which is really, really old. Because it's impossible to find in the wild as of October 2021, a complete Griffon 0.2 package has been included in the `bootstrap` dir.
 
 ##### Java 6 Development Kit
 Java 6 is required to compile source files, and for the Griffon command-line interface to function.
+Linux users can download JDK 6 [here](https://www.oracle.com/java/technologies/javase-java-archive-javase6-downloads.html).
 
 ##### Java 8
-The packaged Mac (.app) and Windows (.exe) binaries run against Java 8. A Mac/Windows Java 8 runtime must be provided by the user. We use the [Temurin](https://adoptium.net/) binaries (formerly AdoptOpenJDK) in official releases.
+The packaged Mac (.app) and Windows (.exe) binaries run against a bundled Java 8 runtime. A Mac/Windows Java 8 runtime must be provided by the user. We use the [Temurin](https://adoptium.net/) binaries (formerly AdoptOpenJDK) in official releases.
 
-##### Gradle 6.5.1
+##### Gradle 6.5.1+
 A Gradle 6.5.1 wrapper is included.
 
 ### Preparation
@@ -58,8 +65,11 @@ Open another Terminal window for Gradle use. A separate shell is necessary becau
 
 Set the `JAVA_HOME` environment variable to your JDK 8+ `Contents/Home` directory.
 
+Point Gradle to your JDK 6 path:
+In `coretools/build.gradle`, update the `javaHome` and `javaExecutablesPath` vars to reflect your JDK 6 install.
+
 ##### Java 8 Runtime
-Copy your Java 8 Runtime into `coretools/package/java_runtime/mac` and/or `coretools/package/java_runtime/win`.
+Required to build standalone applications. Copy your Java 8 Runtime into `coretools/package/java_runtime/mac` and/or `coretools/package/java_runtime/win` as appropriate for your target platform(s).
 
 ### Building and Running Locally
 
@@ -79,7 +89,7 @@ Both shells: `cd ../SchemeEditor`, then
 Gradle shell: `../../gradlew copyDependencies`, then
 Griffon shell: `griffon run-app`
 
-### Creating Mac and Windows Applications
+### Creating Standalone Mac and Windows Applications
 ##### Mac
 In `coretools/build.gradle`, set the `project.ext.javaRuntimeFile` var to the name of your
 Java 8 runtime file/dir, e.g.
@@ -98,7 +108,7 @@ Move to the `tools/SchemeEditor` directory and generate that .app bundle: `../..
 The SchemeEditor.app bundle is created in `tools/SchemeEditor/dist/mac`
 
 Finally, create a distribution-ready package including stock lithology and symbol schemes.
-In the root `coretools` directory: `./gradlew/packagePSICATMac`
+In the root `coretools` directory: `./gradlew packagePSICATMac`
 
 The resulting package is created in `dist/mac`.
 

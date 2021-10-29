@@ -23,7 +23,7 @@ PSICAT was originally developed by Josh Reed, in partnership with [CHRONOS](http
 For Developers: Building PSICAT and SchemeEditor
 ================================================
 Getting PSICAT up and running from source code is challenging, but it can be done!
-Please [contact us](https://docs.google.com/forms/d/e/1FAIpQLSdKJB-ayDo4btwBa-By4Cd4cL5_MxcE7vcu90K_CfYx03HwuA/viewform) if you need assistance.
+Please [contact the CSD Facility](https://cse.umn.edu/csd/about-us) if you need assistance.
 
 The following instructions are for a macOS environment. Binaries for both Mac and Windows
 can be built on a Mac.

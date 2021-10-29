@@ -13,7 +13,7 @@ These [video tutorials](https://www.youtube.com/playlist?list=PLLHxfH9IrTIMit13z
 
 If you're having trouble running PSICAT on a Mac, check [this troubleshooting page](https://github.com/laccore/coretools/wiki/Running-PSICAT-on-a-Mac-(macOS-or-OSX)).
 
-If you're still having trouble, think you've found a bug, or have other questions/comments, please use the [feedback form](https://docs.google.com/forms/d/1Jn--CnpLSXFeiW3DrULAw25r8IYHF0zshimBx4Utm6c) and we'll respond as soon as possible.
+If you're still having trouble, think you've found a bug, or have other questions/comments, please use the [feedback form](https://docs.google.com/forms/d/e/1FAIpQLSdKJB-ayDo4btwBa-By4Cd4cL5_MxcE7vcu90K_CfYx03HwuA/viewform) and we'll respond as soon as possible.
 
 PSICAT was originally developed by Josh Reed, in partnership with [CHRONOS](http://chronos.org/index.html) and [ANDRILL](http://www.andrill.org/static/index.html).
 

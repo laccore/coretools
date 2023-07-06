@@ -54,7 +54,7 @@ public class GrainSizeTrack extends GeologyTrack {
 		def clip = clip(bounds, graphics.clip)
 		def prev = null
 		models.findAll{ onpage(it, clip) }.each { m ->
-			if (m?.grainSizeTop && m?.grainSizeBase) {
+			if (m?.grainSizeTop != null && m?.grainSizeBase != null) {
 				def tgs = gs(m.grainSizeTop, m.top.to(units).value)
 				def bgs = gs(m.grainSizeBase, m.base.to(units).value)
 				

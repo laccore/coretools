@@ -16,11 +16,15 @@
 package org.andrill.coretools.geology.ui
 
 import java.lang.StringBuilder
+import java.awt.Rectangle
 import java.awt.geom.Rectangle2D
+import java.awt.geom.Point2D
 import java.awt.Color
 import java.awt.Font
 import java.text.DecimalFormat
 import org.andrill.coretools.graphics.GraphicsContext
+
+import org.andrill.coretools.scene.Scene.ScenePart
 
 import org.andrill.coretools.geology.models.Occurrence
 
@@ -40,6 +44,20 @@ class AnnotationTrack extends GeologyTrack {
 	def getFooter() { "Description" }
 	def getWidth()  { return 128 }
 	def getFilter() { return { it.hasProperty('description') && it.description } }
+
+	// AnnotationTrack is unusual in that it displays data for multiple model types.
+	// Clicking an annotation should select the associated model. At render-time, update
+	// this map with key=annotation Rectangle (in screenspace), value=associated model.
+	private annotationRects = [:]
+
+	Object findAt(Point2D screen, ScenePart part) {
+		if (part == ScenePart.HEADER || part == ScenePart.FOOTER) {
+			return this
+		} else {
+			def match = annotationRects.find({ it.key.contains(screen) })
+			return match ? match.value : this
+		}
+	}
 
 	void renderContents(GraphicsContext graphics, Rectangle2D bounds) {
 		this.bounds = bounds
@@ -113,9 +131,13 @@ class AnnotationTrack extends GeologyTrack {
 		}
 		
 		// draw description text
+		annotationRects = [:]
 		onpage.each { m ->
 			def x = rects[m].x
 			def y = rects[m].y
+			
+			// draw bounding box
+			// graphics.drawRectangle(rects[m].x, rects[m].y, rects[m].width, rects[m].height)
 			
 			// draw label
 			graphics.drawString(x, y, boldFont, m.toString() + " ")
@@ -126,6 +148,8 @@ class AnnotationTrack extends GeologyTrack {
 				if (line) { graphics.drawString(x + offset, y, font, line) }
 				y += letterHeight
 			}
+
+			annotationRects[rects[m]] = m
 		}
 	}
 	

@@ -136,8 +136,14 @@ class AnnotationTrack extends GeologyTrack {
 			def x = rects[m].x
 			def y = rects[m].y
 			
-			// draw bounding box
-			// graphics.drawRectangle(rects[m].x, rects[m].y, rects[m].width, rects[m].height)
+			// draw bounding box around selected model's annotation text, if any
+			if (m == selection) {
+				graphics.pushState()
+				graphics.lineThickness = 1
+				graphics.lineColor = Color.red
+				graphics.drawRectangle(rects[m].x, rects[m].y, rects[m].width, rects[m].height)
+				graphics.popState()
+			}
 			
 			// draw label
 			graphics.drawString(x, y, boldFont, m.toString() + " ")

@@ -17,8 +17,6 @@ import java.util.prefs.Preferences
 import javax.swing.JOptionPane
 import javax.swing.JCheckBox
 
-import com.brsanthu.googleanalytics.*
-
 import org.andrill.coretools.model.DefaultProject
 
 import psicat.PSICATController
@@ -37,10 +35,6 @@ if (!uuid) {
 	uuid = UUID.randomUUID().toString()
 	prefs.put('psicat.uuid', uuid)
 }
-
-// track launch
-GoogleAnalytics ga = new GoogleAnalytics("UA-64269312-1")
-ga.post(new PageViewHit("http://www.laccore.org", "launch: UUID=$uuid"))
 
 def defLoc = Locale.getDefault()
 def warnStr = """\

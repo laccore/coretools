@@ -30,8 +30,7 @@ dependencies {
     compile 'log4j:log4j:1.2.17'
     compile 'xalan:xalan:2.7.1'
     compile 'org.json:json:20140107'
-    compile 'com.brsanthu:google-analytics-java:1.1.2'
-
+    
 	compile project(":coretools")
     compile project(":coretools-model")
     compile project(":coretools-graphics")

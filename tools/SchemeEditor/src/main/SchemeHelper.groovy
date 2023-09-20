@@ -229,7 +229,7 @@ public class SchemeHelper {
 		}
 		return scheme
 	}
-	
+
 	/**
 	 * Writes a scheme to a stream
 	 */
@@ -269,18 +269,33 @@ public class SchemeHelper {
 				// write our scheme xml
 				zip.putNextEntry(new ZipEntry("scheme.xml"))
 				def writer = new StringWriter()
-				def xml = new MarkupBuilder(writer)
-			    xml.scheme(id: scheme?.id, name: scheme?.name, type: scheme?.type) {
-				    scheme.entries.each() { e ->
-				    	entry() {
-				    		e.each { k,v ->
-				    			if (k != "icon") {
-				    				property(name: k, value: v)
-				    			}
-				    		}
-				    	}
-				    }
+
+				// 7/22/2023 brg: Tried using MarkupBuilder to write scheme XML,
+				// but couldn't prevent escaping of ampersand (&) in UTF-8 encoding
+				// in a value attribute to "&amp;", which hoses parsing of the UTF-8 char. Modern
+				// Groovy has the setting we need to fix this (escapeAttributes), but our ancient Groovy
+				// does not. Alas.
+				// Thankfully, the scheme XML structure is very simple; write it manually.
+				writer.write("<?xml version='1.0' encoding='UTF-8'?>")
+				def schemeXml = "<scheme id='${scheme?.id}' name='${scheme?.name}' type='${scheme?.type}'>\n"
+				writer.write(schemeXml)
+
+				scheme.entries.each() { e ->
+					writer.write("  <entry>\n")
+					e.each() { k,v ->
+						writer.write("    <property ")
+						if (k != "icon") {
+							def xmlValue = (k == "name" ? escapeHTML(v) : v);
+							writer.write("name='${k}' value='${xmlValue}' ")
+							def entryXml
+						}
+						writer.write("/>\n")
+					}
+					writer.write("  </entry>\n")
 				}
+
+				writer.write("</scheme>")
+
 				zip << writer.toString()
 				zip.closeEntry()
 				zip.close()
@@ -326,6 +341,22 @@ public class SchemeHelper {
 		}
 		lines << curLine
 	}
+
+	// 9/20/2023 brg: copy/paste from coretools-misc XMLReaderWriter.groovy
+	private escapeHTML(String s) {
+		StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c > 127 || c == '"' || c == '\'' || c == '<' || c == '>' || c == '&') {
+				out.append("&#");
+				out.append((int) c);
+				out.append(';');
+			} else {
+				out.append(c);
+			}
+		}
+		return out.toString();
+	}	
 	
 	// assuming 8.5 x 11" for pagination
 	def exportCatalog(paginate, destFile, schemeEntries, isLithology, schemeName, schemeId) {

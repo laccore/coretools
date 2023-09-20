@@ -25,7 +25,7 @@ import org.andrill.coretools.model.ModelManager.Factory;
  * @author Josh Reed (jareed@andrill.org)
  */
 class GeologyFactory implements Factory {
-	private static final String[] TYPES = [Annotation.class, Interval.class, Occurrence.class, Unit.class, Image.class, Section.class].collect { it.simpleName } as String[]
+	private static final String[] TYPES = [Annotation.class, Interval.class, BeddingInterval.class, CSDFGrainSizeInterval.class, TextureInterval.class, Feature.class, Occurrence.class, Unit.class, Image.class, Section.class].collect { it.simpleName } as String[]
 	
 	public GeologyFactory() { }
 	
@@ -38,6 +38,10 @@ class GeologyFactory implements Factory {
 			case 'Occurrence':	return init(new Occurrence(), data)
 			case 'Unit': 		return init(new Unit(), data)
 			case 'Interval':	return initInterval(new Interval(), data)
+			case 'BeddingInterval': return initInterval(new BeddingInterval(), data)
+			case 'TextureInterval': return initInterval(new TextureInterval(), data)
+			case 'CSDFGrainSizeInterval': return initInterval(new CSDFGrainSizeInterval(), data)
+			case 'Feature': return init(new Feature(), data)
 			case 'Image':		return init(new Image(), data)
 			case 'Section':		return init(new Section(), data)
 			default:			return null

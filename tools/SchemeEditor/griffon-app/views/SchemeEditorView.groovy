@@ -94,7 +94,7 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']} $s
 		label('ID:')
 		textField(id:'schemeId', constraints:'growx', action: updateSchemeAction)
 		label('Type:')
-		comboBox(id:'schemeType', items: ['lithology', 'symbol'], editable: false, constraints: 'growx', action: updateSchemeAction)
+		comboBox(id:'schemeType', items: ['lithology', 'texture', 'bedding', 'grainsize', 'features', 'symbol'], editable: false, constraints: 'growx', action: updateSchemeAction)
 	}
 	panel(layout:new MigLayout("fill, wrap, insets 5", '', '[grow][]'), constraints:'grow, wrap', border:titledBorder("Scheme Entries")) {
 	    scrollPane(constraints:'grow') {

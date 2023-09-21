@@ -46,6 +46,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     private SchemeHelper helper
     static File currentOpenDir = new File(System.getProperty("user.home"))
 	static File currentSaveDir = new File(System.getProperty("user.home"))
+	final tileImageTypes = ['lithology', 'bedding', 'texture', 'grainsize']
 
     void mvcGroupInit(Map args) {
     	helper = new SchemeHelper()
@@ -291,8 +292,8 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
 			currentSaveDir = fc.currentDirectory
 			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
-			def isLithology = (view.schemeType.selectedItem == "lithology")
-			helper.exportCatalog(paginate, destFile, model.schemeEntries, isLithology, view.schemeName.text, view.schemeId.text)
+			def tileImage = (view.schemeType.selectedItem in tileImageTypes)
+			helper.exportCatalog(paginate, destFile, model.schemeEntries, tileImage, view.schemeName.text, view.schemeId.text)
 		}
 	}
 	
@@ -395,7 +396,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     	view.preview.color = color
     	
     	// handle our image
-    	view.preview.tileImage = (view.schemeType.selectedItem == "lithology")
+    	view.preview.tileImage = (view.schemeType.selectedItem in tileImageTypes)
     	if (model?.entryImage) {
     		doOutside {
     			def image = helper.parseImage(model.entryImage)

@@ -359,7 +359,8 @@ public class SchemeHelper {
 	}	
 	
 	// assuming 8.5 x 11" for pagination
-	def exportCatalog(paginate, destFile, schemeEntries, isLithology, schemeName, schemeId) {
+	// - tileImage (boolean): true if scheme image is a fill pattern/texture, false if an icon
+	def exportCatalog(paginate, destFile, schemeEntries, tileImage, schemeName, schemeId) {
 		final int TITLE_HEIGHT = 20
 		final int MARGIN = 36 // 1/2"
 		final int SYMBOL_LARGE = 32
@@ -368,13 +369,14 @@ public class SchemeHelper {
 		final int SYMBOL_IMAGES_WIDTH = SYMBOL_LARGE + INTERSYMBOL_PADDING + SYMBOL_SMALL
 
 		final int entryPadding = 5
-		final int entryWidth = isLithology ? 130 : 260
-		final int entryHeight = isLithology ? 170 : 40
-		final int textWidth = isLithology ? entryWidth : (entryWidth - SYMBOL_IMAGES_WIDTH) // symbol: subtract large and small image width plus 5pix padding 
+		final int entryWidth = tileImage ? 130 : 260
+		final int entryHeight = tileImage ? 170 : 40
+		final int textWidth = tileImage ? entryWidth : (entryWidth - SYMBOL_IMAGES_WIDTH) // symbol: subtract large and small image width plus 5pix padding 
 
 		final int width = 612 // 8.5" wide
 		final int entriesPerRow = (width / entryWidth)
-		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryHeight) + TITLE_HEIGHT // 11" high if paginated
+		// 11" tall if paginated
+		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryHeight) + TITLE_HEIGHT
     	
         Document document = new Document(new Rectangle(width, height))
         PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(destFile))
@@ -426,7 +428,7 @@ public class SchemeHelper {
 	
 				def color = entry.color ?: Color.white
 				
-				if (isLithology) {
+				if (tileImage) {
 					g2.setPaint(parseColor(entry.color))
 					g2.fillRect(x.intValue(), y.intValue(), entryWidth, entryWidth)
 				}
@@ -440,7 +442,7 @@ public class SchemeHelper {
 					}
 
 					if (image) {
-						if (isLithology) {
+						if (tileImage) {
 							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
 							g2.fillRect(x, y, entryWidth, entryWidth)
 						} else {
@@ -463,7 +465,7 @@ public class SchemeHelper {
 				g2.setPaint(Color.BLACK)
 				def nameLines = wrap(entry.name, fontMetrics, textWidth)
 				nameLines.eachWithIndex { line, curLine ->
-					if (isLithology)
+					if (tileImage)
 						g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
 					else
 						g2.drawString(line, x + 16 + 40 + entryPadding, y + letterHeight * (1 + curLine))

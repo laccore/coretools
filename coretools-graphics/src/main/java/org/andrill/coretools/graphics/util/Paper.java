@@ -29,23 +29,23 @@ public class Paper {
 	private static Map<String, Paper> PAGES = new HashMap<String, Paper>();
 	private static final int DEFAULT_MARGIN = 36; // 0.5"
 
-	public static final Paper A0 = new Paper(2384, 3371, DEFAULT_MARGIN);
-	public static final Paper A1 = new Paper(1685, 2384, DEFAULT_MARGIN);
-	public static final Paper A2 = new Paper(1190, 1684, DEFAULT_MARGIN);
-	public static final Paper A3 = new Paper(842, 1190, DEFAULT_MARGIN);
-	public static final Paper A4 = new Paper(595, 842, DEFAULT_MARGIN);
-	public static final Paper A5 = new Paper(420, 595, DEFAULT_MARGIN);
-	public static final Paper B4 = new Paper(729, 1032, DEFAULT_MARGIN);
-	public static final Paper B5 = new Paper(516, 729, DEFAULT_MARGIN);
+	public static final Paper A0 = new Paper("A0", 2384, 3371, DEFAULT_MARGIN);
+	public static final Paper A1 = new Paper("A1", 1685, 2384, DEFAULT_MARGIN);
+	public static final Paper A2 = new Paper("A2", 1190, 1684, DEFAULT_MARGIN);
+	public static final Paper A3 = new Paper("A3", 842, 1190, DEFAULT_MARGIN);
+	public static final Paper A4 = new Paper("A4", 595, 842, DEFAULT_MARGIN);
+	public static final Paper A5 = new Paper("A5", 420, 595, DEFAULT_MARGIN);
+	public static final Paper B4 = new Paper("B4", 729, 1032, DEFAULT_MARGIN);
+	public static final Paper B5 = new Paper("B5", 516, 729, DEFAULT_MARGIN);
 
-	public static final Paper EXECUTIVE = new Paper(540, 720, DEFAULT_MARGIN);
-	public static final Paper FOLIO = new Paper(612, 936, DEFAULT_MARGIN);
-	public static final Paper LEDGER = new Paper(1224, 792, DEFAULT_MARGIN);
-	public static final Paper LEGAL = new Paper(612, 1008, DEFAULT_MARGIN);
-	public static final Paper LETTER = new Paper(612, 792, DEFAULT_MARGIN);
-	public static final Paper QUARTO = new Paper(610, 780, DEFAULT_MARGIN);
-	public static final Paper STATEMENT = new Paper(396, 612, DEFAULT_MARGIN);
-	public static final Paper TABLOID = new Paper(792, 1224, DEFAULT_MARGIN);
+	public static final Paper EXECUTIVE = new Paper("Executive", 540, 720, DEFAULT_MARGIN);
+	public static final Paper FOLIO = new Paper("Folio", 612, 936, DEFAULT_MARGIN);
+	public static final Paper LEDGER = new Paper("Ledger", 1224, 792, DEFAULT_MARGIN);
+	public static final Paper LEGAL = new Paper("Legal", 612, 1008, DEFAULT_MARGIN);
+	public static final Paper LETTER = new Paper("Letter", 612, 792, DEFAULT_MARGIN);
+	public static final Paper QUARTO = new Paper("Quarto", 610, 780, DEFAULT_MARGIN);
+	public static final Paper STATEMENT = new Paper("Statement", 396, 612, DEFAULT_MARGIN);
+	public static final Paper TABLOID = new Paper("Tabloid", 792, 1224, DEFAULT_MARGIN);
 
 	static {
 		PAGES.put("letter", LETTER);
@@ -91,7 +91,7 @@ public class Paper {
 				int ph = Integer.parseInt(split[3]);
 				int px = Integer.parseInt(split[4]);
 				int py = Integer.parseInt(split[5]);
-				return new Paper(w, h, pw, ph, px, py);
+				return new Paper(name, w, h, pw, ph, px, py);
 			} else {
 				return getDefault();
 			}
@@ -109,6 +109,7 @@ public class Paper {
 		}
 	}
 
+	private final String name;
 	private final int px, py, pw, ph;
 	private final int width, height;
 
@@ -122,7 +123,8 @@ public class Paper {
 	 * @param margin
 	 *            the margin.
 	 */
-	public Paper(final int width, final int height, final int margin) {
+	public Paper(final String name, final int width, final int height, final int margin) {
+		this.name = name;
 		this.width = width;
 		this.height = height;
 		px = margin;
@@ -147,8 +149,9 @@ public class Paper {
 	 * @param top
 	 *            the top margin.
 	 */
-	public Paper(final int width, final int height, final int printableWidth, final int printableHeight,
+	public Paper(final String name, final int width, final int height, final int printableWidth, final int printableHeight,
 	        final int left, final int top) {
+		this.name = name;
 		this.width = width;
 		this.height = height;
 		px = left;
@@ -169,6 +172,9 @@ public class Paper {
 			return false;
 		}
 		Paper other = (Paper) obj;
+		if (!name.equals(other.name)) {
+			return false;
+		}
 		if (height != other.height) {
 			return false;
 		}
@@ -189,6 +195,8 @@ public class Paper {
 		}
 		return true;
 	}
+
+	public String getName() { return name; }
 
 	/**
 	 * Gets the page height in points.
@@ -262,10 +270,11 @@ public class Paper {
 		// find existing paper
 		for (Entry<String, Paper> entry : PAGES.entrySet()) {
 			if (entry.getValue().equals(this)) {
-				return entry.getKey();
+				Paper p = (Paper)entry.getValue();
+				return p.name + " (" + p.width + " x " + p.height + ")";
 			}
 		}
 		// otherwise return a string representation
-		return width + "x" + height + "[" + pw + "x" + ph + "+" + px + "+" + py + "]";
+		return name + ": " + width + "x" + height + "[" + pw + "x" + ph + "+" + px + "+" + py + "]";
 	}
 }

@@ -18,14 +18,15 @@ package psicat.dialogs
 import net.miginfocom.swing.MigLayout
 import psicat.util.*
 
+import org.andrill.coretools.graphics.util.Paper;
+
 actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
 	action(id: 'exportAction', name:'Export', closure: controller.actions.export)
 }
 
 def section = buildMVCGroup('SectionCombo', 'exportDiagramSections', project: model.project, allSections:true).view.root
-
-def prefixToolTip = "Optional: prefix output files' names with specified text, e.g. 'my_[section_name].pdf'"
+final prefixToolTip = "Optional: prefix output files' names with specified text, e.g. 'my_[section_name].pdf'"
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	widget(id:'section', section, constraints: 'span, growx, wrap')
@@ -43,12 +44,16 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	label('Per page:')
 	textField(columns:4, text: bind(source: model, sourceProperty:'pageSize', mutual:true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split')
 	label("${model.units}", constraints:'wrap')
+	widget(id:'section', section, constraints: 'span, growx, wrap')
 	separator(constraints: 'span, growx, wrap')
 
 	checkBox(text: 'Render Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true), constraints: 'span, wrap')
 	checkBox(text: 'Render Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'span, wrap')
-	separator(constraints: 'span, growx, wrap')
 
+	label('Page Format:')
+	comboBox(id: 'paper', editable: false, items: (Paper.PAGES.values() as List).sort({ p1, p2 -> p1.name <=> p2.name }), constraints: 'split, wrap')
+
+	separator(constraints: 'span, growx, wrap')
 	
 	label('To Directory:')
 	textField(enabled:false, text: bind { model.filePath }, constraints:'width min(200px), growx')

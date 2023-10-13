@@ -146,8 +146,8 @@ class AnnotationTrack extends GeologyTrack {
 			}
 			
 			// draw label
-			graphics.drawString(x, y, boldFont, m.toString() + " ")
-			def offset = graphics.getStringBounds(boldFont, m.toString() + " ").getWidth()
+			graphics.drawString(x, y, boldFont, m.toStringInUnits(units) + " ")
+			def offset = graphics.getStringBounds(boldFont, m.toStringInUnits(units) + " ").getWidth()
 			
 			text[m].eachWithIndex { line, index ->
 				if (index != 0) offset = 0 // offset for label on first line
@@ -163,7 +163,7 @@ class AnnotationTrack extends GeologyTrack {
 		def lines = []
 		m.description.readLines().eachWithIndex { line, index ->
 			// leave space for label to be drawn on first line
-			def labelWidth = graphics.getStringBounds(boldFont, m.toString() + " ").getWidth()
+			def labelWidth = graphics.getStringBounds(boldFont, m.toStringInUnits(units) + " ").getWidth()
 			def w = (index == 0 ? labelWidth : 0)
 
 			StringBuilder current = new StringBuilder()

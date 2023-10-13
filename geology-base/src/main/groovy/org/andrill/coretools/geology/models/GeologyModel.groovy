@@ -20,10 +20,12 @@ import java.text.NumberFormat
 
 import org.andrill.coretools.AdapterManager
 import org.andrill.coretools.Platform
-import org.andrill.coretools.geology.GPropertyimport org.andrill.coretools.model.Model
+import org.andrill.coretools.geology.GProperty
+import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.edit.EditableProperty
-/**
+
+/**
  * An implementation of the Model interface for geology-related models.
  * 
  * @author Josh Reed (jareed@andrill.org)
@@ -172,7 +174,15 @@ abstract class GeologyModel implements Model {
 		if (top == base) {
 			"${format(top)}"	
 		} else {
-			"${format(top)}-${format(base)}"
+			"${format(top.value)}-${format(base)}"
+		}
+	}
+
+	String toStringInUnits(units) {
+		if (top == base) {
+			"${format(top.to(units))}"	
+		} else {
+			"${format(top.to(units).value)}-${format(base.to(units))}"
 		}
 	}
 }

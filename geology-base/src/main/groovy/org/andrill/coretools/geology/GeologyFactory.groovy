@@ -16,8 +16,9 @@
 package org.andrill.coretools.geology
 
 import org.andrill.coretools.geology.models.*
-import org.andrill.coretools.model.Model;
-import org.andrill.coretools.model.ModelManager.Factory;
+import org.andrill.coretools.geology.models.csdf.*
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.model.ModelManager.Factory
 
 /**
  * The geology models factory.

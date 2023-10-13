@@ -1,16 +1,11 @@
-package org.andrill.coretools.geology.ui
+package org.andrill.coretools.geology.ui.csdf
 
-import java.awt.Color
-import java.awt.geom.Rectangle2D
-import org.andrill.coretools.geology.models.CSDFGrainSizeInterval
+import org.andrill.coretools.geology.models.csdf.CSDFGrainSizeInterval
 import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
-import org.andrill.coretools.graphics.GraphicsContext
-import org.andrill.coretools.graphics.fill.*
-import org.andrill.coretools.model.Model;
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
-
+import org.andrill.coretools.geology.ui.*
 
 class CSDFGrainSizeTrack extends AbstractIntervalTrack {
 	// Properties:

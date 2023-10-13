@@ -1,4 +1,6 @@
-package org.andrill.coretools.geology.models
+package org.andrill.coretools.geology.models.csdf
+
+import org.andrill.coretools.geology.models.*
 
 class Feature extends GeologyModel {
 	Length top

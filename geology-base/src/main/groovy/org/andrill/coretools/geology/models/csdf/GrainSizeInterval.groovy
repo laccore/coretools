@@ -2,7 +2,7 @@ package org.andrill.coretools.geology.models.csdf
 
 import org.andrill.coretools.geology.models.*
 
-class CSDFGrainSizeInterval extends GeologyModel {
+class GrainSizeInterval extends GeologyModel {
 	Length top
 	Length base
 	SchemeRef scheme

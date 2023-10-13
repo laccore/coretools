@@ -5,7 +5,7 @@ import org.andrill.coretools.geology.models.*
 class LithologyInterval extends GeologyModel {
 	Length top
 	Length base
-	SchemeRef lithology
+	SchemeRef scheme
 	String description
 	
 	static constraints = [

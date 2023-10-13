@@ -66,6 +66,8 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		model.units = model.project.configuration.units ?: prefs.get('diagram.units', 'm')
     }
 
+	// diagramState - "base" diagramState comes from PSICATModel, which is then updated with current
+	// Diagram's properties where they exist.
     void activate(diagramState) {
     	model.diagramState = diagramState
     	setState('name', model.name)
@@ -140,7 +142,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     boolean close() {
     	if (model.dirty) {
-    		switch (JOptionPane.showConfirmDialog( app.appFrames[0], "Save changes to '${model.name}'?", "PSICAT", JOptionPane.YES_NO_CANCEL_OPTION)){
+    		switch (JOptionPane.showConfirmDialog(app.appFrames[0], "Save changes to '${model.name}'?", "PSICAT", JOptionPane.YES_NO_CANCEL_OPTION)) {
     			case JOptionPane.YES_OPTION: return save()
     			case JOptionPane.NO_OPTION: return true
     			default: return false
@@ -197,6 +199,14 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 			doLater {
 				view.header.sceneChanged()
 				view.contents.sceneChanged()
+			}
+
+			model.scene.models.models.each { 
+				if (it.hasProperty('top')) { it.top = it.top.to(units) }
+				if (it.hasProperty('base')) {
+					it.base = it.base.to(units)
+					it.updated()
+				}
 			}
 		}
 		model.units = units

@@ -162,6 +162,10 @@ public class DefaultProject extends AbstractProject {
 		return new File(directory, getProperty(SCENE_DIR, DEFAULT_SCENE_DIR));
 	}
 
+	public File getGrainSizeFile() {
+		return new File(directory, "grainsize.csv");
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

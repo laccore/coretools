@@ -170,19 +170,33 @@ abstract class GeologyModel implements Model {
 		}
 	}
 
+	// https://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java
+	private String splitCamelCase(String s) {
+		return s.replaceAll(
+			String.format("%s|%s|%s",
+				"(?<=[A-Z])(?=[A-Z][a-z])",
+				"(?<=[^A-Z])(?=[A-Z])",
+				"(?<=[A-Za-z])(?=[^A-Za-z])"
+			),
+			" "
+		);
+	}
+
 	String toString() {
+		final spacedClassName = splitCamelCase(this.class.simpleName)
 		if (top == base) {
-			"${format(top)}"	
+			"$spacedClassName ${format(top)}"	
 		} else {
-			"${format(top.value)}-${format(base)}"
+			"$spacedClassName ${format(top.value)}-${format(base)}"
 		}
 	}
 
 	String toStringInUnits(units) {
+		final spacedClassName = splitCamelCase(this.class.simpleName)
 		if (top == base) {
-			"${format(top.to(units))}"	
+			"$spacedClassName ${format(top.to(units))}"	
 		} else {
-			"${format(top.to(units).value)}-${format(base.to(units))}"
+			"$spacedClassName ${format(top.to(units).value)}-${format(base.to(units))}"
 		}
 	}
 }

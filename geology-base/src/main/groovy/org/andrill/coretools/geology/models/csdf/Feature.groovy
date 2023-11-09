@@ -5,7 +5,6 @@ import org.andrill.coretools.geology.models.*
 class Feature extends GeologyModel {
 	Length top
 	Length base
-	String group
 	SchemeRef scheme
 	String description
 	
@@ -13,7 +12,6 @@ class Feature extends GeologyModel {
 		top:			[handle: 'north'],
 		base:			[handle: 'south'],
 		scheme:			[nullable: true, widgetProperties: [schemeType: 'features']],
-		group:			[nullable: true],
 		description:	[nullable: true, widgetType: "TextArea"]
 	]
 }

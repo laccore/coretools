@@ -8,9 +8,10 @@ class Feature extends GeologyModel {
 	SchemeRef scheme
 	String description
 	
+	// widgets with matching group values appear in the same row
 	static constraints = [
-		top:			[handle: 'north'],
-		base:			[handle: 'south'],
+		top:			[handle: 'north', group:'1', widgetProperties: [label: 'Range']],
+		base:			[handle: 'south', group:'1', widgetProperties: [label: '-']],
 		scheme:			[nullable: true, widgetProperties: [schemeType: 'features']],
 		description:	[nullable: true, widgetType: "TextArea"]
 	]

@@ -24,7 +24,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import org.andrill.coretools.geology.models.GeologyModel
+import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.models.csdf.*
 import org.andrill.coretools.geology.ui.Scale
 
 import org.andrill.coretools.Platform
@@ -254,5 +256,14 @@ class GeoUtils {
 			if (update)
 				m.updated()
 		}
+	}
+
+	// is model an in instance of an interval that requires contiguity?
+	static isIntervalInstance(model) {
+		return model instanceof Interval ||
+			model instanceof BeddingInterval ||
+			model instanceof GrainSizeInterval ||
+			model instanceof LithologyInterval ||
+			model instanceof UnitInterval
 	}
 }

@@ -17,6 +17,8 @@ package psicat
 
 import org.andrill.coretools.geology.models.Interval
 
+import psicat.util.GeoUtils
+
 actions {
 	action(
 		id: 'exitAction',
@@ -114,7 +116,7 @@ actions {
 	action(
 		id: 'splitAction',
 		name: 'Split Interval',
-		enabled: bind { model.diagramState?.selection instanceof Interval },
+		enabled: bind { GeoUtils.isIntervalInstance(model.diagramState?.selection) },
 		closure: controller.actions['splitInterval']
 	)
 	action(

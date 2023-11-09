@@ -6,6 +6,8 @@ import org.andrill.coretools.model.edit.AbstractCommand
 
 import org.andrill.coretools.geology.models.Interval
 
+import org.andrill.coretools.geology.models.csdf.*
+
 /**
  * A command for deleting an interval from a container while maintaining contiguity of remaining intervals where possible.
  * Generalized to handle Origin.TOP or Origin.BASE. Vars with the "next" prefix refer to the direction
@@ -41,31 +43,29 @@ public class DeleteIntervalCommand extends AbstractCommand {
 	 */
 	@Override
 	protected void executeCommand() {
-		if (model instanceof Interval) {
-			nextModel = findNextModel(model)
-			if (nextModel) {
-				prevModel = findPrevModel(model)
-				if (prevModel) { // models are above and below, expand previous model to fill void
-					prevDepth = prevModel."$prevProp"
-					prevModel."$prevProp" = model."$prevProp"
-					container.update(prevModel)
-				} else { // this model is nearest the origin, expand next model to fill void
-					nextDepth = nextModel."$nextProp"
-					nextModel."$nextProp" = model."$nextProp"
-					container.update(nextModel)
-				}
-			} // else this model is farthest from the origin, just delete
-			container.remove(model)
-		}
+		nextModel = findNextModel(model)
+		if (nextModel) {
+			prevModel = findPrevModel(model)
+			if (prevModel) { // models are above and below, expand previous model to fill void
+				prevDepth = prevModel."$prevProp"
+				prevModel."$prevProp" = model."$prevProp"
+				container.update(prevModel)
+			} else { // this model is nearest the origin, expand next model to fill void
+				nextDepth = nextModel."$nextProp"
+				nextModel."$nextProp" = model."$nextProp"
+				container.update(nextModel)
+			}
+		} // else this model is farthest from the origin, just delete
+		container.remove(model)
 	}
 	
 	private findNextModel(model) {
-		def nextModel = container.models.find { it instanceof Interval && it."$nextProp" == model."$prevProp" }
+		def nextModel = container.models.find { it.class == model.class && it."$nextProp" == model."$prevProp" }
 		return nextModel
 	}
 	
 	private findPrevModel(model) {
-		def prevModel = container.models.find { it instanceof Interval && it."$prevProp" == model."$nextProp" }
+		def prevModel = container.models.find { it.class == model.class && it."$prevProp" == model."$nextProp" }
 		return prevModel
 	}
 	

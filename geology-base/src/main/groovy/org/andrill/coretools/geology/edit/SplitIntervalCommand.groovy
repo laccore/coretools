@@ -17,7 +17,7 @@ public class SplitIntervalCommand extends AbstractCommand {
 	def newInterval = null
 
 	/**
-	 * Create a new DeleteIntervalCommand.
+	 * Create a new SplitIntervalCommand.
 	 *
 	 * @param model
 	 *            the model.
@@ -34,20 +34,21 @@ public class SplitIntervalCommand extends AbstractCommand {
 	 */
 	@Override
 	protected void executeCommand() {
-		if (model instanceof Interval) {
-			def splitDepth = model.top + (model.base - model.top).divide(2.0)
-			newInterval = (Interval.class).newInstance()
-			newInterval.top = model.top
-			newInterval.base = splitDepth
-			newInterval.description = model.description
-			newInterval.grainSizeTop = model.grainSizeTop
-			newInterval.grainSizeBase = model.grainSizeBase
-			newInterval.lithology = model.lithology
-			model.top = splitDepth
+		final splitDepth = model.top + (model.base - model.top).divide(2.0)
+		newInterval = (model.class).newInstance()
+		newInterval.top = model.top
+		newInterval.base = splitDepth
 
-			container.add(newInterval)
-			container.update(model)
+		model.modelData.keySet().each { prop ->
+			if (!(prop in ['top', 'base']) && newInterval.properties.containsKey(prop)) {
+				newInterval."$prop" = model."$prop"
+			}
 		}
+
+		model.top = splitDepth
+
+		container.add(newInterval)
+		container.update(model)
 	}
 
 	/**

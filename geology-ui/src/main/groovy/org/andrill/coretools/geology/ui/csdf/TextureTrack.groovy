@@ -7,7 +7,7 @@ import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
 import org.andrill.coretools.geology.ui.*
 
-class TextureTrack extends AbstractIntervalTrack {
+class TextureTrack extends AbstractFeatureTrack {
 	// Properties:
 	//   * track-header:   the text or image to draw in the header
 	//   * track-footer:   the text or image to draw in the footer

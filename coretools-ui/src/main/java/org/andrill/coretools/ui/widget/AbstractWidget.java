@@ -28,6 +28,7 @@ import org.andrill.coretools.model.edit.EditableProperty;
 public abstract class AbstractWidget implements Widget {
 	private static final String LABEL_KEY = "label";
 	private static final String UNIT_LABEL_KEY = "unitLabel"; // label right of edit text, useful for e.g. fixed units
+	private static final String USE_PROJECT_UNITS_KEY = "useProjectUnits";
 
 	protected Set<Listener> listeners = new CopyOnWriteArraySet<Listener>();
 	protected EditableProperty property;
@@ -99,6 +100,13 @@ public abstract class AbstractWidget implements Widget {
 			unitLabel = property.getWidgetProperties().get(UNIT_LABEL_KEY);
 		}
 		return unitLabel;
+	}
+
+	public boolean useProjectUnits() {
+		if (property.getWidgetProperties().containsKey(USE_PROJECT_UNITS_KEY)) {
+			return true; // use project units if key exists, ignore value
+		}
+		return false;
 	}
 
 	/**

@@ -64,6 +64,13 @@ public interface Widget {
 	String getUnitLabel();
 
 	/**
+	 * Use project units as label?
+	 * 
+	 * @return boolean
+	 */
+	boolean useProjectUnits();
+
+	/**
 	 * Gets the {@link EditableProperty} for this widget.
 	 * 
 	 * @return the editable property.

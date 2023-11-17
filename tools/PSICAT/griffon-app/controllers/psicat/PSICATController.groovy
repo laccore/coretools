@@ -146,11 +146,11 @@ class PSICATController {
 		model.status = "Set fontsize to $fontsize"
 	}
 	
-	void setUnits(units) {
-		prefs.put("diagram.units", units)
-		model.activeDiagram.controller.units = units
-		model.status = "Changed units to $units"
-	}
+	// void setUnits(units) {
+	// 	prefs.put("diagram.units", units)
+	// 	model.activeDiagram.controller.units = units
+	// 	model.status = "Changed units to $units"
+	// }
 
 	void setZoom(pageSize) {
 		prefs.putDouble("diagram.scaling", pageSize)

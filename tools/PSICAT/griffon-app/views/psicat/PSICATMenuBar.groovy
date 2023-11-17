@@ -82,12 +82,12 @@ menuBar(id: 'menuBar') {
 			menuItem(zoomOtherAction)
 		}
 		separator()
-		menu(text:'Units') {
-			radioButtonMenuItem(mUnitsAction,  selected: bind { model.diagramState.units == 'm'})
-			radioButtonMenuItem(cmUnitsAction, selected: bind { model.diagramState.units == 'cm'})
-			radioButtonMenuItem(ftUnitsAction, selected: bind { model.diagramState.units == 'ft'})
-			radioButtonMenuItem(inUnitsAction, selected: bind { model.diagramState.units == 'in'})
-		}
+		// menu(text:'Units') {
+		// 	radioButtonMenuItem(mUnitsAction,  selected: bind { model.diagramState.units == 'm'})
+		// 	radioButtonMenuItem(cmUnitsAction, selected: bind { model.diagramState.units == 'cm'})
+		// 	radioButtonMenuItem(ftUnitsAction, selected: bind { model.diagramState.units == 'ft'})
+		// 	radioButtonMenuItem(inUnitsAction, selected: bind { model.diagramState.units == 'in'})
+		// }
 		menu(text:"Font Size") {
 			menuItem(smallFontSizeAction)
 			menuItem(mediumFontSizeAction)

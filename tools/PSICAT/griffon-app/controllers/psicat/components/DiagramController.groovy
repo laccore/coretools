@@ -134,7 +134,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     	// set the orientation
     	setOrientation(prefs.get('diagram.orientation', 'vertical') == 'vertical')
-    	setUnits(model.units)
+		setUnits(project.units, false) // update models to project units without dirtying diagram
 		setFontSize(project.configuration.fontSize) // annotation track font size
     	
     	return true
@@ -191,7 +191,9 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		}
 	}
 
-    void setUnits(units) {
+	// If allowDirtiness, updating units will put diagram into
+	// dirty (needs save) state.
+    void setUnits(units, allowDirtiness) {
 		def factor = new Length(1, model.units).to(units).value
 		if (model.scene) {
 			model.scene.setRenderHint('preferred-units', units)
@@ -211,6 +213,9 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		}
 		model.units = units
 		setState('units', units)
+		if (!allowDirtiness) {
+			markClean()
+		}
 	}
 
     // manage state 

@@ -48,6 +48,8 @@ public class SwingWidgetSet implements WidgetSet {
 		boolean ro = readOnly || "false".equals(p.getConstraints().get("editable"));
 		if (Widget.SCHEME_ENTRY_TYPE.equals(p.getWidgetType())) {
 			return new SchemeEntryWidget(p, ro, schemes);
+		} else if (Widget.LENGTH_WIDGET_TYPE.equals(p.getWidgetType())) {
+			return new LengthWidget(p, ro);
 		} else {
 			return new TextWidget(p, ro);
 		}

@@ -39,6 +39,7 @@ public interface Widget {
 
 	String TEXTFIELD_TYPE = "TextField";
 	String TEXTAREA_TYPE = "TextArea";
+	String LENGTH_WIDGET_TYPE = "LengthWidget";
 	String SCHEME_ENTRY_TYPE = "SchemeEntry";
 
 	/**

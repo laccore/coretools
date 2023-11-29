@@ -10,8 +10,8 @@ class Feature extends GeologyModel {
 	
 	// widgets with matching group values appear in the same row
 	static constraints = [
-		top:			[handle: 'north', group: '1', widgetProperties: [label: 'Range', useProjectUnits: true]],
-		base:			[handle: 'south', group: '1', widgetProperties: [label: '-', useProjectUnits: true]],
+		top:			[handle: 'north', group: '1', widgetType: "LengthWidget", widgetProperties: [label: 'Range']],
+		base:			[handle: 'south', group: '1', widgetType: "LengthWidget", widgetProperties: [label: '-']],
 		scheme:			[nullable: true, widgetProperties: [schemeType: 'features']],
 		description:	[nullable: true, widgetType: "TextArea"]
 	]

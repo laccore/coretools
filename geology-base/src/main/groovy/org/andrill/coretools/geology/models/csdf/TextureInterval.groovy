@@ -9,8 +9,8 @@ class TextureInterval extends GeologyModel {
 	String description
 	
 	static constraints = [
-		top:			[handle: 'north', group: '1', widgetProperties: [label: 'Range', useProjectUnits: true]],
-		base:			[handle: 'south', group: '1', widgetProperties: [label: '-', useProjectUnits: true]],
+		top:			[handle: 'north', group: '1', widgetType: "LengthWidget", widgetProperties: [label: 'Range']],
+		base:			[handle: 'south', group: '1', widgetType: "LengthWidget", widgetProperties: [label: '-']],
 		scheme:			[nullable: true, widgetProperties: ['schemeType': 'texture']],
 		description:	[nullable: true, widgetType: "TextArea"]
 	]

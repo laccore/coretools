@@ -39,6 +39,10 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 		add radioButton(text: 'Outcrop', selected: bind { !model.originTop }, constraints: 'wrap')	
 	}
 
+	// units
+	label('Units:')
+	comboBox(id:'units', items: ['cm', 'm'], selectedItem: bind(source: model, sourceProperty: 'units', mutual:true), constraints: 'wrap')
+
 	// schemes
 	label('Schemes:')
 	buttonGroup().with {

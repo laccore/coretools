@@ -25,6 +25,16 @@ import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.model.io.ModelWriter
 import org.andrill.coretools.model.ModelContainer
 
+
+private class ModelSchemeMetadata {
+	String prop // name of Model's scheme property
+	String type // scheme type: lithology, bedding, texture, feature, symbol, etc
+	ModelSchemeMetadata(String prop, String type) {
+		this.prop = prop
+		this.type = type		
+	}
+}
+
 class GeologyExcelWriter {
 	private workbook = null
 	private sheets = [:]
@@ -32,9 +42,15 @@ class GeologyExcelWriter {
 	private rowCounts = [:]
 	private sheetCount = 0
 	private schemeManager = null
+	private units = 'm'
+	
+	// Cache modelSchemeMetadata so we don't need to look it up 10k times.
+	// k: Model.modelType (String), v: ModelSchemeMetadata
+	private modelSchemeMetadata = [:]
 		
 	String getFormat() { 'xls' }
 	void setSchemeManager(manager) { this.schemeManager = manager }
+	void setUnits(units) { this.units = units }
 	
 	// containers: map of containers keyed on section ID
 	void write(containerMap, stream, progressListener=null) {
@@ -63,16 +79,18 @@ class GeologyExcelWriter {
 		def row = rowCounts[model.modelType]
 		model.modelData.each { k, v ->
 			def value = v
-			if (['top', 'base'].contains(k)) // strip units from Lengths
-				value = new Length(v).value
+			if (['top', 'base'].contains(k)) {
+				// convert to project units, then strip units from Lengths
+				value = new Length(v).to(units).value
+			}
 			sheet.addCell(cell(head.indexOf(k), row, value))
 		}
 		
-		// include human-readable lithology/symbol name in addition to with scheme:code string
-		if (modelHasScheme(model)) {
-			def entry = getSchemeEntry(model)
+		def schemeMD = getModelSchemeMetadata(model)
+		if (schemeMD) {
+			def entry = getSchemeEntry(model, schemeMD.prop)
 			if (entry) {
-				def colName = getSchemeColumnName(model)
+				def colName = schemeMD.type
 				sheet.addCell(cell(head.indexOf(colName), row, entry.name))
 			}
 		}
@@ -81,23 +99,46 @@ class GeologyExcelWriter {
 		rowCounts[model.modelType]++
 	}
 	
-	def getSchemeEntry(model) {
+	def getSchemeEntry(model, schemeProp) {
 		def entry = null
-		def schStr = model.modelType.equals("Interval") ? "lithology" : "scheme"
-		def scheme = model."$schStr"?.scheme
-		def code = model."$schStr"?.code
+		def scheme = model."$schemeProp"?.scheme
+		def code = model."$schemeProp"?.code
 		
-		if (scheme && code)
+		if (scheme && code) {
 			entry = schemeManager.getEntry(scheme, code)
+		}
 			
 		return entry
 	}
 	
-	// get appropriate name for human-readable lithology/symbol column
-	def getSchemeColumnName(model) { model.modelType.equals("Interval") ? "lithology name" : "symbol name" }
-	
-	boolean modelHasScheme(model) {	return ["Interval", "Occurrence"].contains(model.modelType)	}
-	
+	private getModelSchemeMetadata(model) {
+		if (model.modelType in modelSchemeMetadata) {
+			return modelSchemeMetadata[model.modelType]
+		}
+
+		for (MetaProperty metaprop : model.metaClass.properties) {
+			if (metaprop.type == SchemeRef.class) {
+				def schemeProp = metaprop.name
+				def schemeType = '[scheme type]' // default for Model (e.g. Unit) without defined widgetProperties.schemeType
+				def schemeConstraintsMap = model.constraints[schemeProp]
+				if (schemeConstraintsMap) {
+					// println("Got constraints for $schemeProp: $schemeConstraintsMap")
+					def widgetProps = schemeConstraintsMap['widgetProperties']
+					if (widgetProps) {
+						// println("Got widgetProps: $widgetProps")
+						if ('schemeType' in widgetProps.keySet()) {
+							// println("Got schemeType ${widgetProps['schemeType']}")
+							schemeType = widgetProps['schemeType']
+						}
+					}
+				}
+				modelSchemeMetadata[model.modelType] = new ModelSchemeMetadata(schemeProp, schemeType)
+				break
+			}
+		}
+		return modelSchemeMetadata[model.modelType]
+	}
+
 	void createHeaders(model, sheet) {
 		if (!headers[model.modelType]) {
 			def newHeaders = []
@@ -105,8 +146,13 @@ class GeologyExcelWriter {
 				newHeaders << k
 			}
 			
-			if (modelHasScheme(model))
-				newHeaders << getSchemeColumnName(model)
+			def schemeMD = getModelSchemeMetadata(model)
+			if (schemeMD) {
+				def schemeHeaderName = schemeMD.type
+				if (schemeHeaderName) {
+					newHeaders << schemeHeaderName
+				}
+			}
 			
 			newHeaders << "Section ID"
 	
@@ -114,7 +160,7 @@ class GeologyExcelWriter {
 			newHeaders.eachWithIndex { name, col ->
 				def h = name
 				if (['top', 'base'].contains(name))
-					h += ' (m)'
+					h += " ($units)"
 				sheet.addCell(new Label(col, 0, h))
 			}
 			

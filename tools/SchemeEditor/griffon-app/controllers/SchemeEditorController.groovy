@@ -33,8 +33,11 @@ import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.filechooser.FileFilter
 
+import ca.odell.glazedlists.swing.DefaultEventTableModel
+
 import ca.odell.glazedlists.event.ListEvent
 import ca.odell.glazedlists.event.ListEventListener
+
 
 /**
  * The SchemeEditor controller.
@@ -167,6 +170,11 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		model.schemeValid = (view.schemeId.text && view.schemeName.text && view.schemeType.selectedItem && model.schemeEntries.size() > 0)
 		setSchemeDirty(true)
     }
+
+	def schemeTypeChanged = { evt = null ->
+		updateEntryTableFormat()
+		schemeChanged()
+	}
 	
     /**
      * Set the selected scheme
@@ -178,8 +186,10 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	    		view.schemeName.text = scheme.name
 	    		view.schemeType.selectedItem = scheme.type
 	    		view.schemeEntries.clearSelection()
+
 	    		model.schemeEntries.clear()
 	    		model.schemeEntries.addAll(scheme.entries)
+				updateEntryTableFormat()
 				addCustomImages(scheme)
 	    	} else {
 	    		view.schemeId.text = ""
@@ -192,6 +202,14 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 			setSchemeDirty(false)
     	}
     }
+
+	private updateEntryTableFormat() {
+		if (view.schemeType.selectedItem.equals("grainsize")) {
+			view.schemeEntries.model = new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries, ['width']))
+		} else {
+			view.schemeEntries.model = new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries))
+		}
+	}
 	
 	// add/remove non-standard images from loaded/closed scheme to/from imageChooser 
 	def pathToFile(String path) { 

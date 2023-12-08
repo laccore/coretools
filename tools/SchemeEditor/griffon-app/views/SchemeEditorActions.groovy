@@ -75,6 +75,9 @@ actions {
 	action( id: 'updateSchemeAction',
 		closure: controller.schemeChanged
 	)
+	action( id: 'updateSchemeTypeAction',
+		closure: controller.schemeTypeChanged
+	)
 	
 	// entry actions
 	action( id:'addEntryAction',

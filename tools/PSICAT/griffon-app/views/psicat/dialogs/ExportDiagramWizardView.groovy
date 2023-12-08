@@ -44,7 +44,6 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	label('Per page:')
 	textField(columns:4, text: bind(source: model, sourceProperty:'pageSize', mutual:true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split')
 	label("${model.units}", constraints:'wrap')
-	widget(id:'section', section, constraints: 'span, growx, wrap')
 	separator(constraints: 'span, growx, wrap')
 
 	checkBox(text: 'Render Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true), constraints: 'span, wrap')

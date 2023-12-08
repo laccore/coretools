@@ -90,9 +90,13 @@ class LithologyTrack extends AbstractIntervalTrack {
 			final gsiRect = mrect(gsi)
 			if (modelRect.intersects(gsiRect)) {
 				def intersection = modelRect.intersection(gsiRect)
-				def gsiValue = gsi.scheme ? container.project.configuration.grainSizeMap["${gsi.scheme.scheme}:${gsi.scheme.code}"] : 0
-				outline << pt(gswidth(gsiValue), intersection.y)
-				outline << pt(gswidth(gsiValue), intersection.y + intersection.height)
+				def width = 0
+				if (gsi.scheme) {
+					def entry = getSchemeEntry(gsi.scheme.scheme, gsi.scheme.code)
+					width = Integer.parseInt(entry.getProperty('width', '0'))
+				}
+				outline << pt(gswidth(width), intersection.y)
+				outline << pt(gswidth(width), intersection.y + intersection.height)
 
 				// Ensure bottom of this LithologyInterval is rendered if it extends below
 				// bottom-most GrainSizeInterval

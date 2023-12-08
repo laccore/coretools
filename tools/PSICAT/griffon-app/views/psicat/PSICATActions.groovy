@@ -17,6 +17,8 @@ package psicat
 
 import org.andrill.coretools.geology.models.Interval
 
+import psicat.util.GeoUtils
+
 actions {
 	action(
 		id: 'exitAction',
@@ -114,7 +116,7 @@ actions {
 	action(
 		id: 'splitAction',
 		name: 'Split Interval',
-		enabled: bind { model.diagramState?.selection instanceof Interval },
+		enabled: bind { GeoUtils.isIntervalInstance(model.diagramState?.selection) },
 		closure: controller.actions['splitInterval']
 	)
 	action(
@@ -252,34 +254,34 @@ actions {
 		accelerator: shortcut('0'),
 		shortDescription: 'Zoom to a specific per page'
 	)
-	action(
-		id: 'cmUnitsAction',
-		name: 'cm',
-		enabled: bind { model.activeDiagram != null },
-		closure: controller.actions['cmUnits'],
-		shortDescription: 'Set preferred units to centimeters'
-	)
-	action(
-		id: 'mUnitsAction',
-		name: 'm',
-		enabled: bind { model.activeDiagram != null },
-		closure: controller.actions['mUnits'],
-		shortDescription: 'Set preferred units to meters'
-	)
-	action(
-		id: 'inUnitsAction',
-		name: 'in',
-		enabled: bind { model.activeDiagram != null },
-		closure: controller.actions['inUnits'],
-		shortDescription: 'Set preferred units to inches'
-	)
-	action(
-		id: 'ftUnitsAction',
-		name: 'ft',
-		enabled: bind { model.activeDiagram != null },
-		closure: controller.actions['ftUnits'],
-		shortDescription: 'Set preferred units to feet'
-	)
+	// action(
+	// 	id: 'cmUnitsAction',
+	// 	name: 'cm',
+	// 	enabled: bind { model.activeDiagram != null },
+	// 	closure: controller.actions['cmUnits'],
+	// 	shortDescription: 'Set preferred units to centimeters'
+	// )
+	// action(
+	// 	id: 'mUnitsAction',
+	// 	name: 'm',
+	// 	enabled: bind { model.activeDiagram != null },
+	// 	closure: controller.actions['mUnits'],
+	// 	shortDescription: 'Set preferred units to meters'
+	// )
+	// action(
+	// 	id: 'inUnitsAction',
+	// 	name: 'in',
+	// 	enabled: bind { model.activeDiagram != null },
+	// 	closure: controller.actions['inUnits'],
+	// 	shortDescription: 'Set preferred units to inches'
+	// )
+	// action(
+	// 	id: 'ftUnitsAction',
+	// 	name: 'ft',
+	// 	enabled: bind { model.activeDiagram != null },
+	// 	closure: controller.actions['ftUnits'],
+	// 	shortDescription: 'Set preferred units to feet'
+	// )
 	action(
 		id: 'smallFontSizeAction',
 		name: 'Small',

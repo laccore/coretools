@@ -18,6 +18,7 @@ package psicat.components
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 
+import psicat.util.GeoUtils
 import psicat.util.ProjectLocal
 
 class ProjectController implements PropertyChangeListener {

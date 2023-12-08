@@ -49,6 +49,7 @@ public class DefaultProject extends AbstractProject {
 	private static final String FONTSIZE_PROP = "font-size";
 	private static final String ORIGIN_PROP = "origin";
 	private static final String NAME_PROP = "name";
+	private static final String UNITS_PROP = "units";
 	private static final String DEFAULT_DATA_FORMAT = "xml";
 	private static final String DEFAULT_DATA_DIR = "data";
 	private static final String DEFAULT_SCENE_DIR = "diagrams";
@@ -147,6 +148,10 @@ public class DefaultProject extends AbstractProject {
 	@Override
 	public String getName() {
 		return getProperty(NAME_PROP, fileName(directory));
+	}
+
+	public String getUnits() {
+		return getProperty(UNITS_PROP, "cm");
 	}
 
 	public String getOrigin() {
@@ -361,6 +366,10 @@ public class DefaultProject extends AbstractProject {
 		configuration.put(FONTSIZE_PROP, fontsize);
 	}
 
+	public void setUnits(final String units) {
+		configuration.put(UNITS_PROP, units);
+	}
+
 	/**
 	 * Sets the origin of this project.
 	 * 
@@ -370,5 +379,4 @@ public class DefaultProject extends AbstractProject {
 	public void setOrigin(final String origin) {
 		configuration.put(ORIGIN_PROP, origin.trim().toLowerCase());
 	}
-
 }

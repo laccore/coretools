@@ -25,7 +25,8 @@ import org.andrill.coretools.graphics.fill.*
 import org.andrill.coretools.model.Model;
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
-/**
+
+/**
  * A track to draw Interval models.
  * 
  * @author Josh Reed (jareed@andrill.org)
@@ -36,8 +37,8 @@ class IntervalTrack extends GeologyTrack {
 	//   * track-footer:   the text or image to draw in the footer
 
 	def getFilter() { return { it instanceof Interval } }
-	def getHeader() { "Intervals" }
-	def getFooter() { "Intervals" }
+	def getHeader() { "Lithology" }
+	def getFooter() { "Lithology" }
 	def getWidth()  { return 72 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(Interval.class, [:]), new ResizePolicy()])

@@ -20,10 +20,12 @@ import java.text.NumberFormat
 
 import org.andrill.coretools.AdapterManager
 import org.andrill.coretools.Platform
-import org.andrill.coretools.geology.GPropertyimport org.andrill.coretools.model.Model
+import org.andrill.coretools.geology.GProperty
+import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.edit.EditableProperty
-/**
+
+/**
  * An implementation of the Model interface for geology-related models.
  * 
  * @author Josh Reed (jareed@andrill.org)
@@ -168,11 +170,33 @@ abstract class GeologyModel implements Model {
 		}
 	}
 
+	// https://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java
+	private String splitCamelCase(String s) {
+		return s.replaceAll(
+			String.format("%s|%s|%s",
+				"(?<=[A-Z])(?=[A-Z][a-z])",
+				"(?<=[^A-Z])(?=[A-Z])",
+				"(?<=[A-Za-z])(?=[^A-Za-z])"
+			),
+			" "
+		);
+	}
+
 	String toString() {
+		final spacedClassName = splitCamelCase(this.class.simpleName)
 		if (top == base) {
-			"${format(top)}"	
+			"$spacedClassName ${format(top)}"	
 		} else {
-			"${format(top)}-${format(base)}"
+			"$spacedClassName ${format(top.value)}-${format(base)}"
+		}
+	}
+
+	String toStringInUnits(units) {
+		final spacedClassName = splitCamelCase(this.class.simpleName)
+		if (top == base) {
+			"$spacedClassName ${format(top.to(units))}"	
+		} else {
+			"$spacedClassName ${format(top.to(units).value)}-${format(base.to(units))}"
 		}
 	}
 }

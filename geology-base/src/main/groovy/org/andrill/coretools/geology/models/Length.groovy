@@ -26,7 +26,8 @@ import groovy.lang.MissingPropertyException
  * Models a length, which has a value and a unit, and can be converted to different units.
  * 
  * @author Josh Reed (jareed@andrill.org)
- */class Length {
+ */
+class Length {
 	private static Map CONVERSIONS = ["m":1, "cm":100, "mm":1000, "dm":0.1, "hm":0.01, "km":0.001, "in":39.3700787, "ft":3.2808399, "yd":1.0936133]
 	BigDecimal value
 	String unit
@@ -73,7 +74,7 @@ import groovy.lang.MissingPropertyException
 		if (newUnit == unit) {
 			return this
 		} else {
-			new Length(new BigDecimal(value / CONVERSIONS[unit] * CONVERSIONS[newUnit]).setScale(7, RoundingMode.HALF_UP), newUnit)
+			new Length(new BigDecimal(value / CONVERSIONS[unit] * CONVERSIONS[newUnit]).setScale(7, RoundingMode.HALF_UP).stripTrailingZeros(), newUnit)
 		}
 	}
 	

@@ -39,6 +39,7 @@ public interface Widget {
 
 	String TEXTFIELD_TYPE = "TextField";
 	String TEXTAREA_TYPE = "TextArea";
+	String LENGTH_WIDGET_TYPE = "LengthWidget";
 	String SCHEME_ENTRY_TYPE = "SchemeEntry";
 
 	/**
@@ -62,6 +63,13 @@ public interface Widget {
 	 * @return the label.
 	 */
 	String getUnitLabel();
+
+	/**
+	 * Use project units as label?
+	 * 
+	 * @return boolean
+	 */
+	boolean useProjectUnits();
 
 	/**
 	 * Gets the {@link EditableProperty} for this widget.

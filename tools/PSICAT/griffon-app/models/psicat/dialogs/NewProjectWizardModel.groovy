@@ -23,6 +23,7 @@ import psicat.util.Dialogs
 	String name
 	String filePath
 	boolean originTop = true
+	String units = 'cm'
 	boolean importSections = false
 	boolean useCustomSchemes = false
 	Map lithologySchemes = [:]

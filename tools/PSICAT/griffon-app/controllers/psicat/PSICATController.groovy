@@ -146,11 +146,11 @@ class PSICATController {
 		model.status = "Set fontsize to $fontsize"
 	}
 	
-	void setUnits(units) {
-		prefs.put("diagram.units", units)
-		model.activeDiagram.controller.units = units
-		model.status = "Changed units to $units"
-	}
+	// void setUnits(units) {
+	// 	prefs.put("diagram.units", units)
+	// 	model.activeDiagram.controller.units = units
+	// 	model.status = "Changed units to $units"
+	// }
 
 	void setZoom(pageSize) {
 		prefs.putDouble("diagram.scaling", pageSize)
@@ -353,7 +353,7 @@ class PSICATController {
 		'delete': 	{ evt = null ->
 			def active = model.activeDiagram.model
 			active.scene.selection.selectedObjects.findAll { it instanceof Model }.each { m ->
-				if (m instanceof Interval) {
+				if (GeoUtils.isIntervalInstance(m)) {
 					active.commandStack.execute(new DeleteIntervalCommand(m, active.scene.models, active.scene.origin == Origin.TOP))	
 				} else {
 					active.commandStack.execute(new DeleteCommand(m, active.scene.models))
@@ -363,7 +363,7 @@ class PSICATController {
 		},
 		'splitInterval': { evt = null ->
 			def active = model.activeDiagram.model
-			def interval = active.scene.selection.selectedObjects.find { it instanceof Interval }
+			def interval = active.scene.selection.selectedObjects.find { GeoUtils.isIntervalInstance(it) }
 			if (interval) {
 				active.commandStack.execute(new SplitIntervalCommand(interval, active.scene.models))
 			}

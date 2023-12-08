@@ -181,7 +181,10 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 		if (part == ScenePart.HEADER || part == ScenePart.FOOTER) {
 			return this
 		} else {
-			return index.get(physM(screen.y, bounds)).findAll(filter).find { getModelBounds(it).contains(screen.x, screen.y) } ?: this
+			def visibleModels = index.get(physM(screen.y, bounds)).findAll(filter);
+			return visibleModels.find {
+				getModelBounds(it).contains(screen.x, screen.y)
+			} ?: this
 		}
 	}
 	

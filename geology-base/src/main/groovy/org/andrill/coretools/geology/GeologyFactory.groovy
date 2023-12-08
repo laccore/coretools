@@ -16,8 +16,9 @@
 package org.andrill.coretools.geology
 
 import org.andrill.coretools.geology.models.*
-import org.andrill.coretools.model.Model;
-import org.andrill.coretools.model.ModelManager.Factory;
+import org.andrill.coretools.geology.models.csdf.*
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.model.ModelManager.Factory
 
 /**
  * The geology models factory.
@@ -25,7 +26,10 @@ import org.andrill.coretools.model.ModelManager.Factory;
  * @author Josh Reed (jareed@andrill.org)
  */
 class GeologyFactory implements Factory {
-	private static final String[] TYPES = [Annotation.class, Interval.class, Occurrence.class, Unit.class, Image.class, Section.class].collect { it.simpleName } as String[]
+	private static final String[] TYPES = [
+		Annotation.class, Interval.class, Occurrence.class, Unit.class, Image.class, Section.class,
+		BeddingInterval.class, GrainSizeInterval.class, TextureInterval.class, Feature.class, LithologyInterval.class, UnitInterval.class
+	].collect { it.simpleName } as String[]
 	
 	public GeologyFactory() { }
 	
@@ -40,6 +44,12 @@ class GeologyFactory implements Factory {
 			case 'Interval':	return initInterval(new Interval(), data)
 			case 'Image':		return init(new Image(), data)
 			case 'Section':		return init(new Section(), data)
+			case 'BeddingInterval': return initInterval(new BeddingInterval(), data)
+			case 'TextureInterval': return initInterval(new TextureInterval(), data)
+			case 'GrainSizeInterval': return initInterval(new GrainSizeInterval(), data)
+			case 'Feature': return init(new Feature(), data)
+			case 'LithologyInterval': return initInterval(new LithologyInterval(), data)
+			case 'UnitInterval': return initInterval(new UnitInterval(), data)
 			default:			return null
 		}
 	}

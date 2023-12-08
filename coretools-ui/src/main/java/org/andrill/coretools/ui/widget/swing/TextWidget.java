@@ -134,6 +134,8 @@ public class TextWidget extends AbstractWidget implements FocusListener, ActionL
 	/**
 	 * {@inheritDoc}
 	 */
+	// brg 11/21/2023: AFAICT this is never used, the widget is always rebuilt
+	// from scratch and populated in getEditableUI().
 	public void setValue(final String value) {
 		if (component != null) {
 			component.setText(value);

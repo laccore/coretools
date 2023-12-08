@@ -101,6 +101,8 @@ public abstract class AbstractWidget implements Widget {
 		return unitLabel;
 	}
 
+	public boolean useProjectUnits() { return false; }
+
 	/**
 	 * {@inheritDoc}
 	 */

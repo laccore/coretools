@@ -66,6 +66,8 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		model.units = model.project.configuration.units ?: prefs.get('diagram.units', 'm')
     }
 
+	// diagramState - "base" diagramState comes from PSICATModel, which is then updated with current
+	// Diagram's properties where they exist.
     void activate(diagramState) {
     	model.diagramState = diagramState
     	setState('name', model.name)
@@ -105,6 +107,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 				def container = project.openContainer(section)
 				container.models.each { models.add(it) }
 			}
+			models.project = project
 		}
 		
 		// figure out the number of sections
@@ -132,7 +135,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     	// set the orientation
     	setOrientation(prefs.get('diagram.orientation', 'vertical') == 'vertical')
-    	setUnits(model.units)
+		setUnits(project.units, false) // update models to project units without dirtying diagram
 		setFontSize(project.configuration.fontSize) // annotation track font size
     	
     	return true
@@ -140,7 +143,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     boolean close() {
     	if (model.dirty) {
-    		switch (JOptionPane.showConfirmDialog( app.appFrames[0], "Save changes to '${model.name}'?", "PSICAT", JOptionPane.YES_NO_CANCEL_OPTION)){
+    		switch (JOptionPane.showConfirmDialog(app.appFrames[0], "Save changes to '${model.name}'?", "PSICAT", JOptionPane.YES_NO_CANCEL_OPTION)) {
     			case JOptionPane.YES_OPTION: return save()
     			case JOptionPane.NO_OPTION: return true
     			default: return false
@@ -189,7 +192,9 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		}
 	}
 
-    void setUnits(units) {
+	// If allowDirtiness, updating units will put diagram into
+	// dirty (needs save) state.
+    void setUnits(units, allowDirtiness) {
 		def factor = new Length(1, model.units).to(units).value
 		if (model.scene) {
 			model.scene.setRenderHint('preferred-units', units)
@@ -198,9 +203,20 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 				view.header.sceneChanged()
 				view.contents.sceneChanged()
 			}
+
+			model.scene.models.models.each { 
+				if (it.hasProperty('top')) { it.top = it.top.to(units) }
+				if (it.hasProperty('base')) {
+					it.base = it.base.to(units)
+					it.updated()
+				}
+			}
 		}
 		model.units = units
 		setState('units', units)
+		if (!allowDirtiness) {
+			markClean()
+		}
 	}
 
     // manage state 

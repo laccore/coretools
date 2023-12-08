@@ -87,6 +87,7 @@ class ExportTabularWizardController {
 			def writer = Platform.getService(GeologyExcelWriter.class)
 			if (writer) {
 				writer.setSchemeManager(manager)
+				writer.setUnits(model.project.units)
 				new File(file.parentFile, name).withOutputStream { writer.write(containers, it, this) }
 			}
 			

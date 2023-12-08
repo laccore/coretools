@@ -130,11 +130,10 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 								JComponent component = (JComponent) current.getUI();
 								components.put(current, component);
 								
-								if (current.getUnitLabel() != null) {
-									add(component, "split");
-									add(new JLabel(current.getUnitLabel()), "split");
-								} else {
-									add(component, "split");
+								JLabel unitLabel = getUnitLabel(current);
+								add(component, "split");
+								if (unitLabel != null) {
+									add(unitLabel, "split");
 								}
 								
 								// get the next one
@@ -157,12 +156,14 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 							JComponent component = (JComponent) current.getUI();
 							components.put(current, component);
 							
-							if (current.getUnitLabel() != null) {
+							JLabel unitLabel = getUnitLabel(current);
+							if (unitLabel != null) {
 								add(component, "split");
-								add(new JLabel(current.getUnitLabel()), "wrap");
+								add(unitLabel, "wrap");
 							} else {
 								add(component, "wrap");
 							}
+					
 						}
 					}
 				}
@@ -170,6 +171,20 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 				repaint();
 			}
 		});
+	}
+
+	private JLabel getUnitLabel(Widget w) {
+		JLabel unitLabel = null;
+		if (w.useProjectUnits()) {
+			unitLabel = new JLabel(getProjectUnits());
+		} else if (w.getUnitLabel() != null) {
+			unitLabel = new JLabel(w.getUnitLabel());
+		}
+		return unitLabel;
+	}
+
+	private String getProjectUnits() {
+		return scene.getModels().getProject().getConfiguration().get("units");
 	}
 
 	protected void clearComponents() {

@@ -33,8 +33,11 @@ import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.filechooser.FileFilter
 
+import ca.odell.glazedlists.swing.DefaultEventTableModel
+
 import ca.odell.glazedlists.event.ListEvent
 import ca.odell.glazedlists.event.ListEventListener
+
 
 /**
  * The SchemeEditor controller.
@@ -46,6 +49,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     private SchemeHelper helper
     static File currentOpenDir = new File(System.getProperty("user.home"))
 	static File currentSaveDir = new File(System.getProperty("user.home"))
+	final tileImageTypes = ['lithology', 'bedding', 'texture', 'grainsize']
 
     void mvcGroupInit(Map args) {
     	helper = new SchemeHelper()
@@ -166,6 +170,11 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		model.schemeValid = (view.schemeId.text && view.schemeName.text && view.schemeType.selectedItem && model.schemeEntries.size() > 0)
 		setSchemeDirty(true)
     }
+
+	def schemeTypeChanged = { evt = null ->
+		updateEntryTableFormat()
+		schemeChanged()
+	}
 	
     /**
      * Set the selected scheme
@@ -177,8 +186,10 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	    		view.schemeName.text = scheme.name
 	    		view.schemeType.selectedItem = scheme.type
 	    		view.schemeEntries.clearSelection()
+
 	    		model.schemeEntries.clear()
 	    		model.schemeEntries.addAll(scheme.entries)
+				updateEntryTableFormat()
 				addCustomImages(scheme)
 	    	} else {
 	    		view.schemeId.text = ""
@@ -191,6 +202,14 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 			setSchemeDirty(false)
     	}
     }
+
+	private updateEntryTableFormat() {
+		if (view.schemeType.selectedItem.equals("grainsize")) {
+			view.schemeEntries.model = new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries, ['width']))
+		} else {
+			view.schemeEntries.model = new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries))
+		}
+	}
 	
 	// add/remove non-standard images from loaded/closed scheme to/from imageChooser 
 	def pathToFile(String path) { 
@@ -291,8 +310,8 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		if (fc.showDialog(app.appFrames[0], "Save Catalog File" ) == JFileChooser.APPROVE_OPTION) {
 			currentSaveDir = fc.currentDirectory
 			def destFile = (fc.selectedFile.name.lastIndexOf('.') == -1) ? new File(fc.selectedFile.absolutePath + ".pdf") : fc.selectedFile
-			def isLithology = (view.schemeType.selectedItem == "lithology")
-			helper.exportCatalog(paginate, destFile, model.schemeEntries, isLithology, view.schemeName.text, view.schemeId.text)
+			def tileImage = (view.schemeType.selectedItem in tileImageTypes)
+			helper.exportCatalog(paginate, destFile, model.schemeEntries, tileImage, view.schemeName.text, view.schemeId.text)
 		}
 	}
 	
@@ -395,7 +414,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     	view.preview.color = color
     	
     	// handle our image
-    	view.preview.tileImage = (view.schemeType.selectedItem == "lithology")
+    	view.preview.tileImage = (view.schemeType.selectedItem in tileImageTypes)
     	if (model?.entryImage) {
     		doOutside {
     			def image = helper.parseImage(model.entryImage)

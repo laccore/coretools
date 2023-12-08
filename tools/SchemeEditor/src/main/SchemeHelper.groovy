@@ -229,7 +229,7 @@ public class SchemeHelper {
 		}
 		return scheme
 	}
-	
+
 	/**
 	 * Writes a scheme to a stream
 	 */
@@ -269,18 +269,33 @@ public class SchemeHelper {
 				// write our scheme xml
 				zip.putNextEntry(new ZipEntry("scheme.xml"))
 				def writer = new StringWriter()
-				def xml = new MarkupBuilder(writer)
-			    xml.scheme(id: scheme?.id, name: scheme?.name, type: scheme?.type) {
-				    scheme.entries.each() { e ->
-				    	entry() {
-				    		e.each { k,v ->
-				    			if (k != "icon") {
-				    				property(name: k, value: v)
-				    			}
-				    		}
-				    	}
-				    }
+
+				// 7/22/2023 brg: Tried using MarkupBuilder to write scheme XML,
+				// but couldn't prevent escaping of ampersand (&) in UTF-8 encoding
+				// in a value attribute to "&amp;", which hoses parsing of the UTF-8 char. Modern
+				// Groovy has the setting we need to fix this (escapeAttributes), but our ancient Groovy
+				// does not. Alas.
+				// Thankfully, the scheme XML structure is very simple; write it manually.
+				writer.write("<?xml version='1.0' encoding='UTF-8'?>")
+				def schemeXml = "<scheme id='${scheme?.id}' name='${scheme?.name}' type='${scheme?.type}'>\n"
+				writer.write(schemeXml)
+
+				scheme.entries.each() { e ->
+					writer.write("  <entry>\n")
+					e.each() { k,v ->
+						writer.write("    <property ")
+						if (k != "icon") {
+							def xmlValue = (k == "name" ? escapeHTML(v) : v);
+							writer.write("name='${k}' value='${xmlValue}' ")
+							def entryXml
+						}
+						writer.write("/>\n")
+					}
+					writer.write("  </entry>\n")
 				}
+
+				writer.write("</scheme>")
+
 				zip << writer.toString()
 				zip.closeEntry()
 				zip.close()
@@ -326,9 +341,26 @@ public class SchemeHelper {
 		}
 		lines << curLine
 	}
+
+	// 9/20/2023 brg: copy/paste from coretools-misc XMLReaderWriter.groovy
+	private escapeHTML(String s) {
+		StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c > 127 || c == '"' || c == '\'' || c == '<' || c == '>' || c == '&') {
+				out.append("&#");
+				out.append((int) c);
+				out.append(';');
+			} else {
+				out.append(c);
+			}
+		}
+		return out.toString();
+	}	
 	
 	// assuming 8.5 x 11" for pagination
-	def exportCatalog(paginate, destFile, schemeEntries, isLithology, schemeName, schemeId) {
+	// - tileImage (boolean): true if scheme image is a fill pattern/texture, false if an icon
+	def exportCatalog(paginate, destFile, schemeEntries, tileImage, schemeName, schemeId) {
 		final int TITLE_HEIGHT = 20
 		final int MARGIN = 36 // 1/2"
 		final int SYMBOL_LARGE = 32
@@ -337,13 +369,14 @@ public class SchemeHelper {
 		final int SYMBOL_IMAGES_WIDTH = SYMBOL_LARGE + INTERSYMBOL_PADDING + SYMBOL_SMALL
 
 		final int entryPadding = 5
-		final int entryWidth = isLithology ? 130 : 260
-		final int entryHeight = isLithology ? 170 : 40
-		final int textWidth = isLithology ? entryWidth : (entryWidth - SYMBOL_IMAGES_WIDTH) // symbol: subtract large and small image width plus 5pix padding 
+		final int entryWidth = tileImage ? 130 : 260
+		final int entryHeight = tileImage ? 170 : 40
+		final int textWidth = tileImage ? entryWidth : (entryWidth - SYMBOL_IMAGES_WIDTH) // symbol: subtract large and small image width plus 5pix padding 
 
 		final int width = 612 // 8.5" wide
 		final int entriesPerRow = (width / entryWidth)
-		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryHeight) + TITLE_HEIGHT // 11" high if paginated
+		// 11" tall if paginated
+		final int height = paginate ? 792 : (schemeEntries.size() / entriesPerRow + 1) * (entryHeight) + TITLE_HEIGHT
     	
         Document document = new Document(new Rectangle(width, height))
         PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(destFile))
@@ -395,7 +428,7 @@ public class SchemeHelper {
 	
 				def color = entry.color ?: Color.white
 				
-				if (isLithology) {
+				if (tileImage) {
 					g2.setPaint(parseColor(entry.color))
 					g2.fillRect(x.intValue(), y.intValue(), entryWidth, entryWidth)
 				}
@@ -409,7 +442,7 @@ public class SchemeHelper {
 					}
 
 					if (image) {
-						if (isLithology) {
+						if (tileImage) {
 							g2.setPaint(new TexturePaint(image, new java.awt.Rectangle(x, y, image.width, image.height)))
 							g2.fillRect(x, y, entryWidth, entryWidth)
 						} else {
@@ -432,7 +465,7 @@ public class SchemeHelper {
 				g2.setPaint(Color.BLACK)
 				def nameLines = wrap(entry.name, fontMetrics, textWidth)
 				nameLines.eachWithIndex { line, curLine ->
-					if (isLithology)
+					if (tileImage)
 						g2.drawString(line, x, y + entryWidth + letterHeight * (1 + curLine))
 					else
 						g2.drawString(line, x + 16 + 40 + entryPadding, y + letterHeight * (1 + curLine))

@@ -46,21 +46,8 @@ class ProjectController implements PropertyChangeListener {
     		model.project.addPropertyChangeListener(this)
     		model.sections.addAll(project.containers)
 			loadSchemes()
-			loadGrainSizeFile()
     	}
     }
-
-	void loadGrainSizeFile() {
-		def gsFile = model.project.grainSizeFile;
-		if (gsFile.exists()) {
-			def grainSizeData = GeoUtils.parseAlternateGrainSizeFile(gsFile);
-			model.project.configuration.grainSizeMap = grainSizeData['gs'];
-			model.project.configuration.grainSizeScale = grainSizeData['scale'];
-			// println("${model.grainSizeData}");
-		} else {
-			println("No grainsize.csv found in root project directory.");
-		}	
-	}
 
 	void loadSchemes() {
 		def schemeDir = new File(new File(model.project.path.toURI()), "schemes")

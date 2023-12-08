@@ -366,6 +366,10 @@ public class DefaultProject extends AbstractProject {
 		configuration.put(FONTSIZE_PROP, fontsize);
 	}
 
+	public void setUnits(final String units) {
+		configuration.put(UNITS_PROP, units);
+	}
+
 	/**
 	 * Sets the origin of this project.
 	 * 
@@ -375,5 +379,4 @@ public class DefaultProject extends AbstractProject {
 	public void setOrigin(final String origin) {
 		configuration.put(ORIGIN_PROP, origin.trim().toLowerCase());
 	}
-
 }

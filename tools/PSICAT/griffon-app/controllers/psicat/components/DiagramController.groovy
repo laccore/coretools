@@ -107,6 +107,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 				def container = project.openContainer(section)
 				container.models.each { models.add(it) }
 			}
+			models.project = project
 		}
 		
 		// figure out the number of sections

@@ -22,7 +22,6 @@ import groovy.beans.Bindable
 import psicat.util.Dialogs
 
 class ExportDiagramWizardModel {
-	String units = "m"
 	String title = "Export Diagram"
 	def project
 	
@@ -32,6 +31,7 @@ class ExportDiagramWizardModel {
 	@Bindable String pageSize
 	@Bindable boolean renderHeader = true
 	@Bindable boolean renderFooter = false
+	@Bindable String units = "cm"
 	@Bindable String filePath = Dialogs.currentSaveDir.absolutePath
-	@Bindable String prefix = ''	
+	@Bindable String prefix = ''
 }

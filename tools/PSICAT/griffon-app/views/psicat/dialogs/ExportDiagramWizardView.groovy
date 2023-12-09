@@ -18,7 +18,7 @@ package psicat.dialogs
 import net.miginfocom.swing.MigLayout
 import psicat.util.*
 
-import org.andrill.coretools.graphics.util.Paper;
+import org.andrill.coretools.graphics.util.Paper
 
 actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
@@ -31,6 +31,9 @@ final prefixToolTip = "Optional: prefix output files' names with specified text,
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	widget(id:'section', section, constraints: 'span, growx, wrap')
 	separator(constraints: 'span, growx, wrap')
+
+	label('Units:')
+	comboBox(id:'units', items: ['cm', 'm'], selectedItem: bind(source: model, sourceProperty: 'units', mutual:true), constraints: 'wrap')
 	
 	label('Range:', constraints: 'span 1 2')
 	buttonGroup().with {
@@ -40,21 +43,21 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	textField(columns:4, enabled: bind { !model.exportAll }, text: bind(source: model, sourceProperty:'start', mutual:true), inputVerifier: CustomVerifier.NUMBER)
 	label("-")
 	textField(columns:4, enabled: bind { !model.exportAll }, text: bind(source: model, sourceProperty:'end', mutual:true), inputVerifier: CustomVerifier.NUMBER)
-	label("${model.units}", constraints: 'wrap')
+	label(text: bind(source:model, sourceProperty:'units'), constraints:'wrap')
 	label('Per page:')
 	textField(columns:4, text: bind(source: model, sourceProperty:'pageSize', mutual:true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split')
-	label("${model.units}", constraints:'wrap')
+	label(text: bind(source:model, sourceProperty:'units'), constraints:'wrap')
 	separator(constraints: 'span, growx, wrap')
 
-	checkBox(text: 'Render Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true), constraints: 'span, wrap')
-	checkBox(text: 'Render Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'span, wrap')
+	checkBox(text: 'Render Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true))
+	checkBox(text: 'Render Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'wrap')
 
 	label('Page Format:')
 	comboBox(id: 'paper', editable: false, items: (Paper.PAGES.values() as List).sort({ p1, p2 -> p1.name <=> p2.name }), constraints: 'split, wrap')
 
 	separator(constraints: 'span, growx, wrap')
 	
-	label('To Directory:')
+	label('Output Directory:')
 	textField(enabled:false, text: bind { model.filePath }, constraints:'width min(200px), growx')
 	button(action: browseAction, constraints:'wrap')
 	

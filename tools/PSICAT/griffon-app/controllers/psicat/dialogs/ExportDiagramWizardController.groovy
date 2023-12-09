@@ -61,6 +61,7 @@ class ExportDiagramWizardController {
 			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
 		}
 		scene.scalingFactor = 1000
+		scene.setRenderHint("preferred-units", view.units.selectedItem)
 		
 		// export each container
 		containers.eachWithIndex { k, v, index ->

@@ -1,3 +1,5 @@
+import javax.swing.JOptionPane
+
 import ca.odell.glazedlists.GlazedLists
 import ca.odell.glazedlists.gui.AdvancedTableFormat
 import ca.odell.glazedlists.gui.WritableTableFormat

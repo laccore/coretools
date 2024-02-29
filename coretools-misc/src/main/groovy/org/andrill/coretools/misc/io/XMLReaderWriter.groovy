@@ -26,7 +26,8 @@ import org.andrill.coretools.model.io.ModelReader;
 import org.andrill.coretools.model.io.ModelWriter;
 
 import com.google.inject.Inject
-/**
+
+/**
  * An XML reader and writer for containers.
  * 
  * @author Josh Reed (jareed@andrill.org)
@@ -106,7 +107,10 @@ class XMLReaderWriter implements ModelReader, ModelWriter {
 							def localURL = new URL("file:/images/${imageFile}")  
 							property(name: k, localURL)
 						} else {
-							if (k.equals("description")) {
+							// 2/28/2024 brg: Check 'name' fields in addition to 'description'
+							// for characters that must be escaped in XML output. Stopgap fix,
+							// need general solution, see issue #8 on https://github.com/laccore/coretools
+							if (k.equals("description") || k.equals("name")) {
 								property(name: k) {
 									xml.mkp.yieldUnescaped(escapeHTML(v))
 								}

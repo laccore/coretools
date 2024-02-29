@@ -1,6 +1,7 @@
 package org.andrill.coretools.ui.widget.swing;
 
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -39,9 +40,7 @@ public class LengthWidget extends TextWidget {
 		if (component == null) {
             JTextField widget = new JTextField(property.getValue(), 7);
 
-            // omit units portion of Length string
-            final int spaceIdx = property.getValue().indexOf(' ');
-            String value = (spaceIdx != -1) ? property.getValue().substring(0, spaceIdx) : property.getValue();
+            String value = omitUnits(property);
             widget.setText(value);
 
             widget.addActionListener(this);
@@ -64,6 +63,18 @@ public class LengthWidget extends TextWidget {
 		}
 		return component;
 	}
+
+	@Override
+	protected Object getReadOnlyUI() {
+        String value = omitUnits(property);
+        return new JLabel(value);
+	}
+
+    private String omitUnits(EditableProperty property) {
+        final int spaceIdx = property.getValue().indexOf(' ');
+        String value = (spaceIdx != -1) ? property.getValue().substring(0, spaceIdx) : property.getValue();
+        return value;
+    }
 
     @Override
     public boolean useProjectUnits() { return true; }

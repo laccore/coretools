@@ -24,6 +24,7 @@ import org.andrill.coretools.geology.GProperty
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.edit.EditableProperty
+import org.andrill.coretools.geology.models.util.GeologyFormatter
 
 /**
  * An implementation of the Model interface for geology-related models.
@@ -161,13 +162,7 @@ abstract class GeologyModel implements Model {
 	public double getIndexMax() { (double) Math.max(top?.to("m")?.value ?: 0, base?.to("m")?.value ?: 0) }
 	
 	protected format(value) {
-		def formatter = NumberFormat.getInstance(Locale.ENGLISH)
-		formatter.applyPattern('0.0##')
-		switch(value.class) {
-			case Length: return "${formatter.format(value.value)} ${value.unit}"
-			case Number: return "${formatter.format(value)}"
-			default: return value
-		}
+		return GeologyFormatter.format(value)
 	}
 
 	// https://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java

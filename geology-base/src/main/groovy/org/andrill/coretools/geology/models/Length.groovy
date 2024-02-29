@@ -22,6 +22,8 @@ import java.util.Locale;
 
 import groovy.lang.MissingPropertyException
 
+import org.andrill.coretools.geology.models.util.GeologyFormatter
+
 /**
  * Models a length, which has a value and a unit, and can be converted to different units.
  * 
@@ -66,8 +68,12 @@ class Length {
 		}
 	}
 	
+	private format(value) {
+		return GeologyFormatter.format(value)
+	}
+
 	String toString() { 
-		"${value.toPlainString()} $unit" 
+		"${format(value)} $unit" 
 	}
 	
 	Length to(String newUnit) {

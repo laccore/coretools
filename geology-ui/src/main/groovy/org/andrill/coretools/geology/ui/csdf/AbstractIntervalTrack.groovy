@@ -1,10 +1,12 @@
 package org.andrill.coretools.geology.ui.csdf
 
 import java.awt.Color
+import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.graphics.fill.*
 import org.andrill.coretools.model.Model
+import org.andrill.coretools.scene.Scene.ScenePart
 import org.andrill.coretools.geology.ui.*
 
 abstract class AbstractIntervalTrack extends GeologyTrack {
@@ -80,4 +82,19 @@ abstract class AbstractIntervalTrack extends GeologyTrack {
 		}
 		return label
 	}
+
+	// Use floating-point model bounds to detect mouseover: resolves issue #9 for
+	// Interval-based columns. Note that this approach breaks mouse selection for
+	// columns deriving from AbstractFeatureTrack...those columns continue to use
+	// integer model bounds in GeologyTrack.findAt().
+	@Override
+	Object findAt(Point2D screen, ScenePart part) {
+		if (part == ScenePart.HEADER || part == ScenePart.FOOTER) {
+			return this
+		} else {
+			def visibleModels = index.get(physM(screen.y, bounds)).findAll(filter);
+			def found = visibleModels.find { getModelBoundsDouble(it).contains(screen.x, screen.y) }
+			return found ?: this
+		}
+	}	
 }

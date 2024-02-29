@@ -189,6 +189,7 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	}
 	
 	Rectangle2D getModelBounds(Model m) { mrect(m) }
+	Rectangle2D getModelBoundsDouble(Model m) { mrect2d(m) }
 	
 	protected String getHint(name, defaultValue) { scene.renderHints[name] ?: defaultValue }
 	
@@ -215,6 +216,11 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 		def t = pts(m.top.to(units).value, bounds)
 		def b = pts(m.base.to(units).value, bounds)
 		rect(x, t, w, b - t)
+	}
+	def mrect2d(m, x = bounds.x, w = bounds.width)	{ 
+		def t = pts(m.top.to(units).value, bounds)
+		def b = pts(m.base.to(units).value, bounds)
+		rect2d(x, t, w, b - t)
 	}
 	def mrect_midpoint(m, x = bounds.x, w = bounds.width) {
 		def t = pts(m.top.to(units).value, bounds)

@@ -185,13 +185,15 @@ class GeoUtils {
 		}
 	}
 
-	static compressModels(models, drilledLength) {
+	// Assumes intervalLength is in meters
+	static compressModels(models, intervalLength) {
 		if (models.size() > 0) {
 			def maxBase = getMaxBase(models)
 			def scalingFactor = 1.0
-			if (maxBase.value > 0.0) // avoid divide by zero
-				scalingFactor = drilledLength / maxBase.value
-			logger.info( "Drilled length = $drilledLength, modelBase = $maxBase, scalingFactor = $scalingFactor")
+			if (maxBase.value > 0.0) { // avoid divide by zero
+				scalingFactor = intervalLength / maxBase.to('m').value
+			}
+			logger.info( "Interval length = $intervalLength, modelBase = $maxBase, scalingFactor = $scalingFactor")
 			if (scalingFactor < 1.0) {
 				logger.info("   Downscaling models...")
 				scaleModels(models, scalingFactor)

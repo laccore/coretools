@@ -117,7 +117,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	}
 	
 	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
-	// 'drawData':list of PSICAT models to be drawn in that range]
+	// 'drawData':list of SectionDrawData to be drawn in that range]
 	def createDrawData(project, logger) {
 		def drawData = []
 		this.metadata.each { secMap ->
@@ -138,7 +138,6 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		return drawData.sort { it.top }
 	}
 
-	// To export tabular data via an ExcelGeologyWriter, a list of ModelContainers is required.
 	def getContainers(project, logger) {
 		def containers = [:]
 		this.metadata.each { secMap ->

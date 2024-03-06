@@ -25,11 +25,10 @@ interface StratColumnMetadata {
 	public mapSections(project)
 
 	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
-	// 'siIntervals':list of PSICAT models to be drawn in that range]
+	// 'drawData':list of SectionDrawData to draw in that range]
 	public getDrawData(project, logger)
 
 	// Return list of ModelContainers with models' depths adjusted to reflect top MCD depth of interval.
-	// Used for exporting tabular data.
 	public getContainers(project, logger)
 
 	public getTop() // get topmost depth in metadata

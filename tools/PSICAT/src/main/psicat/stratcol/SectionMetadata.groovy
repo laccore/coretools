@@ -16,6 +16,9 @@
 
 package psicat.stratcol
 
+import org.andrill.coretools.model.DefaultContainer
+import org.andrill.coretools.geology.models.Length
+
 import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
@@ -80,10 +83,7 @@ class SectionMetadata implements StratColumnMetadata {
 		this.metadata.findAll { it.section != null }.each {
 			// gather and zero base models for each section
 			def models = GeoUtils.getTrimmedModels(project, it.section, null, null) // no min/max
-			
-			// compress models to fit drilled interval if necessary
-			def drilledLength = it.base - it.top
-			GeoUtils.compressModels(models, drilledLength)
+			compressToInterval(models, top, base)
 			
 			def intervalModels = [new SectionDrawData(it.section, it.top, it.base, models)]
 			intervalsToDraw.add(['top':it.top, 'base':it.base, 'drawData':intervalModels])
@@ -92,6 +92,30 @@ class SectionMetadata implements StratColumnMetadata {
 		return intervalsToDraw.sort { it.top }
 	}
 
-	// unimplemented, no need for SectionMetadata tabular export at present
-	def getContainers(project, logger) { return [] }
+	def getContainers(project, logger) {
+		def containers = [:]
+		this.metadata.each {
+			def section = it['section']
+			if (section != null) {
+				def top = it['top']
+				def base = it['base']
+
+				def models = GeoUtils.getTrimmedModels(project, section, null, null)
+				compressToInterval(models, top, base)
+				GeoUtils.offsetModels(models, new Length(top, 'm'))
+
+				def c = new DefaultContainer()
+				c.addAll(models)
+				containers[section] = c
+			}
+		}
+		return containers
+	}
+
+	// If total length of models exceeds interval length, downscale
+	// models to fit the interval.
+	private compressToInterval(models, top, base) {
+		def intervalLength = base - top
+		GeoUtils.compressModels(models, intervalLength)
+	}
 }

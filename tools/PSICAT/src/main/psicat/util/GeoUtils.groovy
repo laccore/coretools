@@ -143,7 +143,7 @@ class GeoUtils {
 				}
 				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {
 					logger.info("   $mod top above $min, trimming")
-					mod.top = min.to('m')
+					mod.top = min.to(project.units)
 					logger.info("$mod")
 				}
 			}
@@ -155,7 +155,7 @@ class GeoUtils {
 				}
 				if (mod.top.compareTo(max) == -1 && mod.base.compareTo(max) == 1) {
 					logger.info("   $mod bot below $max, trimming...")
-					mod.base = max.to('m')
+					mod.base = max.to(project.units)
 					logger.info("$mod")
 				}
 			}

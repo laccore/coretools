@@ -222,7 +222,7 @@ class GeoUtils {
 		return max
 	}
 	
-	// return difference between topmost and bottommost model in modelList 
+	// return meter distance between topmost and bottommost model in modelList 
 	static getLength(modelList) {
 		if (modelList.size() == 0)
 			return 0

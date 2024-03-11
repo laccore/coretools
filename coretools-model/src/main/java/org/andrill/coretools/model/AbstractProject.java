@@ -145,6 +145,11 @@ public abstract class AbstractProject implements Project {
 		return name;
 	}
 
+	// Should be overriden in derived class. Default to cm.
+	public String getUnits() {
+		return "cm";
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

@@ -154,9 +154,9 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 
     boolean save() {
     	if (model.dirty) {
-			if (singleSection && sectionTop) { GeoUtils.adjustDown(model.scene.models, sectionTop) }
+			if (singleSection && sectionTop) { GeoUtils.adjustDown(model.scene.models, sectionTop, false) }
     		model.project.saveContainer(model.scene.models)
-    		if (singleSection && sectionTop) { GeoUtils.adjustUp(model.scene.models, sectionTop) }
+    		if (singleSection && sectionTop) { GeoUtils.adjustUp(model.scene.models, sectionTop, false) }
     		markClean()
     	}
     	return true

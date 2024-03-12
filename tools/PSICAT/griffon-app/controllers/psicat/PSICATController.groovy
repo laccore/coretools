@@ -28,6 +28,9 @@ import org.json.JSONObject
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
+import org.andrill.coretools.geology.models.csdf.*
+import org.andrill.coretools.model.edit.CompositeCommand
+import org.andrill.coretools.model.edit.CreateCommand
 import org.andrill.coretools.model.edit.DeleteCommand
 import org.andrill.coretools.dis.DISProject
 import org.andrill.coretools.misc.io.ExcelReaderWriter
@@ -366,6 +369,37 @@ class PSICATController {
 			def interval = active.scene.selection.selectedObjects.find { GeoUtils.isIntervalInstance(it) }
 			if (interval) {
 				active.commandStack.execute(new SplitIntervalCommand(interval, active.scene.models))
+			}
+		},
+		'createIntervals': { evt = null ->
+			def active = model.activeDiagram.model
+			// find bottommost Lithology, Bedding and GrainSize interval and confirm that their base depths are equal
+			def bottom = new Length("0 cm")
+			def lithMax = GeoUtils.getMaxBase(active.scene.models.findAll { it instanceof LithologyInterval} )
+			def beddingMax = GeoUtils.getMaxBase(active.scene.models.findAll { it instanceof BeddingInterval} )
+			def gsMax = GeoUtils.getMaxBase(active.scene.models.findAll { it instanceof GrainSizeInterval} )
+			if (lithMax == null && beddingMax == null && gsMax == null) {
+				lithMax = new Length("0 cm")
+				beddingMax = new Length("0 cm")
+				gsMax = new Length("0 cm")
+			}
+			if (lithMax.equals(beddingMax) && lithMax.equals(gsMax)) {
+				def result = JOptionPane.showInputDialog(app.appFrames[0], "Create intervals from $lithMax to bottom depth (cm):")
+				if (result == null) {
+					return
+				} else if (new Length("${result} cm").compareTo(lithMax) == 0 || new Length("${result} cm").compareTo(lithMax) == -1) {
+					Dialogs.showMessageDialog("Invalid Bottom Depth", "Inputted depth (${result} cm) must be greater than $lithMax.", app.appFrames[0])
+					return
+				}
+				def l1 = lithMax
+				def l2 = new Length("${result} cm")
+				def lith = new LithologyInterval(top:l1, base:l2)
+				def bedding = new BeddingInterval(top:l1, base:l2)
+				def gs = new GrainSizeInterval(top:l1, base:l2)
+				def command = new CompositeCommand("Create Intervals", new CreateCommand(lith, active.scene.models), new CreateCommand(bedding, active.scene.models), new CreateCommand(gs, active.scene.models))
+				active.commandStack.execute(command)
+			} else {
+				Dialogs.showMessageDialog("Cannot Create Intervals", "Bottommost Lithology ($lithMax), Bedding ($beddingMax), and Grain Size ($gsMax) must be equal to create intervals.", app.appFrames[0])
 			}
 		},
 		'undo':		{ evt = null -> model.diagramState.commandStack.undo() },

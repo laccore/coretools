@@ -66,10 +66,15 @@ application(title:"PSICAT ${app.applicationProperties['app.version']} $subversio
 		widget(id:'sidePanel', buildMVCGroup('Project', 'project', openHandler: { evt, mvc -> controller.actions.openSection(evt) }).view.root)
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: mainHeight * 0.65, resizeWeight: 0.65, border: emptyBorder(0), constraints: 'grow') {
 			tabbedPane(id:'diagrams', constraints: 'grow')
-		    scrollPane(constraints: 'grow', border: emptyBorder(0)) {
-		    	widget(id:'propertiesPanel', propertiesPanel)
-		    }
-		}	
+			scrollPane(constraints: 'grow', border: emptyBorder(0)) {
+				panel(layout: new MigLayout("fill, wrap, insets 0", "", "[][grow]")) {
+					button(id: 'createIntervals', text: 'Create Intervals',
+						actionPerformed: { evt -> app.controllers['PSICAT'].actions.createIntervals(evt) },
+						enabled: bind { model.activeDiagram != null })
+					widget(id:'propertiesPanel', propertiesPanel, constraints:'grow')
+				}
+			}
+		}
 	}
 	
 	// status area

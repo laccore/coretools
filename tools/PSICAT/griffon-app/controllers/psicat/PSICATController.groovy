@@ -31,6 +31,7 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.geology.models.csdf.*
+import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.model.edit.CompositeCommand
 import org.andrill.coretools.model.edit.CreateCommand
 import org.andrill.coretools.model.edit.DeleteCommand
@@ -258,6 +259,18 @@ class PSICATController {
 		return matcher
 	}
 
+	private createSectionWithContainer(container, name) {
+		if (container.models.size() == 0) { return }
+		def s = new Section()
+		def top = GeoUtils.getMinTop(container.models) ?: new Length(0, "m")
+		def base = GeoUtils.getMaxBase(container.models) ?: new Length(1, "m")
+		s.top = top
+		s.base = base
+		s.name = name
+		container.add(s)
+		model.project.saveContainer(container)
+	}
+
 	// our action implementations
 	def actions = [
 		'exit': { evt -> if (canClose(evt)) app.shutdown() },
@@ -343,32 +356,28 @@ class PSICATController {
 						modelsToRemove.each { c.remove(it) }
 					}
 
-					containers.each { k,v ->
-						println "$k:"
-						v.models.each { m ->
-							println "  $m"
+					// containers.each { k,v ->
+					// 	println "$k:"
+					// 	v.models.each { m ->
+					// 		println "  $m"
+					// 	}
+					// }
+
+					int fileNumber = 1
+					String sectionName = "strat${fileNumber}" // must declare as String to avoid String vs. GStringImpl comparison!
+					while (true) {
+						if (!model.project.containers.contains(sectionName)) {
+							break
 						}
+						fileNumber += 1
+						sectionName = "strat${fileNumber}"
+					}
+					def mergedContainer = model.project.createContainer(sectionName)
+					containers.each { sectionNameKey, c ->
+						mergedContainer.addAll(c.models)
 					}
 
-					final id = 'strat|column' // read-only due to '|'
-					def diagram = buildMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
-					if (diagram.controller.open(containers)) {
-						model.openDiagrams << diagram
-						view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
-						view.diagrams.selectedIndex = model.openDiagrams.size() - 1
-						
-						// Force contentHeight to integer meters, then convert back to current units to compute scalingFactor.
-						// This ensures initial ImageTrack width is consistent regardless of current units. Resolves issue
-						// of ImageTrack using entire width of diagram when current unit is cm or in.  
-						def contentHeight = diagram.model.scene.contentSize.height
-						def intMeterHeight = Math.ceil(new Length(contentHeight, diagram.model.units).to('m').value)
-						def normalizedHeight = new Length(intMeterHeight, 'm').to(diagram.model.units).value
-						diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
-						
-						model.status = "Opened section '${diagram.model.name}'"
-					} else {
-						destroyMVCGroup(id)
-					}
+					createSectionWithContainer(mergedContainer, sectionName)
 				}
 			} catch (Exception e) {
 				errbox("Metadata Error", "${e.message}")

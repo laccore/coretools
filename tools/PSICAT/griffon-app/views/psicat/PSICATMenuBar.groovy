@@ -101,4 +101,8 @@ menuBar(id: 'menuBar') {
 		//menuItem(documentationAction)
 		menuItem(feedbackAction)
 	}
+
+	menu(text: 'Debug', mnemonic:'D') {
+		menuItem(createStratSectionAction)
+	}	
 }

@@ -25,6 +25,8 @@ import javax.swing.JOptionPane
 
 import org.json.JSONObject
 
+import org.apache.log4j.Logger
+
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
@@ -58,6 +60,7 @@ class PSICATController {
 	def view
 
 	private def prefs = Preferences.userNodeForPackage(PSICATController)
+	private static Logger logger = Logger.getLogger(PSICATController.class)
 	
 	void mvcGroupInit(Map args) {}
 
@@ -323,6 +326,54 @@ class PSICATController {
 				}
 			}
 		},
+		'createStratSection': { evt = null ->
+			try {
+				app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:null) { mvc ->
+					def dlg = mvc.view.openSCMD
+					dlg.setLocationRelativeTo(app.appFrames[0])
+					dlg.setVisible(true)
+					if (!mvc.model.confirmed) return;
+
+					def stratMetadata = mvc.model.stratColumnMetadata
+					def containers = stratMetadata.getContainers(model.project, logger)
+
+					def acceptedModels = ["Interval", "Occurrence", "LithologyInterval", "Feature", "BeddingInterval", "TextureInterval", "GrainSizeInterval"]
+					containers.each { sectionNameKey, c ->
+						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
+						modelsToRemove.each { c.remove(it) }
+					}
+
+					containers.each { k,v ->
+						println "$k:"
+						v.models.each { m ->
+							println "  $m"
+						}
+					}
+
+					final id = 'strat|column' // read-only due to '|'
+					def diagram = buildMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
+					if (diagram.controller.open(containers)) {
+						model.openDiagrams << diagram
+						view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
+						view.diagrams.selectedIndex = model.openDiagrams.size() - 1
+						
+						// Force contentHeight to integer meters, then convert back to current units to compute scalingFactor.
+						// This ensures initial ImageTrack width is consistent regardless of current units. Resolves issue
+						// of ImageTrack using entire width of diagram when current unit is cm or in.  
+						def contentHeight = diagram.model.scene.contentSize.height
+						def intMeterHeight = Math.ceil(new Length(contentHeight, diagram.model.units).to('m').value)
+						def normalizedHeight = new Length(intMeterHeight, 'm').to(diagram.model.units).value
+						diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
+						
+						model.status = "Opened section '${diagram.model.name}'"
+					} else {
+						destroyMVCGroup(id)
+					}
+				}
+			} catch (Exception e) {
+				errbox("Metadata Error", "${e.message}")
+			}
+		},		
 		'close': 	{ evt = null -> closeDiagram(model.activeDiagram) },
 		'closeAll': { evt = null ->
 			boolean canceled = false

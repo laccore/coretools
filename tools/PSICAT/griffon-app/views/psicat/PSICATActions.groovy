@@ -68,6 +68,11 @@ actions {
 		closure: controller.actions['openSection']
 	)
 	action(
+		id: 'createStratSectionAction',
+		name: 'Create Strat Section...',
+		closure: controller.actions['createStratSection']
+	)
+	action(
 		id: 'closeAction',
 		name: 'Close Section',
 		enabled: bind { model.activeDiagram != null },

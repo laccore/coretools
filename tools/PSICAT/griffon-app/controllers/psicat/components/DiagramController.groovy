@@ -84,7 +84,9 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	model.diagramState = null
     }
 
-    boolean open() {
+	// If containers is null, open section(s) selected in Project list in a single diagram.
+	// Otherwise, open input containers in a single diagram.
+    boolean open(containers=null) {
     	def project = model.project
 
     	// select a scene
@@ -97,17 +99,27 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		}
 	    			
     	// open our containers
-		def models
-    	def containers = model.id.split('\\|') as List
-		if (containers.size() == 1) {
-			models = project.openContainer(containers[0])
-		} else {
+		def models = null
+		if (containers != null) {
 			models = Platform.getService(ModelContainer.class)
-			containers.each { section ->
-				def container = project.openContainer(section)
-				container.models.each { models.add(it) }
+			containers.each { sectionName, container ->
+				container.models.each {
+					models.add(it)
+				}
 			}
 			models.project = project
+		} else {
+			containers = model.id.split('\\|') as List
+			if (containers.size() == 1) {
+				models = project.openContainer(containers[0])
+			} else {
+				models = Platform.getService(ModelContainer.class)
+				containers.each { section ->
+					def container = project.openContainer(section)
+					container.models.each { models.add(it) }
+				}
+				models.project = project
+			}
 		}
 		
 		// figure out the number of sections

@@ -20,7 +20,9 @@ abstract class AbstractIntervalTrack extends GeologyTrack {
 			graphics.setFill(getFill(m))
 			graphics.fillPolygon(outline)
 		}
-		graphics.drawPolygon(outline)
+		if (getDrawOutline()) {
+			graphics.drawPolygon(outline)
+		}
 	}
 
 	void renderSelected(Model model, GraphicsContext graphics, Rectangle2D bounds) {
@@ -83,6 +85,10 @@ abstract class AbstractIntervalTrack extends GeologyTrack {
 		return label
 	}
 
+	protected boolean getDrawOutline() {
+		return Boolean.parseBoolean(getParameter('draw-outline', 'true'))
+	}
+
 	// Use floating-point model bounds to detect mouseover: resolves issue #9 for
 	// Interval-based columns. Note that this approach breaks mouse selection for
 	// columns deriving from AbstractFeatureTrack...those columns continue to use
@@ -96,5 +102,5 @@ abstract class AbstractIntervalTrack extends GeologyTrack {
 			def found = visibleModels.find { getModelBoundsDouble(it).contains(screen.x, screen.y) }
 			return found ?: this
 		}
-	}	
+	}
 }

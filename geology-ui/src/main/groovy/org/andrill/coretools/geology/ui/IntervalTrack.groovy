@@ -55,7 +55,9 @@ class IntervalTrack extends GeologyTrack {
 			graphics.setFill(getFill(m))
 			graphics.fillPolygon(outline)
 		}
-		graphics.drawPolygon(outline)
+		if (Boolean.parseBoolean(getParameter('draw-outline', 'true'))) {
+			graphics.drawPolygon(outline)
+		}
 	}
 
 	void renderSelected(Model model, GraphicsContext graphics, Rectangle2D bounds) {

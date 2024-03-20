@@ -51,7 +51,9 @@ class LithologyTrack extends AbstractIntervalTrack {
 			graphics.setFill(getFill(m, graphics.fill))
 			graphics.fillPolygon(outline)
 		}
-		graphics.drawPolygon(outline)
+		if (getDrawOutline()) {
+			graphics.drawPolygon(outline)
+		}
 	}
 
 	void renderSelected(Model model, GraphicsContext graphics, Rectangle2D bounds, ArrayList<GrainSizeInterval> grainSizeIntervals) {

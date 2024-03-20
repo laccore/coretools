@@ -16,8 +16,9 @@ import org.andrill.coretools.scene.event.DefaultTrackEventHandler
 
 class LithologyTrack extends AbstractIntervalTrack {
 	// Properties:
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
+	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof LithologyInterval } }
 	def getHeader() { "Lithology" }

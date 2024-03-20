@@ -18,20 +18,24 @@ package org.andrill.coretools.geology.ui
 import java.awt.Point
 import java.awt.geom.Rectangle2D
 
-import org.andrill.coretools.geology.models.Unitimport org.andrill.coretools.geology.ui.event.CreatePolicy
+import org.andrill.coretools.geology.models.Unit
+import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.model.Model;
-import org.andrill.coretools.scene.event.SceneEventHandlerimport org.andrill.coretools.scene.event.DefaultTrackEventHandler/**
+import org.andrill.coretools.scene.event.SceneEventHandler
+import org.andrill.coretools.scene.event.DefaultTrackEventHandler
+
+/**
  * A track to draw Unit models.
  * 
  * @author Josh Reed (jareed@andrill.org)
  */
 class UnitTrack extends GeologyTrack {
 	// Properties:
-	//   * filter-group:   only show Unit of a specific group
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * filter-group:   string; only show Unit of a specific group
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
 	
 	def getHeader() { "Units" }
 	def getFooter() { "Units" }

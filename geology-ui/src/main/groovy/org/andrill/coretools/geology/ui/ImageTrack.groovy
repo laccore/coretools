@@ -27,11 +27,12 @@ import org.andrill.coretools.model.Model;
  * A track to draw Image models.
  * 
  * @author Josh Reed (jareed@andrill.org)
- */class ImageTrack extends GeologyTrack {
+ */
+class ImageTrack extends GeologyTrack {
 	// Properties:
-	//   * filter-group:   only show Images of a specific group
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * filter-group:   string; only show Images of a specific group
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
 
 	def getHeader() { "Images" }
 	def getFooter() { "Images" }

@@ -32,7 +32,9 @@ import org.andrill.coretools.model.Model;
  */
 public class GrainSizeTrack extends GeologyTrack {
 	// Properties:
-	//   * scale:   the scale code or name
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
+	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof Interval } }
 	def getHeader() { "Grain Size" }

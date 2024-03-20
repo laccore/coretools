@@ -15,10 +15,11 @@ import org.andrill.coretools.graphics.fill.*
 
 class BeddingTrack extends AbstractIntervalTrack {
 	// Properties:
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
-	//   * draw-repeating: draw the symbols repeating instead of whiskers
-	//   * symbol-size:    pixel width of rendered symbol if draw-repeating is false
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
+	//   * draw-outline:   boolean; draw outline of interval, applies only if draw-repeating is false
+	//   * draw-repeating: boolean; draw the symbols repeating instead of whiskers
+	//   * symbol-size:    integer; pixel width of rendered symbol if draw-repeating is false
 
 	def getFilter() { return { it instanceof BeddingInterval } }
 	def getHeader() { "Bedding" }

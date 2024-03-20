@@ -9,8 +9,9 @@ import org.andrill.coretools.geology.ui.*
 
 class TextureTrack extends AbstractFeatureTrack {
 	// Properties:
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
+	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof TextureInterval } }
 	def getHeader() { "Texture" }

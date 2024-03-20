@@ -11,8 +11,9 @@ import org.andrill.coretools.geology.ui.*
 
 abstract class AbstractIntervalTrack extends GeologyTrack {
 	// Properties:
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
+	//   * draw-outline:   boolean; draw outline of interval
 
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
 		def outline = getOutline(m)

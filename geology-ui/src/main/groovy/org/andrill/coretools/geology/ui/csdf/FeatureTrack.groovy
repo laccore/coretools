@@ -25,10 +25,10 @@ import org.andrill.coretools.geology.models.csdf.Feature
 
 class FeatureTrack extends AbstractFeatureTrack {
 	// Properties:
-	//   * symbol-size:    the width of the symbol
-	//   * draw-repeating: draw the symbols repeating instead of whiskers
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * symbol-size:    integer; the width of the symbol
+	//   * draw-repeating: boolean; draw the symbols repeating instead of whiskers
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
 	
 	def getHeader() { "Features" }
 	def getFooter() { "Features" }

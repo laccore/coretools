@@ -15,9 +15,9 @@ import org.andrill.coretools.geology.ui.GeologyTrack
 
 class UnitTrack extends GeologyTrack {
 	// Properties:
-	//   * filter-group:   only show Unit of a specific group
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * filter-group:   string; only show Unit of a specific group
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
 	
 	def getHeader() { "Units" }
 	def getFooter() { "Units" }

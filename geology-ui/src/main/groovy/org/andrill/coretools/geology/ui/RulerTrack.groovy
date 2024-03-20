@@ -30,8 +30,8 @@ import org.andrill.coretools.graphics.GraphicsContext
  */
 class RulerTrack extends GeologyTrack {
 	// Properties:
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
 
 	def getHeader() { units }
 	def getFooter() { units }

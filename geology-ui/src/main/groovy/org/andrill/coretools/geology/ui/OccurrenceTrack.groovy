@@ -43,11 +43,11 @@ import org.andrill.coretools.scene.event.DefaultTrackEventHandler
  */
 class OccurrenceTrack extends GeologyTrack {
 	// Properties:
-	//   * filter-group:   only show Occurrences of a specific group
-	//   * symbol-size:    the width of the symbol
-	//   * draw-repeating: draw the symbols repeating instead of whiskers
-	//   * track-header:   the text or image to draw in the header
-	//   * track-footer:   the text or image to draw in the footer
+	//   * filter-group:   string; only show Occurrences of a specific group
+	//   * symbol-size:    integer; the width of the symbol
+	//   * draw-repeating: boolean; draw the symbols repeating instead of whiskers
+	//   * track-header:   string; the text or image to draw in the header
+	//   * track-footer:   string; the text or image to draw in the footer
 	
 	def cache = [:]
 	def getHeader() { "Symbols" }

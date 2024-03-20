@@ -84,7 +84,15 @@ class ExportDiagramWizardController {
 			def start = model.exportAll ? scene.contentSize.minY / scene.scalingFactor : model.start as Double
 			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
 			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, 1)
-			def paper = view.paper.selectedItem
+
+			Paper paper = null
+			if (model.standardFormat) {
+				paper = view.paper.selectedItem
+			} else {
+				def paperWidth = Integer.parseInt(view.paperWidth.text)
+				def paperHeight = Integer.parseInt(view.paperHeight.text)
+				paper = new Paper("Custom", paperWidth, paperHeight, 36) // margin=36 i.e. 1/2" at 72dpi
+			}
 
 			// build file name
 			def name = (model.prefix ?: "${model.prefix}") + "$k.${view.format.selectedItem.toLowerCase()}"

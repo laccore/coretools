@@ -49,12 +49,22 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	label(text: bind(source:model, sourceProperty:'units'), constraints:'wrap')
 	separator(constraints: 'span, growx, wrap')
 
+
+	label('Page Format:', constraints: 'span 1 2')
+	buttonGroup().with {
+		add radioButton(text: 'Standard:', selected: bind(source:model, sourceProperty:'standardFormat', mutual:true), constraints: 'split')
+		comboBox(id: 'paper', editable: false, items: (Paper.PAGES.values() as List).sort({ p1, p2 -> p1.name <=> p2.name }), constraints: 'wrap')
+		add radioButton(text: 'Custom:', selected: bind { !model.standardFormat }, constraints: 'split')
+		textField(id: 'paperWidth', enabled: bind { !model.standardFormat }, constraints: 'grow')
+		label('x', enabled: bind { !model.standardFormat })
+		textField(id: 'paperHeight', enabled: bind { !model.standardFormat }, constraints: 'grow')
+		label('pixels', enabled: bind { !model.standardFormat }, constraints: 'wrap')
+	}
+
+	separator(constraints: 'span, growx, wrap')
+
 	checkBox(text: 'Render Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true))
 	checkBox(text: 'Render Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'wrap')
-
-	label('Page Format:')
-	comboBox(id: 'paper', editable: false, items: (Paper.PAGES.values() as List).sort({ p1, p2 -> p1.name <=> p2.name }), constraints: 'split, wrap')
-
 	separator(constraints: 'span, growx, wrap')
 	
 	label('Output Directory:')

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) Josh Reed, 2009.
  *
@@ -26,6 +27,7 @@ class ExportDiagramWizardModel {
 	def project
 	
 	@Bindable boolean exportAll = true
+	@Bindable boolean standardFormat = true
 	@Bindable String start
 	@Bindable String end
 	@Bindable String pageSize

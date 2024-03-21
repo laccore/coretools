@@ -33,6 +33,7 @@ class ExportDiagramWizardModel {
 	@Bindable String pageSize
 	@Bindable boolean renderHeader = true
 	@Bindable boolean renderFooter = false
+	@Bindable boolean renderIntervalOutlines = true
 	@Bindable String units = "cm"
 	@Bindable String filePath = Dialogs.currentSaveDir.absolutePath
 	@Bindable String prefix = ''

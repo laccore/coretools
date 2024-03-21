@@ -20,7 +20,8 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.misc.util.SceneUtils
-import org.andrill.coretools.geology.ui.ImageTrack
+import org.andrill.coretools.geology.ui.*
+import org.andrill.coretools.geology.ui.csdf.*
 
 import psicat.util.*
 
@@ -112,12 +113,26 @@ class ExportDiagramWizardController {
 				if (imageTrack) { imageTrack.setParameter("embed-image", "true") }
 			}
 
+			if (!model.renderIntervalOutlines) {
+				def intervalTracks = scene.tracks.findAll { isIntervalTrack(it) }
+				intervalTracks.each { it.setParameter("draw-outline", "false") }
+			}
+
 			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
 				sectionName, new File(model.filePath, name))
 		}
 		
 		view.progress.value = 100
 		view.progress.string = "Export complete!"
+	}
+
+	private isIntervalTrack(track) {
+		boolean isInterval = track instanceof IntervalTrack ||
+			track instanceof BeddingTrack ||
+			track instanceof org.andrill.coretools.geology.ui.csdf.GrainSizeTrack ||
+			track instanceof org.andrill.coretools.geology.ui.csdf.LithologyTrack ||
+			track instanceof TextureTrack
+		return isInterval
 	}
 	
     def show() { 

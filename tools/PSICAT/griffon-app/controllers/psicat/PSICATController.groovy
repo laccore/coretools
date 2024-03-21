@@ -347,37 +347,38 @@ class PSICATController {
 					dlg.setVisible(true)
 					if (!mvc.model.confirmed) return;
 
+					def sectionName = null
+					def suggestedName = FileUtils.removeExtension(new File(mvc.model.metadataPath))
+					while (sectionName == null) {
+						def enteredSectionName = JOptionPane.showInputDialog(app.appFrames[0], "Enter a name for the new strat section:", suggestedName)
+						if (enteredSectionName == null) {
+							return
+						} else if (enteredSectionName.length() == 0) {
+							Dialogs.showMessageDialog("Empty Section Name", "The name must contain at least one character.", app.appFrames[0])
+						} else if (model.project.containers.contains(enteredSectionName)) {
+							Dialogs.showMessageDialog("Duplicate Section Name", "A section named $enteredSectionName already exists, choose a different name.", app.appFrames[0])
+						} else {
+							sectionName = enteredSectionName
+						}
+					}
+
 					def stratMetadata = mvc.model.stratColumnMetadata
 					def containers = stratMetadata.getContainers(model.project, logger)
-
 					def acceptedModels = ["Interval", "Occurrence", "LithologyInterval", "Feature", "BeddingInterval", "TextureInterval", "GrainSizeInterval"]
 					containers.each { sectionNameKey, c ->
 						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
 						modelsToRemove.each { c.remove(it) }
 					}
 
-					// containers.each { k,v ->
-					// 	println "$k:"
-					// 	v.models.each { m ->
-					// 		println "  $m"
-					// 	}
-					// }
+					// containers.each { k,v -> println "$k:" v.models.each { m -> println "  $m" }}
 
-					int fileNumber = 1
-					String sectionName = "strat${fileNumber}" // must declare as String to avoid String vs. GStringImpl comparison!
-					while (true) {
-						if (!model.project.containers.contains(sectionName)) {
-							break
-						}
-						fileNumber += 1
-						sectionName = "strat${fileNumber}"
-					}
 					def mergedContainer = model.project.createContainer(sectionName)
 					containers.each { sectionNameKey, c ->
 						mergedContainer.addAll(c.models)
 					}
 
 					createSectionWithContainer(mergedContainer, sectionName)
+					model.status = "Created new section $sectionName with strat depths from ${mvc.model.metadataPath}"
 				}
 			} catch (Exception e) {
 				errbox("Metadata Error", "${e.message}")

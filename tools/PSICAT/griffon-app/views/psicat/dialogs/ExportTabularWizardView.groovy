@@ -24,7 +24,7 @@ actions {
 }
 
 // dirty trick here: use eachSection item but label it "All Sections" to indicate everything will end up in the same spreadsheet
-def section = buildMVCGroup('SectionCombo', 'exportTabularSections', project: model.project, allSections: false, eachSectionText:"All Sections").view.root
+def section = buildMVCGroup('SectionCombo', 'exportTabularSections', project: model.project, eachSectionText: "All Sections").view.root
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	widget(id:'section', section, constraints: 'span, growx, wrap')

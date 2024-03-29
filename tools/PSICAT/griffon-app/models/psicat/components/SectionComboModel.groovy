@@ -20,7 +20,7 @@ import groovy.beans.Bindable
 @Bindable class SectionComboModel {
 	String labelText = "Section:"
 	def project
-	boolean allSections = true
+	boolean allSections = false
 	boolean eachSection = true
 	String allSectionsText = "All Sections"
 	String eachSectionText = "Each Section"

@@ -59,8 +59,15 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     		default: model.name = "${model.project.name} [${sections.join(', ')}]"
     	}
 
-    	// create our edit support object
-    	model.commandStack = new CommandStack(sections.size() == 1)
+		int sectionModelCount = 0;
+		if (sections.size() == 1) {
+			def c = model.project.openContainer(sections[0])
+			sectionModelCount = c.models.findAll { it.modelType == "Section" }.size()
+		}
+
+    	// create our edit support object; set to read-only for multi-container
+		// sections or single containers with multiple Section models.
+    	model.commandStack = new CommandStack(sections.size() == 1 && sectionModelCount <= 1)
     	model.commandStack.addPropertyChangeListener(this)
 		
 		model.units = model.project.configuration.units ?: prefs.get('diagram.units', 'm')

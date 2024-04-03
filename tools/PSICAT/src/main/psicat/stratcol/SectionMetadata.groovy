@@ -18,6 +18,7 @@ package psicat.stratcol
 
 import org.andrill.coretools.model.DefaultContainer
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.models.Section
 
 import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
@@ -103,6 +104,8 @@ class SectionMetadata implements StratColumnMetadata {
 				def models = GeoUtils.getTrimmedModels(project, section, null, null)
 				compressToInterval(models, top, base)
 				GeoUtils.offsetModels(models, new Length(top, 'm'))
+
+				models << new Section(name:section, top:new Length(top, 'm'), base:new Length(base, 'm'))
 
 				def c = new DefaultContainer()
 				c.addAll(models)

@@ -17,14 +17,21 @@ package psicat.components
 
 import net.miginfocom.swing.MigLayout
 
+panel(id:'sectionChooser', layout: new MigLayout('fill, insets 5, wrap')) {
+	scrollPane(constraints:'grow, wrap, hmin 400') {
+		list(id:'sectionList', items:model.project.containers)
+	}
+}
+
 // build our items list
 def items = []
 if (model.allSections) { items.add(model.allSectionsText) }
 if (model.eachSection) { items.add(model.eachSectionText) }
+items.add(model.customSectionsText)
 items.addAll(model.project.containers)
 
 // the panel
 panel(id: 'root', layout: new MigLayout('fill'), border: emptyBorder(0)) {
 	label(id: 'label', text: bind { model.labelText }, constraints: 'split')
-	comboBox(id:'section', editable: false, items: items, constraints:'growx')
+	comboBox(id:'section', editable: false, items: items, actionPerformed: { evt -> controller.selectedSectionChanged(evt) }, constraints:'growx')
 }

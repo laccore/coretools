@@ -15,6 +15,8 @@
  */
 package psicat.components
 
+import javax.swing.JOptionPane
+
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.DefaultModelManager
@@ -54,12 +56,23 @@ class SectionComboController {
 	private ModelContainer copy(String containerName) {
 		copy([containerName])
 	}
+
+	def selectedSectionChanged = { evt ->
+		if (this.selection.equals(model.customSectionsText)) {
+			final int option = JOptionPane.showConfirmDialog(app.appFrames[0], [ view.sectionChooser ].toArray(),
+				"Select Sections", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+			if (option == JOptionPane.OK_OPTION) {
+				model.customSections = view.sectionList.selectedValues
+			}
+		}
+	}
 	
 	/**
 	 * Gets copies of containers and data-only copies of models for the selection.
 	 * This may be:
 	 *  - a container with all sections
 	 *  - a container for each section
+	 *  - a container with selected sections
 	 *	- a container for a specific section
 	 */
 	def copyContainers() {
@@ -69,6 +82,10 @@ class SectionComboController {
 			containers[project.name] = copy(project.containers)
 		} else if (model.eachSection && view.section.selectedItem == model.eachSectionText) {
 			project.containers.each { c ->
+				containers[c] = copy(c)
+			}
+		} else if (view.section.selectedItem == model.customSectionsText) {
+			model.customSections.each { c ->
 				containers[c] = copy(c)
 			}
 		} else {
@@ -83,6 +100,7 @@ class SectionComboController {
      * This may be: 
      *  - a container with all sections
      *  - a container for each section
+	 *  - a container with selected sections
 	 *	- a container for a specific section
      */
     def getContainers() {
@@ -96,7 +114,9 @@ class SectionComboController {
         	containers[project.name] = container
         } else if (model.eachSection && view.section.selectedItem == model.eachSectionText) {
 			project.containers.each { containers[it] = project.openContainer(it) }
-        } else {
+        } else if (view.section.selectedItem == model.customSectionsText) {
+			model.customSections.each { containers[it] = project.openContainer(it) }
+		} else {
 			def section = view.section.selectedItem
 			containers[section] = project.openContainer(section)
         }

@@ -221,6 +221,7 @@ public class DefaultProject extends AbstractProject {
 		File sceneDir = getSceneDir();
 		if (sceneDir.exists() && sceneDir.isDirectory()) {
 			for (File file : sceneDir.listFiles()) {
+				if (!file.getName().endsWith(".diagram")) {	continue; }
 				try {
 					scenes.add(file.toURI().toURL());
 				} catch (MalformedURLException e) {

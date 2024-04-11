@@ -32,6 +32,7 @@ import org.andrill.coretools.geology.ui.Scale
 import org.andrill.coretools.Platform
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.DefaultModelManager
+import org.andrill.coretools.model.DefaultProject;
 
 class GeoUtils {
 	private static logger = LoggerFactory.getLogger(GeoUtils.class)
@@ -118,9 +119,10 @@ class GeoUtils {
 		}
 	}
 	
-	// cull models out of range, trim models that overlap range
-	// min and max are section depths - Lengths in cm
-	static getTrimmedModels(project, secname, min, max) {
+	// Return a list of models in project.containers[secname] that overlap the interval
+	// min - max, trimming out any non-overlapping portions of each model. Trimmed models
+	// are then zero-based. min and max can be null.
+	static getTrimmedModels(DefaultProject project, String secname, Length min, Length max) {
 		logger.info("Trimming $secname, min = $min, max = $max")
 		def trimmedModels = []
 		def projContainer = project.openContainer(secname)
@@ -129,11 +131,6 @@ class GeoUtils {
 		def modit = cursec.iterator()
 		while (modit.hasNext()) {
 			GeologyModel mod = modit.next()
-			
-			// only interested in Intervals and Occurrences, skip others, particularly Images,
-			// which exceed curated length of section due to inclusion of color card
-			if (!mod.modelType.equals("Interval") && !mod.modelType.equals("Occurrence"))
-				continue;
 
 			if (min) {
 				def cmp = mod.base.compareTo(min)

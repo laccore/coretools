@@ -16,6 +16,8 @@
 
 package psicat.stratcol
 
+import java.util.Arrays;
+
 import au.com.bytecode.opencsv.CSVReader
 
 import psicat.stratcol.SpliceIntervalMetadata
@@ -27,24 +29,35 @@ import psicat.util.Dialogs
 class StratColumnMetadataUtils {
 	static int identifyMetadataFile(mdFile) throws Exception {
 		def type = scmt.UnknownFile
-		CSVReader reader = openMetadataFile(mdFile)
-		def firstRow = reader.readNext()
-		reader.close()
-		if (firstRow.length == 3)
+		def mdRows = openMetadataFile(mdFile)
+		if (mdRows[0].length == 3)
 			type = scmt.SectionMetadataFile
-		else if (SpliceIntervalMetadata.isValid(openMetadataFile(mdFile)))
+		else if (SpliceIntervalMetadata.isValid(mdRows))
 			 type = scmt.SpliceIntervalFile
 		return type
 	}
 	
-	static openMetadataFile(mdFile) throws Exception {
-		CSVReader reader = null
+	static List<String[]> openMetadataFile(mdFile) throws Exception {
+		def rows = []
 		try {
-			reader = new CSVReader(new FileReader(mdFile));
+			CSVReader reader = new CSVReader(new FileReader(mdFile));
+			reader.readAll().eachWithIndex { curRow, rowIndex ->
+				if (rowIndex == 0) { // remove BOM if present
+					def bytes = curRow[0].getBytes() as byte[]
+
+					// 4/11/2024 brg: must specify UTF-8 encoding in getBytes() due to our
+					// unfortunate dependence on Java 1.6.
+					if (Arrays.equals("\uFEFF".getBytes("UTF-8"), Arrays.copyOfRange(bytes, 0, 3))) {
+						curRow[0] = new String(Arrays.copyOfRange(bytes, 3, bytes.length), "UTF-8")
+					}
+				}
+				rows << curRow
+			}
+			reader.close()
 		} catch (e) {
 			throw new Exception("Couldn't parse metadata file: ${e.getMessage()}", e)
 		}
-		return reader
+		return rows
 	}
 	
 	static boolean isValidMetadataFile(path) {

@@ -7,19 +7,19 @@ import au.com.bytecode.opencsv.CSVReader
 
 import psicat.stratcol.SpliceIntervalMetadata
 
-// SpliceIntervalReader simplifies access of tabular Splice Interval
-// data, parsing each CSVReader row into map keyed on column names
-// derived from header.
-class SpliceIntervalReader {
+// SpliceIntervalMetadataParser simplifies access to tabular Splice Interval
+// data, parsing each row of splice interval metadata into a map keyed on column
+// names.
+class SpliceIntervalMetadataParser {
 	def headers = []
 	def rows = []
 	def colMap = [:]
 	
-	public SpliceIntervalReader(CSVReader reader) {
-		parse(reader);
+	public SpliceIntervalMetadataParser(List<String[]> _rows) {
+		parse(_rows);
 	}
 	
-	public readAll() { return rows; }
+	public getRows() { return rows; }
 	public hasColumn(String col, def alts) {
 		def has = col in headers
 		if (!has) {
@@ -54,15 +54,14 @@ class SpliceIntervalReader {
 
 	private makeMap(row) {
 		def map = [:]
-		//for (int i = 0; i < headers.length; i++) {
 		this.headers.eachWithIndex { col, index ->
 			map.putAt(col, row[index])
 		}
 		return map
 	}
 
-	private void parse(CSVReader reader) {
-		reader.readAll().eachWithIndex { row, rowIndex ->
+	private void parse(List<String[]> _rows) {
+		_rows.eachWithIndex { row, rowIndex ->
 			if (rowIndex == 0) {
 				this.headers = Arrays.asList(row)
 			} else {

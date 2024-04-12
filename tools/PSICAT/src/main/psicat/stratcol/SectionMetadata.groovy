@@ -53,8 +53,8 @@ class SectionMetadata implements StratColumnMetadata {
 	// parse section top/base depth metadata file contents, return as a list of metadata maps, one per section
 	private parse(projectSections) throws Exception {
 		def metadata = []
-		def reader = utils.openMetadataFile(metadataPath)
-		reader.readAll().eachWithIndex { row, index ->
+		def metadataRows = utils.openMetadataFile(metadataPath)
+		metadataRows.eachWithIndex { row, index ->
 			def section = row[0]
 			def projSection = utils.findSection(section, projectSections)
 			// proceed, even if no matching project section is found - clients handle unmatched sections

@@ -23,7 +23,7 @@ import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
 import psicat.stratcol.StratColumnMetadataUtils as utils
-import psicat.stratcol.SpliceIntervalReader
+import psicat.stratcol.SpliceIntervalMetadataParser
 
 import psicat.util.GeoUtils
 
@@ -43,10 +43,10 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	public static final String BottomOffset = "Bottom Offset"
 	public static final String BottomCCSF = "Bottom Depth CCSF-A"
 	
-	public static boolean isValid(csvreader) {
-		def reader = new SpliceIntervalReader(csvreader)
+	public static boolean isValid(mdRows) {
+		def parser = new SpliceIntervalMetadataParser(mdRows)
 		def alts = [(CoreType): Tool] // accepted alternate names
-		return reader.hasColumns([Site, Hole, Core, CoreType, TopSection, TopOffset, TopCCSF, BottomSection, BottomOffset, BottomCCSF], alts)
+		return parser.hasColumns([Site, Hole, Core, CoreType, TopSection, TopOffset, TopCCSF, BottomSection, BottomOffset, BottomCCSF], alts)
 	}
 	
 	private metadataPath = null
@@ -79,9 +79,9 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	def parse(project) throws Exception {
 		def sectionMapping = []
 		def metadata = []
-		def reader = new SpliceIntervalReader(utils.openMetadataFile(metadataPath))
-		this.toolHeaderName = reader.toolHeaderName
-		reader.readAll().eachWithIndex { row, rowIndex ->
+		def parser = new SpliceIntervalMetadataParser(utils.openMetadataFile(metadataPath))
+		this.toolHeaderName = parser.toolHeaderName
+		parser.getRows().eachWithIndex { row, rowIndex ->
 			def startSecDepth, endSecDepth, startMcd, endMcd
 			try {
 				startSecDepth = row[TopOffset] as BigDecimal

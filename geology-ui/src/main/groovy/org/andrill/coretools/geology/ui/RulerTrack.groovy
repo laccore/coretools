@@ -32,6 +32,11 @@ class RulerTrack extends GeologyTrack {
 	// Properties:
 	//   * track-header:   string; the text or image to draw in the header
 	//   * track-footer:   string; the text or image to draw in the footer
+	//   * label-step:     int; frequency of labeled hashes
+	//   * hash-step:     int; frequency of unlabeled hashes
+	//   * draw-left-hash: boolean; draw left hashes
+	//   * draw-right-hash: boolean; draw right hashes
+	//   * scale-labels: boolean; grow/shrink labels to fit available space
 
 	def getHeader() { units }
 	def getFooter() { units }
@@ -43,10 +48,25 @@ class RulerTrack extends GeologyTrack {
 		def clip = clip(bounds, graphics.clip, 100 / scale)
 
 		// figure out our hashing
-		def lStep = calculateSpacing(40)
-		def hStep = calculateSpacing(10)
+		def lStepParam = Integer.parseInt(getParameter("label-step", "40"))
+		def hStepParam = Integer.parseInt(getParameter("hash-step", "10"))
+		def drawLeftHash = Boolean.parseBoolean(getParameter("draw-left-hash", "true"))
+		def drawRightHash = Boolean.parseBoolean(getParameter("draw-right-hash", "true"))
+		def scaleLabels = Boolean.parseBoolean(getParameter("scale-labels", "false"))
+
+		final int labelHashWidth = 10
+		final int hashWidth = 5
+
+		def lStep = calculateSpacing(lStepParam)
+		def hStep = calculateSpacing(hStepParam)
 		def hStart = new BigDecimal((Math.floor(clip.minY / lStep) * lStep)).setScale(2, RoundingMode.HALF_UP)
 		def hEnd = new BigDecimal((Math.ceil(clip.maxY / lStep) * lStep)).setScale(2, RoundingMode.HALF_UP)
+
+		def labelFont = font
+		if (scaleLabels) {
+			final String testLabel = "0000"
+			labelFont = calculateLabelSize(graphics, bounds.width - (labelHashWidth + hashWidth + 5), testLabel)
+		}
 
 		// draw our hashes and labels
 		int zeroes = Math.max(0, hStep.scale() - 3)
@@ -55,15 +75,43 @@ class RulerTrack extends GeologyTrack {
 			def pt = pts(i, bounds)
 			if (i / lStep == (int) (i / lStep) && pt > bounds.minY && pt < bounds.maxY) {
 				// labels
-				graphics.drawStringCenter(bounds.minX, pt, bounds.width, 1, font, dec.format(i))
-				graphics.drawLine(bounds.x, pt, bounds.x + 10, pt)
-				graphics.drawLine(bounds.maxX - 10, pt, bounds.maxX, pt)
+				graphics.drawStringCenter(bounds.minX, pt, bounds.width, 1, labelFont, dec.format(i))
+				if (drawLeftHash) { graphics.drawLine(bounds.x, pt, bounds.x + labelHashWidth, pt) }
+				if (drawRightHash) { graphics.drawLine(bounds.maxX - labelHashWidth, pt, bounds.maxX, pt) }
 			} else {
 				// hash marks
-				graphics.drawLine(bounds.x, pt, bounds.x + 5, pt)
-				graphics.drawLine(bounds.maxX - 5, pt, bounds.maxX, pt)
+				if (drawLeftHash) { graphics.drawLine(bounds.x, pt, bounds.x + hashWidth, pt) }
+				if (drawRightHash) { graphics.drawLine(bounds.maxX - hashWidth, pt, bounds.maxX, pt) }
 			}
 		}
+	}
+
+	def growFontTest = { gc, font, wid, label ->
+		gc.getStringBounds(font, label).width < wid
+	}
+
+	def shrinkFontTest = { gc, font, wid, label ->
+		gc.getStringBounds(font, label).width > wid
+	}
+
+	private def calculateLabelSize(GraphicsContext graphics, double availableWidth, String label) {
+		if (growFontTest(graphics, font, availableWidth, label)) {
+			return scaleFont(graphics, availableWidth, label, 1.0f, growFontTest)
+		} else if (shrinkFontTest(graphics, font, availableWidth, label)) {
+			return scaleFont(graphics, availableWidth, label, -1.0f, shrinkFontTest)
+		}
+		return font
+	}
+
+	// Adjust default font by incr until it no longer passes input test. A derived font
+	// with the last passing font size is returned.
+	private scaleFont(GraphicsContext gc, double wid, String label, float incr, Closure test) {
+		def curFont = this.font
+		float fontSize = font.getSize()
+		while ((fontSize + incr > 0.0f) && test(gc, curFont.deriveFont((float)(fontSize + incr)), wid, label)) {
+			fontSize += incr
+		}
+		return curFont.deriveFont(fontSize)
 	}
 
 	private def calculateSpacing(pts) {

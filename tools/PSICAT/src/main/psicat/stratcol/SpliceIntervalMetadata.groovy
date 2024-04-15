@@ -53,14 +53,17 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	private metadata = null
 	private sectionMapping = null
 	private toolHeaderName = null
+	private logger = LoggerFactory.getLogger(SpliceIntervalMetadata.class)
+
 	public SpliceIntervalMetadata(metadataPath) {
 		this.metadataPath = metadataPath
 	}
+	public setLogger(logger) { this.logger = logger }
 	public int getType() { return types.SpliceIntervalFile }
 	public String getTypeName() { return "Splice Interval" }
-	public getDrawData(project, logger) { 
+	public getDrawData(project) { 
 		GeoUtils.setLogger(logger)
-		def drawData = createDrawData(project, logger)
+		def drawData = createDrawData(project)
 		GeoUtils.setLogger(null)
 		return drawData
 	}
@@ -118,10 +121,10 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	
 	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
 	// 'drawData':list of SectionDrawData to be drawn in that range]
-	def createDrawData(project, logger) {
+	def createDrawData(project) {
 		def drawData = []
 		this.metadata.each { secMap ->
-			def sectionModels = gatherModels(project, logger, secMap)
+			def sectionModels = gatherModels(project, secMap)
 			
 			def intervalModels = []
 			def top = secMap.startMcd
@@ -138,10 +141,10 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		return drawData.sort { it.top }
 	}
 
-	def getContainers(project, logger) {
+	def getContainers(project) {
 		def containers = [:]
 		this.metadata.each { secMap ->
-			def sectionModels = gatherModels(project, logger, secMap)
+			def sectionModels = gatherModels(project, secMap)
 
 			// offset all models by secMap.startMcd and throw them in a container
 			def top = secMap.startMcd
@@ -160,7 +163,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 
 	// return a list of models within secMap.startSecDepth and secMap.endSecDepth, trimmed
 	// to fit start/endSecDepth and downscaled to fit the secMap.startMcd to secMap.endMcd interval
-	private gatherModels(project, logger, secMap) {
+	private gatherModels(project, secMap) {
 		def sectionModels = [:]
 		def secTop = new Length(secMap.startSecDepth, 'cm')
 		def secBase = new Length(secMap.endSecDepth, 'cm')

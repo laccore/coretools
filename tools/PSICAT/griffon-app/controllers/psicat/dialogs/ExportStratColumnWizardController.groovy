@@ -415,7 +415,8 @@ class ExportStratColumnWizardController {
 		
 		// gather draw data
 		try {
-			model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project, logger)
+			model.stratColumnMetadata.setLogger(logger)
+			model.sortedMetadata = model.stratColumnMetadata.getDrawData(model.project)
 		} catch (e) {
 			errbox("Export Error", "Error processing metadata: ${e.getMessage()}")
 			return
@@ -572,7 +573,7 @@ class ExportStratColumnWizardController {
 
 	def exportTabularData(logger) {
 		updateProgress(95, "Exporting tabular data...")
-		def tabContainers = model.stratColumnMetadata.getContainers(model.project, logger)
+		def tabContainers = model.stratColumnMetadata.getContainers(model.project)
 		try {
 			def manager = Platform.getService(SchemeManager.class)
 			def excelWriter = Platform.getService(GeologyExcelWriter.class)

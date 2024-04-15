@@ -30,14 +30,19 @@ import psicat.util.GeoUtils
 class SectionMetadata implements StratColumnMetadata {
 	private metadataPath = null
 	private metadata = null
+	private logger = null
+
 	public SectionMetadata(metadataPath) {
 		this.metadataPath = metadataPath
 	}
+	public setLogger(logger) {
+		this.logger = logger
+	}
 	public int getType() { return types.SectionMetadataFile }
 	public String getTypeName() { return "Section Metadata" }
-	public getDrawData(project, logger) {
-		GeoUtils.setLogger(logger) 
-		def drawData = createDrawData(project, logger)
+	public getDrawData(project) {
+		GeoUtils.setLogger(this.logger) 
+		def drawData = createDrawData(project)
 		GeoUtils.setLogger(null)
 		return drawData
 	}
@@ -72,14 +77,13 @@ class SectionMetadata implements StratColumnMetadata {
 					println "Parsing error in row 1 of $metadataPath - skipping on assumption it's a header row"
 			}
 		}
-		reader.close()
 		
 		this.metadata = metadata.sort { it.top }
 	}
 	
 	// return list of top/base ranges and models to be drawn,
 	// *only* for project sections mapped from metadata sections
-	def createDrawData(project, logger) {
+	def createDrawData(project) {
 		def intervalsToDraw = []
 		this.metadata.findAll { it.section != null }.each {
 			// gather and zero base models for each section
@@ -93,7 +97,7 @@ class SectionMetadata implements StratColumnMetadata {
 		return intervalsToDraw.sort { it.top }
 	}
 
-	def getContainers(project, logger) {
+	def getContainers(project) {
 		def containers = [:]
 		this.metadata.each {
 			def section = it['section']

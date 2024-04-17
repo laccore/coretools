@@ -80,6 +80,13 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 	/**
 	 * {@inheritDoc}
 	 */
+	public List<Model> getMutableModels() {
+		return new ArrayList<Model>(models);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public Project getProject() {
 		return project;
 	}

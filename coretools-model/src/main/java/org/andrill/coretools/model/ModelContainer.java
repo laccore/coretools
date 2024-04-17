@@ -15,6 +15,8 @@
  */
 package org.andrill.coretools.model;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.google.inject.ImplementedBy;
 
@@ -73,11 +75,18 @@ public interface ModelContainer {
 	void addListener(Listener listener);
 
 	/**
-	 * Gets the list of models in this container.
+	 * Gets an immutable list of models in this container.
 	 * 
 	 * @return the list of models.
 	 */
 	ImmutableList<Model> getModels();
+
+	/**
+	 * Gets a list of models in this container.
+	 * 
+	 * @return the list of models.
+	 */
+	List<Model> getMutableModels();
 
 	/**
 	 * Gets the project this container belongs to.

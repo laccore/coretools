@@ -43,7 +43,7 @@ class SectionNameTrack extends GeologyTrack {
 			    bds = graphics.getStringBounds(curFont, name)
                 if (bds.width >= bounds.width || bds.height >= r.height) {
                     int fontSize = curFont.getSize()
-                    if (fontSize < 1) {
+                    if (fontSize - 1 < 1) {
                         break // can't get any smaller, give up
                     }
                     curFont = curFont.deriveFont((float)(fontSize - 1))

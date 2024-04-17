@@ -16,7 +16,7 @@
 
 package psicat.util
 
-import java.util.List;
+import java.util.List
 
 import au.com.bytecode.opencsv.CSVReader
 
@@ -87,7 +87,7 @@ class GeoUtils {
 	 * corrupting the "true" set of models maintained in the project or
 	 * disrupting listeners dependent on model/container association.
 	 */
-	static copyContainer(container) {
+	static ModelContainer copyContainer(container) {
 		def modelManager = Platform.getService(DefaultModelManager.class)
 		def copy = Platform.getService(ModelContainer.class)
 		container.models.each { m ->
@@ -99,7 +99,7 @@ class GeoUtils {
 		return copy
 	}
 	
-	static zeroBaseContainer(container) {
+	static void zeroBaseContainer(container) {
 		if (container.models.size() > 0) {
 			GeoUtils.zeroBase(container.models)
 		}
@@ -107,31 +107,33 @@ class GeoUtils {
 	
 	// find smallest top depth of models in modelList - subtract that
 	// depth from all models in modelList
-	static zeroBase(modelList) {
+	static void zeroBase(List<GeologyModel> models) {
 		def minDepth = null
-		modelList.each {
-			if (!minDepth || it.top.compareTo(minDepth) == -1)
+		models.each {
+			if (!minDepth || it.top.compareTo(minDepth) == -1) {
 				minDepth = it.top
+			}
 		}
-		modelList.each { m ->
+		models.each { m ->
 			m.top -= minDepth
 			m.base -= minDepth
 		}
 	}
-	
-	// Return a list of models in project.containers[secname] that overlap the interval
-	// min - max, trimming out any non-overlapping portions of each model. Trimmed models
-	// are then zero-based. min and max can be null.
-	static getTrimmedModels(DefaultProject project, String secname, Length min, Length max) {
-		logger.info("Trimming $secname, min = $min, max = $max")
-		def trimmedModels = []
-		def projContainer = project.openContainer(secname)
-		def cursec = copyContainer(projContainer)
-		zeroBaseContainer(cursec)
-		def modit = cursec.iterator()
-		while (modit.hasNext()) {
-			GeologyModel mod = modit.next()
 
+	static List<GeologyModel> getModels(DefaultProject project, String sectionName) {
+		def projContainer = project.openContainer(sectionName)
+		def section = copyContainer(projContainer)
+		return section.getMutableModels()
+	}
+
+	// Trim models (in-place) that overlap the interval min - max, trimming out any
+	// non-overlapping portions of each model. Then zero-base to remove top gap
+	// resulting from trimming, if any.
+	// min and max are section-relative depths i.e. section top is 0.
+	// min and/or max can be null.
+	static void trimModels(DefaultProject project, List<GeologyModel> models, Length min, Length max) {
+		zeroBase(models) // ensure models' top/base are section-relative
+		for (GeologyModel mod : models) {
 			if (min) {
 				def cmp = mod.base.compareTo(min)
 				if (cmp == -1 || cmp == 0) {
@@ -156,34 +158,26 @@ class GeoUtils {
 					logger.info("$mod")
 				}
 			}
-			trimmedModels << mod
 		}
-		
-		logger.info("   pre-zeroBase: trimmedModels = $trimmedModels")
-		
-		// now that we've trimmed, need to zero base *again* so scaling works properly
-		zeroBase(trimmedModels)
-		
-		logger.info("   post-zeroBase: trimmedModels = $trimmedModels")
-		return trimmedModels
+		zeroBase(models)
 	}
 	
-	static offsetModels(modelList, offset) {
-		modelList.each {
+	static void offsetModels(List<GeologyModel> models, Length offset) {
+		models.each {
 			it.top += offset
 			it.base += offset
 		}
 	}
 	
-	static scaleModels(modelList, scale) {
-		modelList.each {
+	static void scaleModels(List<GeologyModel> models, BigDecimal scale) {
+		models.each {
 			it.top *= scale
 			it.base *= scale
 		}
 	}
 
 	// Assumes intervalLength is in meters
-	static compressModels(models, intervalLength) {
+	static void compressModels(List<GeologyModel> models, BigDecimal intervalLength) {
 		if (models.size() > 0) {
 			def maxBase = getMaxBase(models)
 			def scalingFactor = 1.0
@@ -201,37 +195,38 @@ class GeoUtils {
 		}
 	}
 	
-	static getMinTop(modelList) {
+	static Length getMinTop(List<GeologyModel> models) {
 		def min = null
-		modelList.each {
-			if (!min || it.top.compareTo(min) == -1)
+		models.each {
+			if (!min || it.top.compareTo(min) == -1) {
 				min = it.top
+			}
 		}
 		return min
 	}
 	
-	static getMaxBase(modelList) {
+	static Length getMaxBase(List<GeologyModel> models) {
 		def max = null
-		modelList.each {
-			if (!max || it.base.compareTo(max) == 1)
+		models.each {
+			if (!max || it.base.compareTo(max) == 1) {
 				max = it.base
+			}
 		}
 		return max
 	}
 	
 	// return meter distance between topmost and bottommost model in modelList 
-	static getLength(modelList) {
-		if (modelList.size() == 0)
-			return 0
+	static BigDecimal getLength(List<GeologyModel> models) {
+		if (models.size() == 0) { return 0 }
 
-		def diff = getMaxBase(modelList) - getMinTop(modelList)
+		Length diff = getMaxBase(models) - getMinTop(models)
 		return diff.to('m').value
 	}
 	
 	// notify listeners of change by default, but provide option to avoid doing so
 	// in cases where we need to temporarily adjust to section depth (e.g. auditing
 	// project) without "modified" asterisk showing up in open diagrams. 
-	static adjustUp(container, sectionTop, update=true) {
+	static void adjustUp(container, sectionTop, update=true) {
 		container.models.each { m ->
 			if (m.hasProperty('top') && m.top) {
 				m.top = m.top - sectionTop
@@ -239,12 +234,13 @@ class GeoUtils {
 			if (m.hasProperty('base') && m.base) {
 				m.base = m.base - sectionTop
 			}
-			if (update)
+			if (update) {
 				m.updated()
+			}
 		}
 	}
 	
-	static adjustDown(container, sectionTop, update=true) {
+	static void adjustDown(container, sectionTop, update=true) {
 		container.models.each { m ->
 			if (m.hasProperty('top') && m.top) {
 				m.top = m.top + sectionTop
@@ -252,13 +248,14 @@ class GeoUtils {
 			if (m.hasProperty('base') && m.base) {
 				m.base = m.base + sectionTop
 			}
-			if (update)
+			if (update) {
 				m.updated()
+			}
 		}
 	}
 
 	// is model an in instance of an interval that requires contiguity?
-	static isIntervalInstance(model) {
+	static boolean isIntervalInstance(model) {
 		return model instanceof Interval ||
 			model instanceof BeddingInterval ||
 			model instanceof GrainSizeInterval ||

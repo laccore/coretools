@@ -17,6 +17,7 @@
 package psicat.stratcol
 
 import org.andrill.coretools.model.DefaultContainer
+import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.Section
 
@@ -87,7 +88,7 @@ class SectionMetadata implements StratColumnMetadata {
 		def intervalsToDraw = []
 		this.metadata.findAll { it.section != null }.each {
 			// gather and zero base models for each section
-			def models = GeoUtils.getTrimmedModels(project, it.section, null, null) // no min/max
+			def models = GeoUtils.getModels(project, it.section)
 			compressToInterval(models, it.top, it.base)
 			
 			def intervalModels = [new SectionDrawData(it.section, it.top, it.base, models)]
@@ -102,10 +103,14 @@ class SectionMetadata implements StratColumnMetadata {
 		this.metadata.each {
 			def section = it['section']
 			if (section != null) {
-				def top = it['top']
-				def base = it['base']
+				BigDecimal top = it['top']
+				BigDecimal base = it['base']
 
-				def models = GeoUtils.getTrimmedModels(project, section, null, null)
+				// Cull Sections and Images. Inclusion of color cards in Images results in Sections longer
+				// than the drilled interval, resulting in over-compression of models to fit that interval.
+				def models = GeoUtils.getModels(project, section).findAll { !(["Section", "Image"].contains(it.modelType)) }
+
+				GeoUtils.zeroBase(models)
 				compressToInterval(models, top, base)
 				GeoUtils.offsetModels(models, new Length(top, 'm'))
 
@@ -119,10 +124,10 @@ class SectionMetadata implements StratColumnMetadata {
 		return containers
 	}
 
-	// If total length of models exceeds interval length, downscale
-	// models to fit the interval.
-	private compressToInterval(models, top, base) {
-		def intervalLength = base - top
+	// If total length of models exceeds length of inteval top-base,
+	// downscale models to fit.
+	private void compressToInterval(List<GeologyModel> models, BigDecimal top, BigDecimal base) {
+		BigDecimal intervalLength = base - top
 		GeoUtils.compressModels(models, intervalLength)
 	}
 }

@@ -259,18 +259,6 @@ class PSICATController {
 		return matcher
 	}
 
-	private createSectionWithContainer(container, name) {
-		if (container.models.size() == 0) { return }
-		def s = new Section()
-		def top = GeoUtils.getMinTop(container.models) ?: new Length(0, "m")
-		def base = GeoUtils.getMaxBase(container.models) ?: new Length(1, "m")
-		s.top = top
-		s.base = base
-		s.name = name
-		container.add(s)
-		model.project.saveContainer(container)
-	}
-
 	// our action implementations
 	def actions = [
 		'exit': { evt -> if (canClose(evt)) app.shutdown() },
@@ -365,21 +353,24 @@ class PSICATController {
 					def stratMetadata = mvc.model.stratColumnMetadata
 					stratMetadata.logger = logger
 					def containers = stratMetadata.getContainers(model.project)
-					def acceptedModels = ["Interval", "Occurrence", "LithologyInterval", "Feature", "BeddingInterval", "TextureInterval", "GrainSizeInterval"]
+					def acceptedModels = ["Section", "Interval", "Occurrence", "LithologyInterval", "Feature", "BeddingInterval", "TextureInterval", "GrainSizeInterval"]
 					containers.each { sectionNameKey, c ->
 						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
 						modelsToRemove.each { c.remove(it) }
 					}
 
-					// containers.each { k,v -> println "$k:" v.models.each { m -> println "  $m" }}
-
-					def mergedContainer = model.project.createContainer(sectionName)
+					// merge contents into a single container representing the strat column
+					def stratContainer = model.project.createContainer(sectionName)
 					containers.each { sectionNameKey, c ->
-						mergedContainer.addAll(c.models)
+						stratContainer.addAll(c.models)
 					}
 
-					createSectionWithContainer(mergedContainer, sectionName)
-					model.status = "Created new section $sectionName with strat depths from ${mvc.model.metadataPath}"
+					if (stratContainer.models.size() > 0) {
+						model.project.saveContainer(stratContainer)
+						model.status = "Created new section $sectionName with strat depths from ${mvc.model.metadataPath}"
+					} else {
+						Dialogs.showMessageDialog("No Data", "No data was found in the specified metadata depth intervals.", app.appFrames[0])
+					}
 				}
 			} catch (Exception e) {
 				errbox("Metadata Error", "${e.message}")

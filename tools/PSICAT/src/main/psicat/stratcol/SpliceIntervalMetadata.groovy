@@ -18,6 +18,7 @@ package psicat.stratcol
 
 import org.andrill.coretools.model.DefaultContainer
 import org.andrill.coretools.geology.models.Length
+import org.andrill.coretools.geology.models.Section
 
 import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
@@ -85,7 +86,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		def parser = new SpliceIntervalMetadataParser(utils.openMetadataFile(metadataPath))
 		this.toolHeaderName = parser.toolHeaderName
 		parser.getRows().eachWithIndex { row, rowIndex ->
-			def startSecDepth, endSecDepth, startMcd, endMcd
+			BigDecimal startSecDepth, endSecDepth, startMcd, endMcd
 			try {
 				startSecDepth = row[TopOffset] as BigDecimal
 				endSecDepth = row[BottomOffset] as BigDecimal
@@ -165,29 +166,37 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	// to fit start/endSecDepth and downscaled to fit the secMap.startMcd to secMap.endMcd interval
 	private gatherModels(project, secMap) {
 		def sectionModels = [:]
-		def secTop = new Length(secMap.startSecDepth, 'cm')
-		def secBase = new Length(secMap.endSecDepth, 'cm')
-		def totalModelLength = 0
+		Length secTop = new Length(secMap.startSecDepth, 'cm')
+		Length secBase = new Length(secMap.endSecDepth, 'cm')
+		BigDecimal totalModelLength = 0
 		secMap.sections.eachWithIndex { section, secIndex ->
-			def sectionName = section.projSec
-			def sectionNum = section.sectionNum
-			def trimMin = (sectionNum == secMap.startSec) ? secTop : null
-			def trimMax = (sectionNum == secMap.endSec) ? secBase : null
-			def trimmedModels = GeoUtils.getTrimmedModels(project, sectionName, trimMin, trimMax)
-			totalModelLength += GeoUtils.getLength(trimmedModels)
-			sectionModels[sectionName] = trimmedModels
+			String sectionName = section.projSec
+			String sectionNum = section.sectionNum
+			Length trimMin = (sectionNum.equals(secMap.startSec)) ? secTop : null
+			Length trimMax = (sectionNum.equals(secMap.endSec)) ? secBase : null
+
+			def models = GeoUtils.getModels(project, sectionName).findAll { !(["Section", "Image"].contains(it.modelType)) }
+			GeoUtils.trimModels(project, models, trimMin, trimMax)
+
+			if (models.size() > 0) {
+				totalModelLength += GeoUtils.getLength(models)
+				models.add(new Section(name:sectionName, top:GeoUtils.getMinTop(models), base:GeoUtils.getMaxBase(models)))
+				sectionModels[sectionName] = models
+			} else {
+				logger.info("No trimmed models found in $section, skipping.")
+			}
 		}
-		def intervalLength = secMap.endMcd - secMap.startMcd
+		BigDecimal intervalLength = secMap.endMcd - secMap.startMcd
 		logger.info("totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength")
 		
 		if (totalModelLength > intervalLength) {
-			def scalingFactor = intervalLength / totalModelLength
+			BigDecimal scalingFactor = intervalLength / totalModelLength
 			sectionModels.each { key, modelList -> GeoUtils.scaleModels(modelList, scalingFactor) }
 		}
 		return sectionModels
 	}
 
-	private makeSectionName(siRow, secCol, expName=null) {
+	private String makeSectionName(siRow, String secCol, String expName=null) {
 		def site = siRow[Site]
 		def hole = siRow[Hole]
 		def core = siRow[Core]
@@ -196,13 +205,13 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
 	}
 	
-	private parseSection(fullSectionName) {
+	private String parseSection(String fullSectionName) {
 		return fullSectionName.substring(fullSectionName.lastIndexOf('-') + 1)
 	}
 	
 	// return list of section names, starting with startSec, ending with endSec,
 	// and including any sections that fall between the two
-	private getSectionNames(startSec, endSec) {
+	private List<String> getSectionNames(String startSec, String endSec) {
 		def startnum, endnum
 		try {
 			startnum = parseSection(startSec) as Integer

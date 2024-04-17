@@ -88,7 +88,7 @@ class SectionMetadata implements StratColumnMetadata {
 		this.metadata.findAll { it.section != null }.each {
 			// gather and zero base models for each section
 			def models = GeoUtils.getTrimmedModels(project, it.section, null, null) // no min/max
-			compressToInterval(models, top, base)
+			compressToInterval(models, it.top, it.base)
 			
 			def intervalModels = [new SectionDrawData(it.section, it.top, it.base, models)]
 			intervalsToDraw.add(['top':it.top, 'base':it.base, 'drawData':intervalModels])

@@ -363,7 +363,8 @@ class PSICATController {
 					}
 
 					def stratMetadata = mvc.model.stratColumnMetadata
-					def containers = stratMetadata.getContainers(model.project, logger)
+					stratMetadata.logger = logger
+					def containers = stratMetadata.getContainers(model.project)
 					def acceptedModels = ["Interval", "Occurrence", "LithologyInterval", "Feature", "BeddingInterval", "TextureInterval", "GrainSizeInterval"]
 					containers.each { sectionNameKey, c ->
 						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }

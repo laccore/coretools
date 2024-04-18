@@ -23,6 +23,7 @@ import au.com.bytecode.opencsv.CSVReader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import org.andrill.coretools.misc.io.BOMAwareCSVReader
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
@@ -45,9 +46,9 @@ class GeoUtils {
 	// consist of code and grain size columns. Returns map with 'scale' for scale string, 'gs' map 
 	// of grain size values keyed on code
 	static parseAlternateGrainSizeFile(altGSFile) throws Exception {
-		CSVReader reader = null
+		BOMAwareCSVReader reader = null
 		try {
-			reader = new CSVReader(new FileReader(altGSFile))
+			reader = new BOMAwareCSVReader(new CSVReader(new FileReader(altGSFile)))
 		} catch (e) {
 			throw new Exception("read/parse error: ${e.getMessage()}", e)
 		}

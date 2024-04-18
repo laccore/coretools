@@ -29,6 +29,8 @@ import org.andrill.coretools.data.DataSource;
 import org.andrill.coretools.data.DefaultDataSet;
 import org.andrill.coretools.model.Model;
 import org.andrill.coretools.model.ModelContainer;
+import org.andrill.coretools.misc.io.BOMAwareCSVReader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +76,8 @@ public class CSVDataFile implements Model, DataSource {
 		if (datasets == null) {
 			datasets = new HashMap<Integer, DataSet>();
 			try {
-				parse(new CSVReader(new InputStreamReader(new URL(path).openStream()), separator, quote, skipLines));
+				BOMAwareCSVReader reader = new BOMAwareCSVReader(new CSVReader(new InputStreamReader(new URL(path).openStream()), separator, quote, skipLines));
+				parse(reader);
 			} catch (MalformedURLException e) {
 				LOGGER.error("Unable to parse csv data file", e);
 			} catch (IOException e) {
@@ -104,7 +107,7 @@ public class CSVDataFile implements Model, DataSource {
 		return getClass().getSimpleName();
 	}
 
-	protected void parse(final CSVReader csv) throws IOException {
+	protected void parse(final BOMAwareCSVReader csv) throws IOException {
 		// parse headers
 		String[] headers = csv.readNext();
 		for (int i = 0; i < headers.length; i++) {

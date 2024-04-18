@@ -9,6 +9,7 @@ jar {
 
 dependencies {
 	compile group: 'net.sourceforge.jexcelapi', name: 'jxl', version: '2.6.3'
+    compile 'net.sf.opencsv:opencsv:2.0.1'
     compile project(":coretools")
     compile project(":coretools-model")
     compile project(":coretools-graphics")

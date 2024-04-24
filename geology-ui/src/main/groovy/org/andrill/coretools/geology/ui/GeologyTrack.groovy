@@ -311,6 +311,10 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 		def scheme = svc(SchemeManager.class).getScheme(id)
 		scheme == null ? null : scheme.getEntry(code)
 	}
+
+	boolean hasParameter(String name) {
+		return parameters.containsKey(name)
+	}
 	
 	String getParameter(String name, String defaultValue) {
 	    parameters[name] ?: defaultValue

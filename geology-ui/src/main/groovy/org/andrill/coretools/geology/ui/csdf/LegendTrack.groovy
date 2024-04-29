@@ -22,6 +22,7 @@ class LegendTrack extends GeologyTrack {
 	//   * track-footer:   string; the text or image to draw in the footer
 	//   * symbol-size:   integer; width/height at which to draw pattern/icon
 	//   * font-size:     integer; label font size
+	//   * texture-scaling: double; scaling of textured images in scheme entries, higher shows more detail
 	//   * columns:       integer; number of columns in which to draw legend entries
 
 	def getHeader() { "Legend" }
@@ -34,6 +35,7 @@ class LegendTrack extends GeologyTrack {
 	final private int INTER_ENTRY_SPACING = 4 // vertical space between entries
 	final private int MARGIN = 2 // space between edge of bounds and start/end of entry
 	final private int PADDING = 4 // space between entry symbol and label
+	private double TEXTURE_SCALING = 1.0
 	private int COLS = 1 // number of columns in which to draw legend entries
 
     @Override
@@ -47,6 +49,7 @@ class LegendTrack extends GeologyTrack {
 			this.labelFont = font
 		}
 
+		this.TEXTURE_SCALING = Double.parseDouble(getParameter("texture-scaling", "1.0"))
 		this.COLS = Integer.parseInt(getParameter("columns", "1"))
 
 		this.bounds = bounds
@@ -124,9 +127,9 @@ class LegendTrack extends GeologyTrack {
 		Color color = entry.color
 		URL image = entry.imageURL
 		if (image && color) {
-			return new MultiFill(new ColorFill(color), new TextureFill(image))
+			return new MultiFill(new ColorFill(color), new TextureFill(image, TEXTURE_SCALING))
 		} else if (image) {
-			return new TextureFill(image)
+			return new TextureFill(image, TEXTURE_SCALING)
 		} else if (color) {
 			return new ColorFill(color)
 		}

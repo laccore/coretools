@@ -24,6 +24,7 @@ import java.net.URL;
  */
 public class TextureFill extends Fill {
 	private final URL image;
+	private double scaling = 1.0;
 
 	/**
 	 * Create a new texture fill.
@@ -35,6 +36,14 @@ public class TextureFill extends Fill {
 		super(FillStyle.TEXTURE);
 		this.image = image;
 	}
+
+	public TextureFill(final URL image, double scaling) {
+		super(FillStyle.TEXTURE);
+		this.image = image;
+		this.scaling = scaling;
+	}
+
+	public double getScaling() { return this.scaling; }
 
 	/**
 	 * Gets the texture.

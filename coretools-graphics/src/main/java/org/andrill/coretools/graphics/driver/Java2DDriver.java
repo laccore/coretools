@@ -160,7 +160,7 @@ public class Java2DDriver implements Driver {
 					if (iimage != null) {
 						paints
 						        .add(new TexturePaint(iimage,
-						                new Rectangle(0, 0, iimage.getWidth(), iimage.getHeight())));
+						                new Rectangle2D.Double(0, 0, iimage.getWidth() / t.getScaling(), iimage.getHeight() / t.getScaling())));
 					} else {
 						LOGGER.error("Unable to load texture {}", t.getTexture().toExternalForm());
 					}

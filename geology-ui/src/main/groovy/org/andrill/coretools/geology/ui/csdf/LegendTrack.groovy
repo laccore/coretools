@@ -22,6 +22,7 @@ class LegendTrack extends GeologyTrack {
 	//   * track-footer:   string; the text or image to draw in the footer
 	//   * symbol-size:   integer; width/height at which to draw pattern/icon
 	//   * font-size:     integer; label font size
+	//   * columns:       integer; number of columns in which to draw legend entries
 
 	def getHeader() { "Legend" }
 	def getFooter() { "Legend" }
@@ -29,31 +30,30 @@ class LegendTrack extends GeologyTrack {
 	def getFilter() { return { true } }
 
 	private Font labelFont = null
-	private int symbolSize = 32
+	private int SYMBOL_SIZE = 32
 	final private int INTER_ENTRY_SPACING = 4 // vertical space between entries
 	final private int MARGIN = 2 // space between edge of bounds and start/end of entry
 	final private int PADDING = 4 // space between entry symbol and label
+	private int COLS = 1 // number of columns in which to draw legend entries
 
     @Override
 	void renderContents(GraphicsContext graphics, Rectangle2D bounds) {
 		validate()
 		
-		this.symbolSize = Integer.parseInt(getParameter("symbol-size", "32"))
+		this.SYMBOL_SIZE = Integer.parseInt(getParameter("symbol-size", "32"))
 		if (hasParameter("font-size")) {
 			this.labelFont = font.deriveFont((float)Integer.parseInt(getParameter("font-size", "11")))
 		} else {
 			this.labelFont = font
 		}
 
+		this.COLS = Integer.parseInt(getParameter("columns", "1"))
+
 		this.bounds = bounds
 		def clip = clip(bounds, graphics.clip)
 
 		def entries = gatherEntries()
-		int y = 2
-		entries.each {
-			renderEntry(graphics, new Point2D.Double(bounds.x + MARGIN, y), it)
-			y += symbolSize + INTER_ENTRY_SPACING
-		}
+		renderEntries(graphics, entries)
 	}
 
 	private List<SchemeEntry> gatherEntries() {
@@ -79,9 +79,26 @@ class LegendTrack extends GeologyTrack {
 		return entries
 	}
 
-	void renderEntry(GraphicsContext graphics, Point2D pt, SchemeEntry entry) {
+	private void renderEntries(GraphicsContext graphics, List<SchemeEntry> entries) {
+		final int availableWidth = ((this.bounds.width - (MARGIN*2)) / COLS).intValue()
+		int col = 0
+		int x = bounds.x + MARGIN
+		int y = bounds.y + MARGIN
+		entries.each {
+			renderEntry(graphics, new Point2D.Double(x, y), availableWidth, it)
+			col = (col + 1) % COLS
+			if (col == 0) {
+				x = bounds.x + MARGIN
+				y += SYMBOL_SIZE + INTER_ENTRY_SPACING
+			} else {
+				x += availableWidth
+			}
+		}		
+	}
+
+	private void renderEntry(GraphicsContext graphics, Point2D pt, int availableWidth, SchemeEntry entry) {
 		if (entry.image) {
-			def rect = new Rectangle2D.Double(pt.x, pt.y, symbolSize, symbolSize)
+			def rect = new Rectangle2D.Double(pt.x, pt.y, SYMBOL_SIZE, SYMBOL_SIZE)
 			if (['features', 'symbol'].contains(entry.scheme.type)) { // untiled image
 				graphics.drawImage(rect, entry.imageURL)
 			} else { // tile image
@@ -95,11 +112,11 @@ class LegendTrack extends GeologyTrack {
 			graphics.drawRectangle(rect)
 		}
 
-		final int labelWidth = this.bounds.width - (PADDING*2 + symbolSize)
+		final int labelWidth = availableWidth - (PADDING*2 + SYMBOL_SIZE)
 		def lines = wrap(graphics, entry.name, this.labelFont, labelWidth)
 		final int textHeight = graphics.getStringBounds(this.labelFont, "W").getHeight()
 		lines.eachWithIndex { line, index ->
-			graphics.drawString(new Point2D.Double(pt.x + MARGIN + symbolSize + PADDING, pt.y + (index * textHeight)), this.labelFont, line)
+			graphics.drawString(new Point2D.Double(pt.x + MARGIN + SYMBOL_SIZE + PADDING, pt.y + (index * textHeight)), this.labelFont, line)
 		}
 	}
 

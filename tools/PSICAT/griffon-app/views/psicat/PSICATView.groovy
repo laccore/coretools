@@ -22,8 +22,8 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.event.KeyEvent
 
-import javax.swing.JSplitPane
-import javax.swing.KeyStroke
+import javax.swing.*
+
 import javax.swing.event.ChangeListener
 
 import java.util.prefs.Preferences
@@ -33,6 +33,7 @@ import ca.odell.glazedlists.swing.EventListModel
 import net.miginfocom.swing.MigLayout
 
 import org.andrill.coretools.ui.PropertiesPanel
+import org.andrill.coretools.misc.util.StringUtils
 
 // build actions
 build(PSICATActions)
@@ -68,7 +69,7 @@ application(title:"PSICAT ${app.applicationProperties['app.version']} $subversio
 			tabbedPane(id:'diagrams', constraints: 'grow')
 			scrollPane(constraints: 'grow', border: emptyBorder(0)) {
 				panel(layout: new MigLayout("fill, wrap, insets 0", "", "[][grow]")) {
-					button(id: 'createIntervals', text: 'Create Intervals',
+					button(id: 'createIntervals', text: 'Create Parallel Intervals...',
 						actionPerformed: { evt -> app.controllers['PSICAT'].actions.createIntervals(evt) },
 						enabled: bind { model.activeDiagram != null })
 					widget(id:'propertiesPanel', propertiesPanel, constraints:'grow')
@@ -84,3 +85,46 @@ application(title:"PSICAT ${app.applicationProperties['app.version']} $subversio
 
 // listen for tab changes
 diagrams.addChangeListener({ controller.activeDiagramChanged() } as ChangeListener)
+
+
+class ModelChooserPanel extends JPanel {
+	private HashMap<Class, JCheckBox> modelMap
+	private JTextField depth
+	private static saveSelectedModels = [] // save/restore checkbox state
+
+	static ModelChooserPanel create(List<Class> models) {
+		ModelChooserPanel panel = new ModelChooserPanel(models)
+		return panel
+	}
+
+	private ModelChooserPanel(models) {
+		super(new MigLayout("fill, wrap, insets 5", "", "[grow]"))
+
+		this.depth = new JTextField()
+		this.add(new JLabel("Fill to bottom depth (cm):"), "split 2")
+		this.add(this.depth, "grow")
+		this.modelMap = new HashMap<Class, JCheckBox>()
+		models.each { clazz ->
+			def cb = new JCheckBox(StringUtils.uncamel(clazz.simpleName).replace(" Interval", ""))
+			if (ModelChooserPanel.saveSelectedModels.contains(clazz)) { cb.setSelected(true) }
+			this.add(cb)
+			this.modelMap.put(clazz, cb)
+		}
+		this.depth.requestFocusInWindow()
+	}
+
+	public List<Class> getSelectedModels() {
+		def models = []
+		this.modelMap.each { clazz, cb ->
+			if (cb.isSelected()) { models << clazz }
+		}
+		ModelChooserPanel.saveSelectedModels = models
+		return models
+	}
+
+	public double getDepth() throws NumberFormatException {
+		return Double.parseDouble(this.depth.text)
+	}
+
+	public String getRawDepth() { return depth.getText() }
+}

@@ -21,7 +21,7 @@ import java.beans.PropertyChangeEvent
 import java.util.prefs.Preferences
 import java.util.regex.Pattern
 
-import javax.swing.JOptionPane
+import javax.swing.*
 
 import org.json.JSONObject
 
@@ -32,12 +32,11 @@ import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.geology.models.csdf.*
 import org.andrill.coretools.geology.models.*
-import org.andrill.coretools.model.edit.CompositeCommand
-import org.andrill.coretools.model.edit.CreateCommand
-import org.andrill.coretools.model.edit.DeleteCommand
+import org.andrill.coretools.model.edit.*
 import org.andrill.coretools.dis.DISProject
 import org.andrill.coretools.misc.io.ExcelReaderWriter
 import org.andrill.coretools.misc.io.LegacyReader
+import org.andrill.coretools.misc.util.StringUtils
 import org.andrill.coretools.model.Project
 import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
@@ -426,34 +425,57 @@ class PSICATController {
 		},
 		'createIntervals': { evt = null ->
 			def active = model.activeDiagram.model
-			// find bottommost Lithology, Bedding and GrainSize interval and confirm that their base depths are equal
-			def bottom = new Length("0 cm")
-			def lithMax = GeoUtils.getMaxBase(active.scene.models.findAll { it instanceof LithologyInterval} )
-			def beddingMax = GeoUtils.getMaxBase(active.scene.models.findAll { it instanceof BeddingInterval} )
-			def gsMax = GeoUtils.getMaxBase(active.scene.models.findAll { it instanceof GrainSizeInterval} )
-			if (lithMax == null && beddingMax == null && gsMax == null) {
-				lithMax = new Length("0 cm")
-				beddingMax = new Length("0 cm")
-				gsMax = new Length("0 cm")
+			def modelClasses = active.scene.getCreatedClasses()
+
+			ModelChooserPanel panel = ModelChooserPanel.create(modelClasses)
+			def result = JOptionPane.showConfirmDialog(null, panel, "Select Models to Create", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+			if (result != JOptionPane.OK_OPTION) {
+				return
 			}
-			if (lithMax.equals(beddingMax) && lithMax.equals(gsMax)) {
-				def result = JOptionPane.showInputDialog(app.appFrames[0], "Create intervals from $lithMax to bottom depth (cm):")
-				if (result == null) {
-					return
-				} else if (new Length("${result} cm").compareTo(lithMax) == 0 || new Length("${result} cm").compareTo(lithMax) == -1) {
-					Dialogs.showMessageDialog("Invalid Bottom Depth", "Inputted depth (${result} cm) must be greater than $lithMax.", app.appFrames[0])
-					return
+
+			Length baseDepth
+			try {
+				baseDepth = new Length(panel.getDepth(), "cm")
+			} catch (Exception e) {
+				Dialogs.showMessageDialog("Cannot Create Intervals", "Invalid base depth ${panel.getRawDepth()}", app.appFrames[0])
+				return
+			}
+
+			def maxes = [:]
+			panel.selectedModels.each { Class clazz ->
+				def max = new Length("0 cm")
+				def classMax = GeoUtils.getMaxBase(active.scene.models.findAll { clazz.isInstance(it) } )
+				maxes[clazz] = classMax ?: max
+			}
+
+			boolean maxesEqual = true
+			def vals = maxes.values().toArray()
+			for (int i = 0; i < vals.length - 1; i++) {
+				if (!vals[i].equals(vals[i+1])) {
+					maxesEqual = false
+					break
 				}
-				def l1 = lithMax
-				def l2 = new Length("${result} cm")
-				def lith = new LithologyInterval(top:l1, base:l2)
-				def bedding = new BeddingInterval(top:l1, base:l2)
-				def gs = new GrainSizeInterval(top:l1, base:l2)
-				def command = new CompositeCommand("Create Intervals", new CreateCommand(lith, active.scene.models), new CreateCommand(bedding, active.scene.models), new CreateCommand(gs, active.scene.models))
-				active.commandStack.execute(command)
-			} else {
-				Dialogs.showMessageDialog("Cannot Create Intervals", "Bottommost Lithology ($lithMax), Bedding ($beddingMax), and Grain Size ($gsMax) must be equal to create intervals.", app.appFrames[0])
 			}
+
+			if (!maxesEqual) {
+				def maxesStrList = maxes.collect { clazz, max -> "${StringUtils.uncamel(clazz.simpleName).replace(' Interval', '')} ($max)".toString() }
+				Dialogs.showMessageDialog("Cannot Create Intervals", "Bottommost ${maxesStrList.join(', ')} must be equal to create intervals.", app.appFrames[0])
+				return
+			}
+
+			if (baseDepth.compareTo(vals[0]) == 0 || baseDepth.compareTo(vals[0]) == -1) {
+				Dialogs.showMessageDialog("Cannot Create Intervals", "Base depth $baseDepth must be greater than ${vals[0]}", app.appFrames[0])
+				return
+			}
+
+			def createCommands = []
+			panel.selectedModels.each { clazz ->
+				def m = clazz.newInstance(top:vals[0], base:baseDepth)
+				createCommands << new CreateCommand(m, active.scene.models)
+			}
+
+			def command = new CompositeCommand("Create Intervals", createCommands as Command[])
+			active.commandStack.execute(command)
 		},
 		'undo':		{ evt = null -> model.diagramState.commandStack.undo() },
 		'redo':		{ evt = null -> model.diagramState.commandStack.redo() },

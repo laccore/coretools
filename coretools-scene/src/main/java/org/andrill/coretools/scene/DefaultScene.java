@@ -19,6 +19,7 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.lang.Class;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -226,6 +227,14 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 	public Rectangle2D getContentSize() {
 		validate();
 		return contents;
+	}
+
+	public List<Class> getCreatedClasses() {
+		List<Class> classes = new ArrayList<Class>();
+		for (Track t : tracks) {
+			classes.addAll(t.getCreatedClasses());
+		}
+		return classes;
 	}
 
 	/**

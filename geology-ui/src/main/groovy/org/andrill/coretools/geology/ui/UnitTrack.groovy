@@ -48,6 +48,7 @@ class UnitTrack extends GeologyTrack {
 			return { it instanceof Unit }
 		}
 	}
+	List<Class> getCreatedClasses() { return [Unit] }
 	protected SceneEventHandler createHandler() { 
 		new DefaultTrackEventHandler(this, [new CreatePolicy(Unit.class, [:], width), new ResizePolicy()])
 	}

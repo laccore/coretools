@@ -38,6 +38,7 @@ class IntervalTrack extends GeologyTrack {
 	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof Interval } }
+	List<Class> getCreatedClasses() { return [Interval] }
 	def getHeader() { "Lithology" }
 	def getFooter() { "Lithology" }
 	def getWidth()  { return 72 }

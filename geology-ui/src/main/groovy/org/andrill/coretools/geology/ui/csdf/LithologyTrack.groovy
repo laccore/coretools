@@ -21,6 +21,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof LithologyInterval } }
+	List<Class> getCreatedClasses() { return [LithologyInterval] }
 	def getHeader() { "Lithology" }
 	def getFooter() { "Lithology" }
 	def getWidth()  { return 72 }

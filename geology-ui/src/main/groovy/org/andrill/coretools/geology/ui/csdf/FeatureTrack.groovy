@@ -34,6 +34,7 @@ class FeatureTrack extends AbstractFeatureTrack {
 	def getFooter() { "Features" }
 	def getWidth()  { return 96 }
 	def getFilter() { return { it instanceof Feature } }
+	List<Class> getCreatedClasses() { return [Feature] }
 	protected SceneEventHandler createHandler() { 
 		new DefaultTrackEventHandler(this, [new CreatePolicy(Feature.class, [:], symbolSize), new ResizePolicy(), new MovePolicy()])
 	}

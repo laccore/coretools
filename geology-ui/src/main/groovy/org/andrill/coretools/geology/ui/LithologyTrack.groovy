@@ -39,6 +39,7 @@ class LithologyTrack extends GeologyTrack {
 	//   * track-footer:   string; the text or image to draw in the footer
 
 	def getFilter() { return { it instanceof Interval } }
+	List<Class> getCreatedClasses() { return [Interval] }
 	def getHeader() { "Lithology" }
 	def getFooter() { "Lithology" }
 	def getWidth()  { return 72 }

@@ -60,6 +60,7 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	def getFooter() { "Footer" }
 	def getFilter() { return { false } }
 	def getWidth()  { return 72 }
+	List<Class> getCreatedClasses() { return [] }
 	protected Map<String, String> parameters = [:]
 	protected SceneEventHandler createHandler() { null }
 	

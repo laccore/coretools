@@ -17,6 +17,8 @@ package org.andrill.coretools.scene;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.lang.Class;
+import java.util.List;
 
 import org.andrill.coretools.Adaptable;
 import org.andrill.coretools.graphics.GraphicsContext;
@@ -59,6 +61,13 @@ public interface Track extends Adaptable {
 	 * @return the bounds or null if the model is not in this track.
 	 */
 	Rectangle2D getModelBounds(Model model);
+
+	/**
+	 * Gets the Model class(es) this track creates.
+	 * 
+	 * @return list of Classes.
+	 */
+	List<Class> getCreatedClasses();
 
 	/**
 	 * Gets a configuration parameter for this track.

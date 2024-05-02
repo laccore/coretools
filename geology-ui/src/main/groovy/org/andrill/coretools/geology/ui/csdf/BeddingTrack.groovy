@@ -22,6 +22,7 @@ class BeddingTrack extends AbstractIntervalTrack {
 	//   * symbol-size:    integer; pixel width of rendered symbol if draw-repeating is false
 
 	def getFilter() { return { it instanceof BeddingInterval } }
+	List<Class> getCreatedClasses() { return [BeddingInterval] }
 	def getHeader() { "Bedding" }
 	def getFooter() { "Bedding" }
 	def getWidth()  { return 72 }

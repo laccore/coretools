@@ -14,6 +14,7 @@ class TextureTrack extends AbstractFeatureTrack {
 	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof TextureInterval } }
+	List<Class> getCreatedClasses() { return [TextureInterval] }
 	def getHeader() { "Texture" }
 	def getFooter() { "Texture" }
 	def getWidth()  { return 72 }

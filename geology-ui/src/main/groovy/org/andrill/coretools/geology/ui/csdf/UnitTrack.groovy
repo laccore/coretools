@@ -30,6 +30,7 @@ class UnitTrack extends GeologyTrack {
 			return { it instanceof UnitInterval }
 		}
 	}
+	List<Class> getCreatedClasses() { return [UnitInterval] }
 	protected SceneEventHandler createHandler() { 
 		new DefaultTrackEventHandler(this, [new CreatePolicy(UnitInterval.class, [:], width), new ResizePolicy()])
 	}

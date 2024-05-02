@@ -61,6 +61,7 @@ class OccurrenceTrack extends GeologyTrack {
 			return { it instanceof Occurrence }
 		}
 	}
+	List<Class> getCreatedClasses() { return [Occurrence] }
 	protected SceneEventHandler createHandler() { 
 		new DefaultTrackEventHandler(this, [new CreatePolicy(Occurrence.class, [:], symbolSize), new ResizePolicy(), new MovePolicy()])
 	}

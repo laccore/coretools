@@ -14,6 +14,7 @@ class GrainSizeTrack extends AbstractIntervalTrack {
 	//   * draw-outline:   boolean; draw outline of interval
 
 	def getFilter() { return { it instanceof GrainSizeInterval } }
+	List<Class> getCreatedClasses() { return [GrainSizeInterval] }
 	def getHeader() { "Grain Size" }
 	def getFooter() { "Grain Size" }
 	def getWidth()  { return 72 }

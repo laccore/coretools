@@ -68,7 +68,7 @@ class ExcelReaderWriter implements ModelReader, ModelWriter {
 		}
 		
 		// convert the cell to a property name
-		map.property = camel(value)
+		map.property = StringUtils.camel(value)
 			
 		// save our template
 		def template = sheet.getCell(i, 1).contents
@@ -91,7 +91,7 @@ class ExcelReaderWriter implements ModelReader, ModelWriter {
 		// parse our properties
 		model.modelData.eachWithIndex { k, v, i ->
 			def field = [:]
-			field.label = uncamel(k)
+			field.label = StringUtils.uncamel(k)
 			field.unit = ""
 			field.property = k
 			field.template = '{$value}'
@@ -112,23 +112,6 @@ class ExcelReaderWriter implements ModelReader, ModelWriter {
 		pattern = pattern.replace('$value', '(.*)')
 		pattern = pattern.replace('$unit', '(.*?)')
 		java.util.regex.Pattern.compile(pattern)
-	}
-	
-	private def camel(str) {
-		def camel = str.split(" ").collect { it[0].toUpperCase() + it[1..-1] }.join("")
-		return camel[0].toLowerCase() + camel[1..-1]
-	}
-	
-	private def uncamel(str) {
-		StringBuilder b = new StringBuilder()
-		str.each { c -> 
-			if (c == c.toUpperCase()) {
-				b.append(" ")
-			}
-			b.append(c)
-		}
-		def uncamel = b.toString()
-		return uncamel[0].toUpperCase() + uncamel[1..-1]
 	}
 	
 	private def modelType(str) {

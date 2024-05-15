@@ -1,15 +1,16 @@
 package org.andrill.coretools.geology.ui.csdf
 
+import java.awt.Color
+import java.awt.geom.Rectangle2D
+
 import org.andrill.coretools.geology.models.csdf.BeddingInterval
 import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.geology.ui.*
 import org.andrill.coretools.model.Model
-
-import java.awt.Color
-import java.awt.geom.Rectangle2D
 import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.graphics.fill.*
 
@@ -17,8 +18,8 @@ class BeddingTrack extends AbstractIntervalTrack {
 	// Properties:
 	//   * track-header:   string; the text or image to draw in the header
 	//   * track-footer:   string; the text or image to draw in the footer
-	//   * draw-outline:   boolean; draw outline of interval, applies only if draw-repeating is false
-	//   * draw-repeating: boolean; draw the symbols repeating instead of whiskers
+	//   * draw-repeating: boolean; if true, draw the symbols as repeating texture.
+	//                              if false, draw symbol at symbol-size with interval whiskers.
 	//   * symbol-size:    integer; pixel width of rendered symbol if draw-repeating is false
 
 	def getFilter() { return { it instanceof BeddingInterval } }
@@ -28,6 +29,15 @@ class BeddingTrack extends AbstractIntervalTrack {
 	def getWidth()  { return 72 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(BeddingInterval.class, [:]), new ResizePolicy()])
+	}
+
+	private final trackParameters = [
+		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "If unchecked, draw single symbol with whiskers indicating interval.", TrackParameter.Type.BOOLEAN, "true"),
+		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "In pixels. Only used when Tile Symbols is unchecked.", TrackParameter.Type.INTEGER, "32")
+	]
+
+	List<TrackParameter> getTrackParameters() {
+		return trackParameters.values() as List<TrackParameter>
 	}
 
 	@Override

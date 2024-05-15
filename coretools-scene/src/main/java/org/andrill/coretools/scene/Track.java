@@ -25,6 +25,7 @@ import org.andrill.coretools.graphics.GraphicsContext;
 import org.andrill.coretools.model.Model;
 import org.andrill.coretools.model.ModelContainer;
 import org.andrill.coretools.scene.Scene.ScenePart;
+import org.andrill.coretools.scene.TrackParameter;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -86,6 +87,13 @@ public interface Track extends Adaptable {
 	 * @return the parameters.
 	 */
 	ImmutableMap<String, String> getParameters();
+
+	/*
+	 * Gets the TrackParameters for all valid parameters for this track.
+	 * 
+	 * @return a List of TrackParameters.
+	 */
+	List<TrackParameter> getTrackParameters();
 
 	/**
 	 * Gets the scene this track exists in.

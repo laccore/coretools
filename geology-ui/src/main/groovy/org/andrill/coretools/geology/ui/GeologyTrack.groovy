@@ -37,6 +37,7 @@ import org.andrill.coretools.scene.Scene
 import org.andrill.coretools.scene.Scene.Origin
 import org.andrill.coretools.scene.Scene.ScenePart
 import org.andrill.coretools.scene.Track
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.SceneEventHandler
 
 import com.google.common.collect.ImmutableMap;
@@ -320,6 +321,8 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	String getParameter(String name, String defaultValue) {
 	    parameters[name] ?: defaultValue
 	}
+
+	List<TrackParameter> getTrackParameters() { return [] }
 	
 	ImmutableMap<String, String> getParameters() {
 	    return ImmutableMap.copyOf(parameters)

@@ -103,6 +103,7 @@ menuBar(id: 'menuBar') {
 	}
 
 	menu(text: 'Debug', mnemonic:'D') {
+		menuItem(showTrackOptionsAction)
 		menuItem(createStratSectionAction)
 	}	
 }

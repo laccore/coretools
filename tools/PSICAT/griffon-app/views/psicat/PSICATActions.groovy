@@ -347,4 +347,11 @@ actions {
 		closure: controller.actions['openDIS'],
 		shortDescription: 'Open a section or hole from the DIS'
 	)
+	action(
+		id: 'showTrackOptionsAction',
+		name: 'Show Track Options',
+		enabled: bind { model.project != null },
+		closure: controller.actions['trackOptions'],
+		shortDescription: 'Track options dialog test'
+	)
 }

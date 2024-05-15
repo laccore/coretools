@@ -109,4 +109,9 @@ mvcGroups {
 		controller="psicat.dialogs.OpenStratColumnDepthsController"
 		view="psicat.dialogs.OpenStratColumnDepthsView"
 	}
+	TrackOptions {
+		model="psicat.dialogs.TrackOptionsModel"
+		controller="psicat.dialogs.TrackOptionsController"
+		view="psicat.dialogs.TrackOptionsView"
+	}
 }

@@ -95,6 +95,11 @@ public interface Track extends Adaptable {
 	 */
 	List<TrackParameter> getTrackParameters();
 
+	/*
+	 * Return true if track has parameter name, otherwise false.
+	 */
+	boolean hasParameter(String name);
+
 	/**
 	 * Gets the scene this track exists in.
 	 * 

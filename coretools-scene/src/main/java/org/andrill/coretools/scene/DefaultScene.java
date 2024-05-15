@@ -381,6 +381,17 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 		return ImmutableList.copyOf(tracks);
 	}
 
+	public Track getTrack(Class trackClass) {
+		Track result = null;
+		for (Track t : tracks) {
+			if (t.getClass().equals(trackClass)) {
+				result = t;
+				break;
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

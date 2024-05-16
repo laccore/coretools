@@ -33,7 +33,6 @@ class TrackOptionsController {
 	def getParameterValues() {
 	  def vals = [:]  
 	  model.parameterValues.each { param, component ->
-		println "Parameter ${param.key} UI component value = ${getComponentValue(param.type, component)}"
 		vals[param.key] = getComponentValue(param.type, component)
 	  }
 	  return vals
@@ -43,7 +42,7 @@ class TrackOptionsController {
 		if (parameterType == TrackParameter.Type.BOOLEAN) {
 			def comp = (JCheckBox)component
 			return comp.isSelected() as String
-		} else if (parameterType == TrackParameter.Type.INTEGER || parameterType == TrackParameter.Type.FLOAT) {
+		} else { // TrackParameter.Type.INTEGER, FLOAT, or STRING
 			def comp = (JTextField)component
 			return comp.getText()
 		}

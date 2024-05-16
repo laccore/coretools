@@ -12,10 +12,10 @@ panel(id:'root', layout: new MigLayout('fill, wrap'), border: etchedBorder()) {}
 
 def addComponent(JComponent parent, int type, String label, String description, Object value) {
 	def comp = null
-	if (type == TrackParameter.Type.BOOLEAN) {
+	if (type == TrackParameter.Type.BOOLEAN) { // checkbox for boolean
 		comp = new JCheckBox(label)
 		comp.setSelected(Boolean.parseBoolean(value))
-	} else if (type == TrackParameter.Type.INTEGER || type == TrackParameter.Type.FLOAT) {
+	} else { // edit field for integer, float, or String
 		comp = new JTextField(value as String)
 		parent.add(new JLabel(label), "split 2")
 	}

@@ -18,6 +18,7 @@ package psicat
 import java.awt.Desktop
 
 import java.beans.PropertyChangeEvent
+import java.io.FileWriter
 import java.util.prefs.Preferences
 import java.util.regex.Pattern
 
@@ -31,12 +32,14 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.geology.models.csdf.*
+import org.andrill.coretools.geology.ui.*
+import org.andrill.coretools.geology.ui.csdf.*
 import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.model.edit.*
 import org.andrill.coretools.dis.DISProject
 import org.andrill.coretools.misc.io.ExcelReaderWriter
 import org.andrill.coretools.misc.io.LegacyReader
-import org.andrill.coretools.misc.util.StringUtils
+import org.andrill.coretools.misc.util.*
 import org.andrill.coretools.model.Project
 import org.andrill.coretools.geology.models.Interval
 import org.andrill.coretools.geology.models.Length
@@ -46,11 +49,9 @@ import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
 import org.andrill.coretools.scene.Scene.Origin
-import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
 import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
-import org.andrill.coretools.misc.util.LauncherUtils
 
 import psicat.stratcol.StratColumnMetadataUtils
 import psicat.util.*
@@ -529,6 +530,39 @@ Working Dir: ${System.getProperty("user.dir")}
 					if (mvc.controller.chooseMetadata()) {
 						model.status = mvc.controller.show()
 					}
+				}
+			}
+		},
+		'trackOptions': { evt = null ->
+			if (!model.activeDiagram) { // TODO: shouldn't need an active diagram to edit these settings
+				println "NO ACTIVE DIAGRAM"
+				return
+			}
+
+			def sceneTracks = model.activeDiagram.model.scene.getTracks()
+			def editableTracks = sceneTracks.findAll { it.trackParameters.size() > 0 }
+			final msg = "Edit options for track:"
+			final title = "Track Options"
+			def selectedTrackName = JOptionPane.showInputDialog(app.appFrames[0], msg, title, JOptionPane.QUESTION_MESSAGE, null, editableTracks.collect { it.class.simpleName } as Object[], null)
+			if (!selectedTrackName) { return }
+
+			def selectedTrack = model.activeDiagram.model.scene.tracks.find { it.class.simpleName.equals(selectedTrackName) }
+			withMVC('TrackOptions', track: selectedTrack) { mvc ->
+				if (mvc.controller.show()) {
+					def paramValues = mvc.controller.getParameterValues()
+					model.openDiagrams.each { diagram ->
+						def t = diagram.model.scene.getTrack(selectedTrack.class)
+						paramValues.each { name, value ->
+							t.setParameter(name, value)
+						}
+						diagram.model.scene.invalidate() // redraw all open diagrams
+					}
+					// TODO: save updated diagram state so newly-opened diagrams reflect changes
+					// Need to ensure every project has a local .diagram file.
+					
+					// FileWriter writer = new FileWriter(new File(model.project.scenes[0].toURI()))
+					// FileWriter writer = new FileWriter(new File("/Users/lcdev/Desktop/foobar.diagram"))
+					// SceneUtils.toXML(model.activeDiagram.model.scene, writer)
 				}
 			}
 		},

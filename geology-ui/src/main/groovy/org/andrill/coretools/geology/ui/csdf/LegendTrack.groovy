@@ -15,18 +15,23 @@ import org.andrill.coretools.graphics.fill.*
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.scheme.SchemeEntry
 import org.andrill.coretools.geology.ui.GeologyTrack
+import org.andrill.coretools.scene.TrackParameter
 
 class LegendTrack extends GeologyTrack {
-	// Properties:
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
-	//   * symbol-size:   integer; width/height at which to draw pattern/icon
-	//   * font-size:     integer; label font size
-	//   * texture-scaling: double; scaling of textured images in scheme entries, higher shows more detail
-	//   * columns:       integer; number of columns in which to draw legend entries
+	private static final String DEFAULT_TITLE = "Legend"
+	private static final PARAMETERS = [
+		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "Size, in pixels, of each legend entry pattern or icon.", TrackParameter.Type.INTEGER, "32"),
+		"font-size" : new TrackParameter("font-size", "Font size", "Font size of each legend entry name.", TrackParameter.Type.INTEGER, "11"),
+		"texture-scaling" : new TrackParameter("texture-scaling", "Texture scaling", "Scaling of legend entry patterns. Lower values zoom in, higher values zoom out.", TrackParameter.Type.FLOAT, "1"),
+		"columns" : new TrackParameter("columns", "Columns", "Number of columns in legend layout.", TrackParameter.Type.INTEGER, "1"),
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
+	]
 
-	def getHeader() { "Legend" }
-	def getFooter() { "Legend" }
+	List<TrackParameter> getTrackParameters() {	return PARAMETERS.values() as List<TrackParameter> }	
+
+	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
+	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
 	def getWidth()  { return 32 }
 	def getFilter() { return { true } }
 

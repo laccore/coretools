@@ -22,6 +22,7 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 
 import org.andrill.coretools.graphics.GraphicsContext
+import org.andrill.coretools.scene.TrackParameter
 
 /**
  * A track to draw a depth/height ruler.
@@ -29,14 +30,14 @@ import org.andrill.coretools.graphics.GraphicsContext
  * @author Josh Reed (jareed@andrill.org)
  */
 class RulerTrack extends GeologyTrack {
-	// Properties:
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
-	//   * label-step:     int; frequency of labeled hashes
-	//   * hash-step:     int; frequency of unlabeled hashes
-	//   * draw-left-hash: boolean; draw left hashes
-	//   * draw-right-hash: boolean; draw right hashes
-	//   * scale-labels: boolean; grow/shrink labels to fit available space
+	private static final PARAMETERS = [
+		"label-step" : new TrackParameter("label-step", "Label step", "In pixels. Frequency of labeled hashes.", TrackParameter.Type.INTEGER, "40"),
+		"hash-step" : new TrackParameter("hash-step", "Hash step", "In pixels. Frequency of unlabeled hashes.", TrackParameter.Type.INTEGER, "10"),
+		"draw-left-hash" : new TrackParameter("draw-left-hash", "Draw left hashes", "Draw hashes from the left edge of the ruler.", TrackParameter.Type.BOOLEAN, "true"),
+		"draw-right-hash" : new TrackParameter("draw-right-hash", "Draw right hashes", "Draw hashes from the right edge of the ruler.", TrackParameter.Type.BOOLEAN, "true"),
+		"scale-labels" : new TrackParameter("scale-labels", "Scale labels", "Resize labels to fill available space.", TrackParameter.Type.BOOLEAN, "false"),
+	]
+	List<TrackParameter> getTrackParameters() {	return PARAMETERS.values() as List<TrackParameter> }
 
 	def getHeader() { units }
 	def getFooter() { units }

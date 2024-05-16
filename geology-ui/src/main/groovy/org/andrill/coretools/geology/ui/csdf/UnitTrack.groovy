@@ -8,7 +8,8 @@ import org.andrill.coretools.geology.models.csdf.UnitInterval
 import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.graphics.GraphicsContext
-import org.andrill.coretools.model.Model;
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
 import org.andrill.coretools.geology.ui.GeologyTrack
@@ -16,11 +17,17 @@ import org.andrill.coretools.geology.ui.GeologyTrack
 class UnitTrack extends GeologyTrack {
 	// Properties:
 	//   * filter-group:   string; only show Unit of a specific group
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
-	
-	def getHeader() { "Units" }
-	def getFooter() { "Units" }
+
+	private static final String DEFAULT_TITLE = "Units"
+	private static final PARAMETERS = [
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),		
+	]
+
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
+
+	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
+	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
 	def getWidth()  { return 32 }
 	def getFilter() { 
 		String filter = getParameter("filter-group", null)

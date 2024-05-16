@@ -5,26 +5,29 @@ import java.awt.Point
 import java.awt.geom.Rectangle2D
 
 import org.andrill.coretools.geology.models.csdf.UnitInterval
-import org.andrill.coretools.geology.models.Section;
+import org.andrill.coretools.geology.models.Section
 import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.graphics.GraphicsContext
-import org.andrill.coretools.model.Model;
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
 import org.andrill.coretools.geology.ui.GeologyTrack
 
 class SectionNameTrack extends GeologyTrack {
-	// Properties:
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
+	private static final String DEFAULT_TITLE = "Section"
+	private static final PARAMETERS = [
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
+	]
+
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }	
 	
-	def getHeader() { "Section" }
-	def getFooter() { "Section" }
+	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
+	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
 	def getWidth()  { return 32 }
-	def getFilter() { 
-        return { it instanceof Section }
-	}
+	def getFilter() { return { it instanceof Section }}
 	
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
 		def r = getModelBounds(m)

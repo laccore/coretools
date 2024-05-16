@@ -15,29 +15,24 @@ import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.graphics.fill.*
 
 class BeddingTrack extends AbstractIntervalTrack {
-	// Properties:
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
-	//   * draw-repeating: boolean; if true, draw the symbols as repeating texture.
-	//                              if false, draw symbol at symbol-size with interval whiskers.
-	//   * symbol-size:    integer; pixel width of rendered symbol if draw-repeating is false
+	private static final String DEFAULT_TITLE = "Bedding"
+	private static final PARAMETERS = [
+		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "true"),
+		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "<html>Draw a border around intervals. Applies only when Tile symbols is <b>enabled</b>.</html>", TrackParameter.Type.BOOLEAN, "true"),
+		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "<html>Size, in pixels, of bedding symbols. Applies only when Tile symbols is <b>disabled</b>.</html>", TrackParameter.Type.INTEGER, "32"),
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
+	]
+
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
 
 	def getFilter() { return { it instanceof BeddingInterval } }
 	List<Class> getCreatedClasses() { return [BeddingInterval] }
-	def getHeader() { "Bedding" }
-	def getFooter() { "Bedding" }
+	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
+	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
 	def getWidth()  { return 72 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(BeddingInterval.class, [:]), new ResizePolicy()])
-	}
-
-	private final trackParameters = [
-		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "If unchecked, draw single symbol with whiskers indicating interval.", TrackParameter.Type.BOOLEAN, "true"),
-		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "In pixels. Only used when Tile Symbols is unchecked.", TrackParameter.Type.INTEGER, "32")
-	]
-
-	List<TrackParameter> getTrackParameters() {
-		return trackParameters.values() as List<TrackParameter>
 	}
 
 	@Override
@@ -74,6 +69,6 @@ class BeddingTrack extends AbstractIntervalTrack {
 	}
 
 	def getSymbolSize() {
-		return (getParameter("symbol-size", "32") as Integer)
+		return (getParameter("symbol-size", PARAMETERS["symbol-size"].defaultValue) as Integer)
 	}
 }

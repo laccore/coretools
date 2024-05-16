@@ -24,6 +24,7 @@ import java.awt.Font
 import java.text.DecimalFormat
 import org.andrill.coretools.graphics.GraphicsContext
 
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.Scene.ScenePart
 
 import org.andrill.coretools.geology.models.Occurrence
@@ -36,12 +37,21 @@ import org.andrill.coretools.geology.models.Occurrence
 class AnnotationTrack extends GeologyTrack {
 	private static final int PADDING = 3
 	private static final DecimalFormat DEC = new DecimalFormat("0.00")
-	def getAnnotFont() {
-		def fontsize = getParameter("font-size", "11")
+	private static final String DEFAULT_TITLE = "Description"
+	private static final PARAMETERS = [
+		"font-size" : new TrackParameter("font-size", "Font size", "Font size of annotation text.", TrackParameter.Type.INTEGER, "11"),
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),		
+	]
+
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
+
+	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
+	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
+	def getAnnotationFont() {
+		def fontsize = getParameter("font-size", PARAMETERS["font-size"].defaultValue)
 		new Font("SanSerif", Font.PLAIN, Integer.parseInt(fontsize))
 	}
-	def getHeader() { "Description" }
-	def getFooter() { "Description" }
 	def getWidth()  { return 128 }
 	def getFilter() { return { it.hasProperty('description') && it.description } }
 
@@ -69,7 +79,7 @@ class AnnotationTrack extends GeologyTrack {
 		if (!onpage) { return }
 		
 		// calculate some string metrics
-		def font = annotFont
+		def font = getAnnotationFont()
 		def boldFont = font.deriveFont(Font.BOLD)
 		def letterHeight = graphics.getStringBounds(font, "MMMMMggggg").getHeight()
 

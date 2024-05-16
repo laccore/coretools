@@ -61,7 +61,7 @@ class SceneUtils {
 			scene.parameters.each { k, v -> param(name: k, value: v) }
 			scene.tracks.each { t ->
 				track('class':t.class.name, 'constraints':scene.getTrackConstraints(t)) {
-					track.parameters.each { k, v -> param(name: k, value: v) }
+					t.parameters.each { k, v -> param(name: k, value: v) }
 				}
 			}
 		}

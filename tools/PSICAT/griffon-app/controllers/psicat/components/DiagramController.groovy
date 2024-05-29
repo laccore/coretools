@@ -25,7 +25,6 @@ import java.util.prefs.Preferences
 import javax.swing.JOptionPane
 
 import org.andrill.coretools.Platform
-import org.andrill.coretools.ResourceLoader;
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.model.edit.CommandStack
@@ -100,13 +99,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	def project = model.project
 
     	// select a scene
-		def scene
-		if (project.scenes) {
-			scene = SceneUtils.fromXML(project.scenes[0])
-		}
-		if (!scene) {
-			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
-		}
+		def scene = app.controllers['PSICAT'].getProjectScene(project)
 	    			
     	// open our containers
 		def models = null

@@ -54,13 +54,8 @@ class ExportDiagramWizardController {
 		boolean appendName = containers.size() > 1
 
 		// select a scene
-		def scene
-		if (project.scenes) {
-			scene = SceneUtils.fromXML(project.scenes[0])
-		}
-		if (!scene) {
-			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
-		}
+		def scene = app.controllers['PSICAT'].getProjectScene(project)
+
 		scene.scalingFactor = 1000
 		scene.setRenderHint("preferred-units", view.units.selectedItem)
 		

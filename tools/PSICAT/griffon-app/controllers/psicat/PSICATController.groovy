@@ -29,6 +29,7 @@ import org.json.JSONObject
 import org.apache.log4j.Logger
 
 import org.andrill.coretools.Platform
+import org.andrill.coretools.ResourceLoader
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
 import org.andrill.coretools.geology.models.csdf.*
@@ -48,6 +49,7 @@ import org.andrill.coretools.geology.edit.DeleteIntervalCommand
 import org.andrill.coretools.geology.edit.SplitIntervalCommand
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.scene.DefaultScene
+import org.andrill.coretools.scene.Scene
 import org.andrill.coretools.scene.Scene.Origin
 import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
@@ -257,6 +259,26 @@ class PSICATController {
 		def matcher = pattern.matcher(version)
 		matcher.matches()
 		return matcher
+	}
+
+	private createProjectScene(project, scene) {
+		File sceneDir = project.sceneDir
+		sceneDir.mkdirs()
+		File sceneFile = new File(sceneDir, "main.diagram") // or just stick with template.diagram???
+		SceneUtils.toXML(scene, new FileWriter(sceneFile))
+		project.scenes.add(sceneFile.toURI().toURL())
+	}
+
+	Scene getProjectScene(project) {
+		def scene = null
+		if (project.scenes) {
+			scene = SceneUtils.fromXML(project.scenes[0])
+		}
+		if (!scene) {
+			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
+			createProjectScene(project, scene)
+		}
+		return scene
 	}
 
 	// our action implementations

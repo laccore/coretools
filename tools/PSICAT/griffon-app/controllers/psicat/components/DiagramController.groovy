@@ -93,8 +93,6 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	model.diagramState = null
     }
 
-	// If containers is null, open section(s) selected in Project list in a single diagram.
-	// Otherwise, open input containers in a single diagram.
     boolean open() {
     	def project = model.project
 

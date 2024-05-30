@@ -23,7 +23,7 @@ class TrackOptionsController {
 			def comp = view.addComponent(view.root, it.type, it.label, it.description, value)
 			model.parameterValues[it] = comp
 		}
-		def result = Dialogs.showCustomDialog("${StringUtils.uncamel(model.track.class.simpleName)} Options", view.root, app.appFrames[0])
+		def result = Dialogs.showCustomDialog("${StringUtils.uncamel(model.track.class.simpleName)} Options", view.root, app.appFrames[0], false)
 		if (result) {
 			getParameterValues()
 		}
@@ -31,11 +31,11 @@ class TrackOptionsController {
 	}
 
 	def getParameterValues() {
-	  def vals = [:]  
-	  model.parameterValues.each { param, component ->
-		vals[param.key] = getComponentValue(param.type, component)
-	  }
-	  return vals
+		def vals = [:]
+		model.parameterValues.each { param, component ->
+			vals[param.key] = getComponentValue(param.type, component)
+		}
+		return vals
 	}
 
 	private String getComponentValue(int parameterType, JComponent component) {

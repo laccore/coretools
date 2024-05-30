@@ -48,7 +48,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Josh Reed (jareed@andrill.org)
  */
 abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProvider {
-	protected static def INDEX = [:]
+	protected static def INDEX = [:] // key: ModelContainer; value: GeologyModelIndex
 	Scene scene
 	protected ModelContainer container
 	protected SceneEventHandler handler
@@ -145,7 +145,7 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	
 	void setModels(ModelContainer container) {
 		// unset and set our listeners
-		if (this.container) { 
+		if (this.container) {
 			this.container.removeListener(this)
 			INDEX[this.container].disconnect()
 		}

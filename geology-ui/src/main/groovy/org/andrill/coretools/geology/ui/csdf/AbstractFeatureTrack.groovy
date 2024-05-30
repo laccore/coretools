@@ -23,7 +23,8 @@ abstract class AbstractFeatureTrack extends GeologyTrack {
 	def layout(Model m) {
 		// need to re-layout if scalingFactor or image has changed, otherwise use cached values
 		if (cache[m] && scene.scalingFactor == cache[m].scalingFactor &&
-			((cache[m].image == null) || (cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL))) { 
+			((cache[m].image == null) || (cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL)) &&
+			cache[m].symbolSize == symbolSize) { 
 			return cache[m].bounds
 		}
 
@@ -46,7 +47,7 @@ abstract class AbstractFeatureTrack extends GeologyTrack {
 
 		// cache the results
 		def entry = getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code)
-		cache[m] = new CachedFeature(bounds: r, image: entry == null ? null : entry?.imageURL, scalingFactor: scene.scalingFactor)
+		cache[m] = new CachedFeature(bounds: r, image: entry == null ? null : entry?.imageURL, scalingFactor: scene.scalingFactor, symbolSize: ss)
 		return r
 	}
 		
@@ -141,4 +142,5 @@ class CachedFeature {
 	Rectangle bounds
 	URL image
 	def scalingFactor
+	int symbolSize
 }

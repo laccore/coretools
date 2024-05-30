@@ -32,6 +32,7 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.ResourceLoader
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Model
+import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.geology.models.csdf.*
 import org.andrill.coretools.geology.ui.*
 import org.andrill.coretools.geology.ui.csdf.*
@@ -555,36 +556,48 @@ Working Dir: ${System.getProperty("user.dir")}
 				}
 			}
 		},
-		'trackOptions': { evt = null ->
-			if (!model.activeDiagram) { // TODO: shouldn't need an active diagram to edit these settings
-				println "NO ACTIVE DIAGRAM"
+		'diagramOptions': { evt = null ->
+			// Force save of all dirty diagrams before opening (avoid data loss on diagram close/reopen)
+			def dirtyDiagrams = model.openDiagrams.findAll { it.model.dirty }
+			if (dirtyDiagrams.size() > 0) {
+				def msg = "The following sections have unsaved data:\n\n${(dirtyDiagrams.collect { it.model.id }).join('\n')}\n\nThey must be saved before editing Diagram Options."
+				Dialogs.showMessageDialog("Unsaved Diagrams", msg, app.appFrames[0])
 				return
 			}
+			
+			def scene = null
+			def activeDiagramId = null
+			if (!model.activeDiagram) {	// no active diagram, fake out a scene
+				scene = getProjectScene(model.project)
+				scene.models = Platform.getService(ModelContainer.class)
+			} else {
+				scene = model.activeDiagram.model.scene
+				activeDiagramId = model.activeDiagram.model.id
+			}
 
-			def sceneTracks = model.activeDiagram.model.scene.getTracks()
-			def editableTracks = sceneTracks.findAll { it.trackParameters.size() > 0 }
-			final msg = "Edit options for track:"
-			final title = "Track Options"
-			def selectedTrackName = JOptionPane.showInputDialog(app.appFrames[0], msg, title, JOptionPane.QUESTION_MESSAGE, null, editableTracks.collect { it.class.simpleName } as Object[], null)
-			if (!selectedTrackName) { return }
-
-			def selectedTrack = model.activeDiagram.model.scene.tracks.find { it.class.simpleName.equals(selectedTrackName) }
-			withMVC('TrackOptions', track: selectedTrack) { mvc ->
+			withMVC('DiagramOptions', scene:scene) { mvc ->
 				if (mvc.controller.show()) {
-					def paramValues = mvc.controller.getParameterValues()
-					model.openDiagrams.each { diagram ->
-						def t = diagram.model.scene.getTrack(selectedTrack.class)
-						paramValues.each { name, value ->
-							t.setParameter(name, value)
-						}
-						diagram.model.scene.invalidate() // redraw all open diagrams
+					if (model.project.scenes) {
+						FileWriter writer = new FileWriter(new File(model.project.scenes[0].toURI()))
+						SceneUtils.toXML(mvc.model.scene, writer)
+					} else {
+						println "Project has no diagrams, can't save"
 					}
-					// TODO: save updated diagram state so newly-opened diagrams reflect changes
-					// Need to ensure every project has a local .diagram file.
+				} else {
+					// User cancelled, revert changes by closing and reopening diagrams
+					def diagramIds = model.openDiagrams.collect { it.model.id }
+					while (model.activeDiagram != null) { closeDiagram(model.activeDiagram)	}
+					diagramIds.each { app.controllers['PSICAT'].actions.openSection(null, it) }
 					
-					// FileWriter writer = new FileWriter(new File(model.project.scenes[0].toURI()))
-					// FileWriter writer = new FileWriter(new File("/Users/lcdev/Desktop/foobar.diagram"))
-					// SceneUtils.toXML(model.activeDiagram.model.scene, writer)
+					// restore last active diagram
+					if (activeDiagramId) {
+						for (int i = 0; i < view.diagrams.getTabCount(); i++) {
+							if (view.diagrams.getTitleAt(i).equals(activeDiagramId)) {
+								view.diagrams.setSelectedIndex(i)
+								break
+							}
+						}
+					}
 				}
 			}
 		},

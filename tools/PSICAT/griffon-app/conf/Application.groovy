@@ -114,4 +114,9 @@ mvcGroups {
 		controller="psicat.dialogs.TrackOptionsController"
 		view="psicat.dialogs.TrackOptionsView"
 	}
+	DiagramOptions {
+		model="psicat.dialogs.DiagramOptionsModel"
+		controller="psicat.dialogs.DiagramOptionsController"
+		view="psicat.dialogs.DiagramOptionsView"
+	}
 }

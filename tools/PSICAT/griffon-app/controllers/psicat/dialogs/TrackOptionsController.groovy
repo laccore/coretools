@@ -23,7 +23,7 @@ class TrackOptionsController {
 			def comp = view.addComponent(view.root, it.type, it.label, it.description, value)
 			model.parameterValues[it] = comp
 		}
-		def result = Dialogs.showCustomDialog("${StringUtils.uncamel(model.track.class.simpleName)} Options", view.root, app.appFrames[0], false)
+		def result = Dialogs.showCustomDialog("${StringUtils.uncamel(model.track.class.simpleName).replace('Track', 'Column')} Options", view.root, app.appFrames[0], false)
 		if (result) {
 			getParameterValues()
 		}

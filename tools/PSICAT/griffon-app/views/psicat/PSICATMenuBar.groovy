@@ -69,8 +69,9 @@ menuBar(id: 'menuBar') {
 
 
 	menu(text: 'View', mnemonic:'V') {
+		menuItem(showDiagramOptionsAction)
 		//menuItem(rotateAction)
-		//separator()
+		separator()
 		menuItem(zoomInAction)
 		menuItem(zoomOutAction)
 		menu(text: 'Zoom Level', enabled: bind { model.scene != null }) {
@@ -88,6 +89,7 @@ menuBar(id: 'menuBar') {
 		// 	radioButtonMenuItem(ftUnitsAction, selected: bind { model.diagramState.units == 'ft'})
 		// 	radioButtonMenuItem(inUnitsAction, selected: bind { model.diagramState.units == 'in'})
 		// }
+		// TODO - remove
 		menu(text:"Font Size") {
 			menuItem(smallFontSizeAction)
 			menuItem(mediumFontSizeAction)
@@ -103,7 +105,6 @@ menuBar(id: 'menuBar') {
 	}
 
 	menu(text: 'Debug', mnemonic:'D') {
-		menuItem(showTrackOptionsAction)
 		menuItem(createStratSectionAction)
-	}	
+	}
 }

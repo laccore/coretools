@@ -348,10 +348,10 @@ actions {
 		shortDescription: 'Open a section or hole from the DIS'
 	)
 	action(
-		id: 'showTrackOptionsAction',
-		name: 'Show Track Options',
+		id: 'showDiagramOptionsAction',
+		name: 'Diagram Options...',
 		enabled: bind { model.project != null },
-		closure: controller.actions['trackOptions'],
-		shortDescription: 'Track options dialog test'
+		closure: controller.actions['diagramOptions'],
+		shortDescription: 'Modify diagram columns, layout, and settings'
 	)
 }

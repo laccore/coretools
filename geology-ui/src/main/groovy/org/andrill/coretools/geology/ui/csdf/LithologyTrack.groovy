@@ -20,8 +20,9 @@ class LithologyTrack extends AbstractIntervalTrack {
 	private static final String DEFAULT_TITLE = "Lithology"
 	private static final PARAMETERS = [
 		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "Draw a border around intervals.", TrackParameter.Type.BOOLEAN, "true"),
+		"grain-size-header": new TrackParameter("grain-size-header", "Grain Size Header", "Draw the grain size scale in the column header.", TrackParameter.Type.BOOLEAN, "false"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
-		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),		
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]
 
 	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }

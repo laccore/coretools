@@ -409,6 +409,12 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 		int maxContent = Integer.MIN_VALUE;
 		int expandable = 0;
 
+		for (Track t : tracks) { // set headerHeight to largest track's header height
+			if (t.getParameters().keySet().contains("grain-size-header")) {
+				this.headerHeight = 128;
+			}
+		}
+		
 		// Step 1: calculate width from constraints or default track width
 		for (Track t : tracks) {
 			Rectangle2D size = t.getContentSize();

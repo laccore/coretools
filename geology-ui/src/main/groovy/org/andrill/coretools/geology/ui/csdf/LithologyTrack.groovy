@@ -11,6 +11,7 @@ import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.graphics.fill.*
 import org.andrill.coretools.model.Model
+import org.andrill.coretools.scene.Scene
 import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
@@ -30,6 +31,18 @@ class LithologyTrack extends AbstractIntervalTrack {
 	def getFilter() { return { it instanceof LithologyInterval } }
 	List<Class> getCreatedClasses() { return [LithologyInterval] }
 	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
+
+	@Override
+	int getHeaderHeight() {
+		def hs = Scene.DEFAULT_HEADER_HEIGHT
+		if (this.hasParameter("grain-size-header")) {
+			if (Boolean.parseBoolean(getParameter("grain-size-header", "false"))) {
+				hs = 128
+			}
+		}
+		return hs
+	}
+
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
 	def getWidth()  { return 72 }
 	protected SceneEventHandler createHandler() {

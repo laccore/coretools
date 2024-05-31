@@ -54,10 +54,11 @@ abstract class GeologyTrack implements ModelContainer.Listener, Track, LabelProv
 	protected SceneEventHandler handler
 	private AtomicBoolean valid = new AtomicBoolean(false)
 	Rectangle2D bounds = new Rectangle(0,0,0,0)
-	
+
 	def getIndex() { INDEX[container] }
 	def getModels() { INDEX[container].getAllModels((getFilter() as GeologyModelIndex.Filter)) as List }
 	def getHeader() { "Header" }
+	int getHeaderHeight() { return Scene.DEFAULT_HEADER_HEIGHT }
 	def getFooter() { "Footer" }
 	def getFilter() { return { false } }
 	def getWidth()  { return 72 }

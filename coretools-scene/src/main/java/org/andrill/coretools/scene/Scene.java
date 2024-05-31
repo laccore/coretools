@@ -76,6 +76,7 @@ public interface Scene extends Adaptable {
 	}
 
 	public static final Dimension ZERO = new Dimension(0, 0);
+	public static final int DEFAULT_HEADER_HEIGHT = 36;
 
 	/**
 	 * Adds a change listener.

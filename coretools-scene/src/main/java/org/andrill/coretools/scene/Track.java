@@ -55,6 +55,13 @@ public interface Track extends Adaptable {
 	Rectangle2D getContentSize();
 
 	/**
+	 * Gets the height (in a column-based layout) of this track's header.
+	 * 
+	 * @return height of the track header.
+	 */
+	int getHeaderHeight();
+
+	/**
 	 * Gets the bounds for the specified model.
 	 * 
 	 * @param model

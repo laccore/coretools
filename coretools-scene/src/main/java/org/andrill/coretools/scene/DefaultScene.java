@@ -57,7 +57,7 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 	protected Rectangle contents = new Rectangle();
 	protected int footerHeight = 36;
 	private SceneEventHandler handler;
-	protected int headerHeight = 36;
+	protected int headerHeight = Scene.DEFAULT_HEADER_HEIGHT;
 	protected Map<Track, Rectangle> layout = new HashMap<Track, Rectangle>();
 	protected List<Track> tracks = new ArrayList<Track>();
 	private AtomicBoolean valid = new AtomicBoolean(false);
@@ -409,11 +409,15 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 		int maxContent = Integer.MIN_VALUE;
 		int expandable = 0;
 
-		for (Track t : tracks) { // set headerHeight to largest track's header height
-			if (t.getParameters().keySet().contains("grain-size-header")) {
-				this.headerHeight = 128;
+		// set headerHeight to largest track's header height
+		int maxHeaderHeight = DEFAULT_HEADER_HEIGHT;
+		for (Track t : tracks) {
+			int hs = t.getHeaderHeight();
+			if (hs > maxHeaderHeight) {
+				maxHeaderHeight = hs;
 			}
 		}
+		this.headerHeight = maxHeaderHeight;
 		
 		// Step 1: calculate width from constraints or default track width
 		for (Track t : tracks) {

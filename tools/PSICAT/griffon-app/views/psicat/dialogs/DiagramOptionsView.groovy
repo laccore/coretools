@@ -56,7 +56,13 @@ panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
 			enabled: bind { model.selectedTrackIndex != -1},
 			actionPerformed: { evt -> controller.removeColumn(evt) },
 			constraints:'grow')
-		button('Move Up', constraints:'grow')
-		button('Move Down', constraints:'grow')
+		button('Move Up',
+			enabled: bind { model.selectedTrackIndex != -1},
+			actionPerformed: { evt -> controller.moveColumnUp(evt) },
+			constraints:'grow')
+		button('Move Down',
+			enabled: bind { model.selectedTrackIndex != -1},
+			actionPerformed: { evt -> controller.moveColumnDown(evt) },
+			constraints:'grow')
 	}
 }

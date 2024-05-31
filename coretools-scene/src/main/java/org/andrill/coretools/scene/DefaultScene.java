@@ -508,6 +508,12 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 		invalidate();
 	}
 
+	// Moves track to specified index.
+	public void moveTrack(Track track, int index) {
+		tracks.remove(track);
+		tracks.add(index, track);
+	}
+
 	protected double parse(final String number) {
 		try {
 			return Double.parseDouble(number);

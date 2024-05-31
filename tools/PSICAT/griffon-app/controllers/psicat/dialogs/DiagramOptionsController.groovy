@@ -44,7 +44,35 @@ class DiagramOptionsController {
 
 	def removeColumn = { evt = null ->
 		model.scene.removeTrack(view.trackList.selectedValue)
+		final idx = view.trackList.selectedIndex
 		model.trackListModel.removeElementAt(view.trackList.selectedIndex)
+		if (model.trackListModel.size() > 0) {
+			idx < model.trackListModel.size() - 1 ? view.trackList.setSelectedIndex(idx) : view.trackList.setSelectedIndex(idx-1)
+		}
 		model.scene.invalidate()
+	}
+
+	def moveColumnUp = { evt = null ->
+		final idx = view.trackList.selectedIndex
+		if (idx > 0) {
+			def t = view.trackList.selectedValue
+			model.scene.moveTrack(t, idx-1)
+			model.trackListModel.removeElementAt(view.trackList.selectedIndex)
+			model.trackListModel.insertElementAt(t, idx-1)
+			view.trackList.setSelectedIndex(idx-1)
+			model.scene.invalidate()
+		}
+	}
+
+	def moveColumnDown = { evt = null ->
+		final idx = view.trackList.selectedIndex
+		if (idx < model.trackListModel.size() - 1) {
+			def t = view.trackList.selectedValue
+			model.scene.moveTrack(t, idx+1)
+			model.trackListModel.removeElementAt(view.trackList.selectedIndex)
+			model.trackListModel.insertElementAt(t, idx+1)
+			view.trackList.setSelectedIndex(idx+1)
+			model.scene.invalidate()
+		}
 	}
 }

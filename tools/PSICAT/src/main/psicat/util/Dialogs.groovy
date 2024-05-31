@@ -114,8 +114,9 @@ class Dialogs {
 		JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE)
 	}
 	
-	static boolean showCustomDialog(title, message, parent = null) {
-		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null) == JOptionPane.OK_OPTION
+	static boolean showCustomDialog(title, message, parent = null, showAppIcon=true) {
+		def icon = showAppIcon ? JOptionPane.QUESTION_MESSAGE : JOptionPane.PLAIN_MESSAGE
+		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.OK_CANCEL_OPTION, icon, null, null, null) == JOptionPane.OK_OPTION
 	}
 	
 	static boolean showCustomOneButtonDialog(title, message, parent = null) {

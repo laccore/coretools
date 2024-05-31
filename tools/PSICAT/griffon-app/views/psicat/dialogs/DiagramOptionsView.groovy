@@ -52,7 +52,10 @@ panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
 			actionPerformed: { evt -> controller.trackOptions(evt) }, 
 			constraints:'grow')
 		button('Add Column...', constraints:'grow')
-		button('Remove Column', constraints:'grow')
+		button('Remove Column',
+			enabled: bind { model.selectedTrackIndex != -1},
+			actionPerformed: { evt -> controller.removeColumn(evt) },
+			constraints:'grow')
 		button('Move Up', constraints:'grow')
 		button('Move Down', constraints:'grow')
 	}

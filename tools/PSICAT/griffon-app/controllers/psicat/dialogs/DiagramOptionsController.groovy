@@ -41,4 +41,10 @@ class DiagramOptionsController {
 			}
 		}
 	}
+
+	def removeColumn = { evt = null ->
+		model.scene.removeTrack(view.trackList.selectedValue)
+		model.trackListModel.removeElementAt(view.trackList.selectedIndex)
+		model.scene.invalidate()
+	}
 }

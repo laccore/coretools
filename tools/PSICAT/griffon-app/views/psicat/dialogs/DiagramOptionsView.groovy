@@ -9,6 +9,7 @@ import net.miginfocom.swing.MigLayout
 
 import org.andrill.coretools.scene.*
 import org.andrill.coretools.misc.util.StringUtils
+import org.andrill.coretools.geology.ui.ImageTrack
 
 
 class TrackElementRenderer implements ListCellRenderer {
@@ -25,10 +26,13 @@ class TrackElementRenderer implements ListCellRenderer {
 		def bgcolor = isSelected ? selectColor : java.awt.Color.WHITE
 		def border = BorderFactory.createMatteBorder(0, 0, 1, 0, java.awt.Color.BLACK)
 
-		// TODO: handle floats and weirdness like ImageTrack where setting a width doesn't really make sense
-		// because width adjusts to maintain the image's aspect ratio.
 		def widthConstraint = this.model.scene.getTrackConstraints(track)
-		if (widthConstraint.equals("")) { widthConstraint = track.contentSize.width }
+		if (widthConstraint.equals("")) {
+			widthConstraint = "${track.contentSize.width} (default)"
+		}
+		if (track instanceof ImageTrack) {
+			widthConstraint = "Varies to maintain image aspect ratio"
+		}
 
 		return new SwingBuilder().panel(layout:new MigLayout("fillx, wrap, insets 5", "[grow]", ""), background:bgcolor, border:border) {
 			label("${StringUtils.uncamel(track.class.simpleName).replace(' Track', '')}", font:trackNameFont, constraints:'grow, w 200')
@@ -50,6 +54,11 @@ panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
 		button("Column Options...",
 			enabled: bind { model.selectedTrackIndex != -1 }, // bind to view.trackList doesn't seem to work
 			actionPerformed: { evt -> controller.trackOptions(evt) }, 
+			constraints:'grow')
+		button("Edit Column Width...",
+		 	// prevent editing of ImageTrack width; colleague insists no one will ever want stretched imagery
+			enabled: bind { model.selectedTrackIndex != -1 && !(trackList.selectedValue instanceof ImageTrack) },
+			actionPerformed: { evt -> controller.editColumnWidth(evt) },
 			constraints:'grow')
 		button('Add Column...',
 			actionPerformed: { evt -> controller.addColumn(evt) },
@@ -79,4 +88,13 @@ String promptForTrack(trackTypes) {
 		trackTypes as String[],
 		trackTypes[0])
 	return result
+}
+
+String promptForWidth(String initWidth) {
+	def newWidth = JOptionPane.showInputDialog(
+		app.appFrames[0],
+		"Enter a new width.\nEnter an asterisk (*) to use available space.\nLeave blank to use the column's default width.",
+		initWidth
+	)
+	return newWidth
 }

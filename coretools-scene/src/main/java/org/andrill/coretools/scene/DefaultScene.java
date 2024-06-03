@@ -169,6 +169,13 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 		invalidate();
 	}
 
+	public void setTrackConstraints(Track track, String constraints) {
+		if (constraints != null) {
+			this.constraints.put(track, constraints);
+			invalidate();
+		}
+	}
+
 	protected SceneEventHandler createHandler() {
 		return new DefaultSceneEventHandler(this, layout);
 	}

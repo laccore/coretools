@@ -123,6 +123,13 @@ public class PageableScene implements Scene {
 	/**
 	 * {@inheritDoc}
 	 */
+	public void setTrackConstraints(final Track track, final String constraints) {
+		scene.setTrackConstraints(track, constraints);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public Object findAt(final Point2D screen, final ScenePart part) {
 		return scene.findAt(screen, part);
 	}

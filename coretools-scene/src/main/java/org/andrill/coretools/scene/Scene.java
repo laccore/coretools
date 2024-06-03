@@ -105,6 +105,16 @@ public interface Scene extends Adaptable {
 	void addTrack(Track track, String constraints);
 
 	/**
+	 * Update constraints for specified track in the scene.
+	 * 
+	 * @param track
+	 *            the track.
+	 * @param constraints
+	 *            the layout constraints.
+	 */
+	void setTrackConstraints(Track track, String constraints);
+
+	/**
 	 * Find the scene element at the specified point in screen coordinates.
 	 * 
 	 * @param screen

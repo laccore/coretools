@@ -61,6 +61,14 @@ class DiagramOptionsController {
 		"Unit" : "org.andrill.coretools.geology.ui.csdf.UnitTrack"
 	]
 
+	def editColumnWidth = { evt = null ->
+		def constraints = this.model.scene.getTrackConstraints(view.trackList.selectedValue)
+		def newWidth = view.promptForWidth(constraints)
+		if (newWidth != null) {
+			this.model.scene.setTrackConstraints(view.trackList.selectedValue, newWidth)
+		}
+	}
+
 	def addColumn = { evt = null ->
 		def trackName = view.promptForTrack(TRACK_TO_CLASS.keySet().toArray())
 		if (trackName) {

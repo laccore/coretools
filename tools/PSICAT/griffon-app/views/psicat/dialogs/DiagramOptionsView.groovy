@@ -51,7 +51,9 @@ panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
 			enabled: bind { model.selectedTrackIndex != -1 }, // bind to view.trackList doesn't seem to work
 			actionPerformed: { evt -> controller.trackOptions(evt) }, 
 			constraints:'grow')
-		button('Add Column...', constraints:'grow')
+		button('Add Column...',
+			actionPerformed: { evt -> controller.addColumn(evt) },
+			constraints:'grow')
 		button('Remove Column',
 			enabled: bind { model.selectedTrackIndex != -1},
 			actionPerformed: { evt -> controller.removeColumn(evt) },
@@ -65,4 +67,16 @@ panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
 			actionPerformed: { evt -> controller.moveColumnDown(evt) },
 			constraints:'grow')
 	}
+}
+
+String promptForTrack(trackTypes) {
+	def result = JOptionPane.showInputDialog(
+		app.appFrames[0],
+		"Select a column to add:",
+		"Add Column",
+		JOptionPane.PLAIN_MESSAGE,
+		null,
+		trackTypes as String[],
+		trackTypes[0])
+	return result
 }

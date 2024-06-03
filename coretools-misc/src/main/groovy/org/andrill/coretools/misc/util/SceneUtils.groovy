@@ -66,6 +66,12 @@ class SceneUtils {
 			}
 		}
 	}
+
+	// clazz is a String with the Track's full classpath e.g.
+	// "org.andrill.coretools.geology.ui.AnnotationTrack.class"
+	static def createTrack(String clazz) {
+		return instance(clazz)
+	}
 	
 	private static void configure(obj, node) {
 		node.param.each { p ->

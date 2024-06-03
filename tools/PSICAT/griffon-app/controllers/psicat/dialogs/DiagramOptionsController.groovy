@@ -1,8 +1,12 @@
 package psicat.dialogs
 
 import org.andrill.coretools.scene.*
+import org.andrill.coretools.misc.util.SceneUtils
+import org.andrill.coretools.geology.ui.*
+import org.andrill.coretools.geology.ui.csdf.*
 
 import psicat.util.Dialogs
+
 
 class DiagramOptionsController {
 	def model
@@ -39,6 +43,31 @@ class DiagramOptionsController {
 				// update project scene
 				setTrackParams(model.scene, mvc.model.track.class, paramValues)
 			}
+		}
+	}
+
+	static public final HashMap<String, String> TRACK_TO_CLASS = [
+		"Annotation" : "org.andrill.coretools.geology.ui.AnnotationTrack.class",
+		"Bedding" : "org.andrill.coretools.geology.ui.csdf.BeddingTrack",
+		"Feature" : "org.andrill.coretools.geology.ui.csdf.FeatureTrack",
+		"Grain Size" : "org.andrill.coretools.geology.ui.csdf.GrainSizeTrack",
+		"Image" : "org.andrill.coretools.geology.ui.ImageTrack",
+		"Legend" : "org.andrill.coretools.geology.ui.csdf.LegendTrack",
+		"Lithology (CSD Facility)" : "org.andrill.coretools.geology.ui.csdf.LithologyTrack",
+		"Lithology (Andrill)" : "org.andrill.coretools.geology.ui.LithologyTrack",
+		"Symbol (Andrill)" : "org.andrill.coretools.geology.ui.OccurrenceTrack",
+		"Ruler" : "org.andrill.coretools.geology.ui.RulerTrack",
+		"Texture" : "org.andrill.coretools.geology.ui.csdf.TextureTrack",
+		"Unit" : "org.andrill.coretools.geology.ui.csdf.UnitTrack"
+	]
+
+	def addColumn = { evt = null ->
+		def trackName = view.promptForTrack(TRACK_TO_CLASS.keySet().toArray())
+		if (trackName) {
+			def t = SceneUtils.createTrack(TRACK_TO_CLASS[trackName])
+			model.trackListModel.addElement(t)
+			model.scene.addTrack(t, "72")
+			model.scene.invalidate()
 		}
 	}
 

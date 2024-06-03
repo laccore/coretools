@@ -75,7 +75,7 @@ class DiagramOptionsController {
 		if (trackName) {
 			def t = SceneUtils.createTrack(TRACK_TO_CLASS[trackName])
 			model.trackListModel.addElement(t)
-			model.scene.addTrack(t, "72")
+			model.scene.addTrack(t, "") // empty string to use track's default width constraint
 			model.scene.invalidate()
 		}
 	}

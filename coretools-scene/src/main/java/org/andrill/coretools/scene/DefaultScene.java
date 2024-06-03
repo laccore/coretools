@@ -559,7 +559,12 @@ public class DefaultScene implements Scene, ModelContainer.Listener, LabelProvid
 	public void removeTrack(final Track track) {
 		if (tracks.remove(track)) {
 			track.setScene(null);
-			track.setModels(null);
+
+			// 6/3/2024 brg: Until now removeTrack() was never used. Setting a track's models to null
+			// breaks rendering because the GeologyTrack.INDEX is static to all of a scene's tracks.
+			// No models, no diagram. Have observed no ill effects from commenting this so far.
+			// track.setModels(null);
+
 			constraints.remove(track);
 			layout.remove(track);
 			invalidate();

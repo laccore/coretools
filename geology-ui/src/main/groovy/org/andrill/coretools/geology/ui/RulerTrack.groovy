@@ -35,7 +35,7 @@ class RulerTrack extends GeologyTrack {
 		"hash-step" : new TrackParameter("hash-step", "Hash step", "In pixels. Frequency of unlabeled hashes.", TrackParameter.Type.INTEGER, "10"),
 		"draw-left-hash" : new TrackParameter("draw-left-hash", "Draw left hashes", "Draw hashes from the left edge of the ruler.", TrackParameter.Type.BOOLEAN, "true"),
 		"draw-right-hash" : new TrackParameter("draw-right-hash", "Draw right hashes", "Draw hashes from the right edge of the ruler.", TrackParameter.Type.BOOLEAN, "true"),
-		"scale-labels" : new TrackParameter("scale-labels", "Scale labels", "Resize labels to fill available space.", TrackParameter.Type.BOOLEAN, "false"),
+		"scale-labels" : new TrackParameter("scale-labels", "Scale labels", "Resize labels to fill available space. Typically used in strat column export.", TrackParameter.Type.BOOLEAN, "false"),
 	]
 	List<TrackParameter> getTrackParameters() {	return PARAMETERS.values() as List<TrackParameter> }
 

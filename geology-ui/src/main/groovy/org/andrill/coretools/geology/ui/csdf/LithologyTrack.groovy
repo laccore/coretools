@@ -44,7 +44,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 	}
 
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
-	def getWidth()  { return 72 }
+	def getWidth()  { return 96 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(LithologyInterval.class, [:]), new ResizePolicy()])
 	}

@@ -28,7 +28,7 @@ class UnitTrack extends GeologyTrack {
 
 	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
-	def getWidth()  { return 32 }
+	def getWidth()  { return 72 }
 	def getFilter() { 
 		String filter = getParameter("filter-group", null)
 		if (filter) {

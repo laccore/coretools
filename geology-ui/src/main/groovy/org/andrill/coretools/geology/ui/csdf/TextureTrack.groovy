@@ -23,7 +23,7 @@ class TextureTrack extends AbstractFeatureTrack {
 	List<Class> getCreatedClasses() { return [TextureInterval] }
 	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
-	def getWidth()  { return 72 }
+	def getWidth()  { return 96 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(TextureInterval.class, [:]), new ResizePolicy()])
 	}

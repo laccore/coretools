@@ -32,12 +32,13 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	label('Project Name:')
 	textField(text: bind(source: model, sourceProperty:'name', mutual:true), constraints: 'growx, span, wrap')
 	
-	// project type
-	label('Type:')
-	buttonGroup().with {
-		add radioButton(text: 'Well', selected: bind(source: model, sourceProperty: 'originTop', mutual:true), constraints:'split')
-		add radioButton(text: 'Outcrop', selected: bind { !model.originTop }, constraints: 'wrap')	
-	}
+	// 6/3/2024 Outcrops are broken and no one has ever asked for them in PSICAT. Disabling.
+	// // project type
+	// label('Type:')
+	// buttonGroup().with {
+	// 	add radioButton(text: 'Well', selected: bind(source: model, sourceProperty: 'originTop', mutual:true), constraints:'split')
+	// 	add radioButton(text: 'Outcrop', selected: bind { !model.originTop }, constraints: 'wrap')	
+	// }
 
 	// units
 	label('Units:')
@@ -53,8 +54,8 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	// default lithology and symbol scheme combos
 	label('Default Lithologies:', enabled:bind { !model.useCustomSchemes }, constraints:'gapleft 15')
 	comboBox(id:'lithologyScheme', items: model.lithologySchemes.keySet() as List, constraints:'wrap', enabled:bind { !model.useCustomSchemes })
-	label('Default Symbols:', enabled:bind { !model.useCustomSchemes }, constraints:'gapleft 15')
-	comboBox(id:'symbolScheme', items: model.symbolSchemes.keySet() as List, constraints:'wrap', enabled:bind { !model.useCustomSchemes })
+	// label('Default Symbols:', enabled:bind { !model.useCustomSchemes }, constraints:'gapleft 15')
+	// comboBox(id:'symbolScheme', items: model.symbolSchemes.keySet() as List, constraints:'wrap', enabled:bind { !model.useCustomSchemes })
 	separator(constraints: 'growx, span, wrap')
 	
 	// import sections

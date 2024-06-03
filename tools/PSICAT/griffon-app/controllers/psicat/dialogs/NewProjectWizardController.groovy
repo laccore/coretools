@@ -29,9 +29,8 @@ class NewProjectWizardController {
     def view
 
     void mvcGroupInit(Map args) {
-		// gather default lithology and symbol schemes
+		// gather default lithology scheme options
 		model.lithologySchemes = getDefaultSchemes('lithology')
-		model.symbolSchemes = getDefaultSchemes('symbol')
 	}
 
     def actions = [
@@ -47,11 +46,22 @@ class NewProjectWizardController {
     def show() {
     	if (Dialogs.showCustomDialog("Create New Project", view.root, app.appFrames[0])) {
 			def defLith = view.lithologyScheme.getSelectedItem()?.toString()
-			def defSym = view.symbolScheme.getSelectedItem()?.toString()
-			if (defLith)
+			if (defLith) {
 				model.defaultSchemePaths.add(model.lithologySchemes[defLith])
-			if (defSym)
-				model.defaultSchemePaths.add(model.symbolSchemes[defSym])
+			}
+
+			// assume a single default file exists for each non-lithology scheme type
+			['bedding', 'features', 'grainsize', 'texture'].each { schemeType ->
+				def schemes = getDefaultSchemes(schemeType)
+				if (schemes.size() > 0) {
+					def iterator = schemes.keySet().iterator()
+					while (iterator.hasNext()) {
+						model.defaultSchemePaths.add(schemes[iterator.next()])
+						break
+					}
+				}
+			}
+			
     		return createProject()
     	}
     }
@@ -60,7 +70,9 @@ class NewProjectWizardController {
 		if (model.file) {
 			Project project = new DefaultProject(model.file)
 			project.name = model.name ?: model.file.name
-			project.origin = model.originTop ? 'top' : 'base'
+			// 6/3/2024 Outcrops are broken and no one has ever asked for them in PSICAT. Disabling.
+			// project.origin = model.originTop ? 'top' : 'base'
+			project.origin = model.originTop
 			project.units = model.units
 			project.fontSize = '11' // default to medium font size - no GUI for now
 			project.saveConfiguration()

@@ -22,7 +22,9 @@ import java.awt.geom.Rectangle2D
 import org.andrill.coretools.geology.models.Image
 import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.graphics.util.ImageInfo
-import org.andrill.coretools.model.Model;
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.scene.TrackParameter
+
 /**
  * A track to draw Image models.
  * 
@@ -31,11 +33,16 @@ import org.andrill.coretools.model.Model;
 class ImageTrack extends GeologyTrack {
 	// Properties:
 	//   * filter-group:   string; only show Images of a specific group
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
+	private static final String DEFAULT_TITLE = "Images"
+	private static final PARAMETERS = [
+		"embed-image" : new TrackParameter("embed-image", "Embed image", "<html>If enabled, draws raw, unscaled image. Otherwise, draws scaled image.<br>Typically used in diagram export to maximize image quality.</html>", TrackParameter.Type.BOOLEAN, "false"),
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
+	]
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
 
-	def getHeader() { "Images" }
-	def getFooter() { "Images" }
+	def getHeader() { DEFAULT_TITLE }
+	def getFooter() { DEFAULT_TITLE }
 	def getWidth()  {
 		// TODO fixup models reference
 		if (models.size() == 0) { return 72 }
@@ -52,7 +59,7 @@ class ImageTrack extends GeologyTrack {
 	}
 
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
-		def param = getParameter("embed-image", "false")
+		def param = getParameter("embed-image", PARAMETERS['embed-image'].defaultValue)
 		if (param.equals("true")) {
 			graphics.embedImage(getModelBounds(m), m.path)
 		} else {

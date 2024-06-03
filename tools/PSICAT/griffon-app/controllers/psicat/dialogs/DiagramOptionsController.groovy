@@ -47,20 +47,21 @@ class DiagramOptionsController {
 	}
 
 	static public final HashMap<String, String> TRACK_TO_CLASS = [
-		"Annotation" : "org.andrill.coretools.geology.ui.AnnotationTrack.class",
+		"Annotation" : "org.andrill.coretools.geology.ui.AnnotationTrack",
 		"Bedding" : "org.andrill.coretools.geology.ui.csdf.BeddingTrack",
 		"Feature" : "org.andrill.coretools.geology.ui.csdf.FeatureTrack",
 		"Grain Size" : "org.andrill.coretools.geology.ui.csdf.GrainSizeTrack",
 		"Image" : "org.andrill.coretools.geology.ui.ImageTrack",
 		"Legend" : "org.andrill.coretools.geology.ui.csdf.LegendTrack",
 		"Lithology (CSD Facility)" : "org.andrill.coretools.geology.ui.csdf.LithologyTrack",
-		"Lithology (Andrill)" : "org.andrill.coretools.geology.ui.LithologyTrack",
+		"Lithology (Andrill)" : "org.andrill.coretools.geology.ui.IntervalTrack",
 		"Section Name" : "org.andrill.coretools.geology.ui.csdf.SectionNameTrack",
 		"Symbol (Andrill)" : "org.andrill.coretools.geology.ui.OccurrenceTrack",
 		"Ruler" : "org.andrill.coretools.geology.ui.RulerTrack",
 		"Texture" : "org.andrill.coretools.geology.ui.csdf.TextureTrack",
 		"Unit" : "org.andrill.coretools.geology.ui.csdf.UnitTrack"
 	]
+
 
 	def editColumnWidth = { evt = null ->
 		def constraints = this.model.scene.getTrackConstraints(view.trackList.selectedValue)

@@ -26,10 +26,8 @@ import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.geology.ui.event.MovePolicy
 import org.andrill.coretools.graphics.GraphicsContext
-import org.andrill.coretools.model.Model;
-import org.andrill.coretools.model.edit.Command;
-import org.andrill.coretools.model.edit.EditableProperty;
-import org.andrill.coretools.scene.Scene.Origin
+import org.andrill.coretools.model.Model
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.Feedback
 import org.andrill.coretools.scene.event.DefaultFeedback
 import org.andrill.coretools.scene.event.SceneEventHandler
@@ -42,16 +40,23 @@ import org.andrill.coretools.scene.event.DefaultTrackEventHandler
  * @author Josh Reed (jareed@andrill.org)
  */
 class OccurrenceTrack extends GeologyTrack {
-	// Properties:
+	// Properties: 
+	// brg 6/3/2024: We've never used groups and modern schemes don't make the group field available,
+	// so leaving this one alone for now. May hook it up someday if the need arises.
 	//   * filter-group:   string; only show Occurrences of a specific group
-	//   * symbol-size:    integer; the width of the symbol
-	//   * draw-repeating: boolean; draw the symbols repeating instead of whiskers
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
+	
+	private static final String DEFAULT_TITLE = "Symbols"
+	private static final PARAMETERS = [
+		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "Size, in pixels, of symbols.", TrackParameter.Type.INTEGER, "32"),
+		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "false"),
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
+	]
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
 	
 	def cache = [:]
-	def getHeader() { "Symbols" }
-	def getFooter() { "Symbols" }
+	def getHeader() { DEFAULT_TITLE }
+	def getFooter() { DEFAULT_TITLE }
 	def getWidth()  { return 96 }
 	def getFilter() { 
 		String filter = getParameter("filter-group", null)
@@ -69,7 +74,8 @@ class OccurrenceTrack extends GeologyTrack {
 	def layout(Model m) {
 		// need to re-layout if scalingFactor or image has changed, otherwise use cached values
 		if (cache[m] && scene.scalingFactor == cache[m].scalingFactor &&
-			((cache[m].image == null) || (cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL))) { 
+			((cache[m].image == null) || (cache[m].image && cache[m].image == getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code).imageURL)) &&
+			cache[m].symbolSize == symbolSize) { 
 			return cache[m].bounds
 		}
 
@@ -92,12 +98,12 @@ class OccurrenceTrack extends GeologyTrack {
 
 		// cache the results
 		def entry = getSchemeEntry(m?.scheme?.scheme, m?.scheme?.code)
-		cache[m] = new CachedOccurrence(bounds: r, image: entry == null ? null : entry?.imageURL, scalingFactor: scene.scalingFactor)
+		cache[m] = new CachedOccurrence(bounds: r, image: entry == null ? null : entry?.imageURL, scalingFactor: scene.scalingFactor, symbolSize: ss)
 		return r
 	}
 		
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
-		boolean drawRepeating = Boolean.parseBoolean(getParameter("draw-repeating", "false"))
+		boolean drawRepeating = Boolean.parseBoolean(getParameter("draw-repeating", PARAMETERS['draw-repeating'].defaultValue))
 		int ss = symbolSize
 		def r = getModelBounds(m)
 		def c = cache[m]
@@ -148,7 +154,7 @@ class OccurrenceTrack extends GeologyTrack {
 	}
 
 	def getSymbolSize() {
-		return (getParameter("symbol-size", "32") as Integer)
+		return (getParameter("symbol-size", PARAMETERS['symbol-size'].defaultValue) as Integer)
 	}
 	
 	Rectangle2D getModelBounds(Model m) {
@@ -190,4 +196,5 @@ class CachedOccurrence {
 	Rectangle bounds
 	URL image
 	def scalingFactor
+	int symbolSize
 }

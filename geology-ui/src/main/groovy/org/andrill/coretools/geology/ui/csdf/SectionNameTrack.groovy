@@ -22,11 +22,11 @@ class SectionNameTrack extends GeologyTrack {
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]
 
-	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }	
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
 	
 	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
-	def getWidth()  { return 32 }
+	def getWidth()  { return 96 }
 	def getFilter() { return { it instanceof Section }}
 	
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {

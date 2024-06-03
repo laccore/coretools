@@ -22,8 +22,9 @@ import org.andrill.coretools.geology.ui.event.CreatePolicy
 import org.andrill.coretools.geology.ui.event.ResizePolicy
 import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.graphics.fill.*
-import org.andrill.coretools.model.Model;
+import org.andrill.coretools.model.Model
 import org.andrill.coretools.scene.event.SceneEventHandler
+import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
 
 /**
@@ -32,15 +33,18 @@ import org.andrill.coretools.scene.event.DefaultTrackEventHandler
  * @author Josh Reed (jareed@andrill.org)
  */
 class IntervalTrack extends GeologyTrack {
-	// Properties:
-	//   * track-header:   string; the text or image to draw in the header
-	//   * track-footer:   string; the text or image to draw in the footer
-	//   * draw-outline:   boolean; draw outline of interval
+	private static final String DEFAULT_TITLE = "Lithology"
+	private static final PARAMETERS = [
+		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "Draw a border around intervals.", TrackParameter.Type.BOOLEAN, "true"),
+		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
+		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
+	]
+	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
 
 	def getFilter() { return { it instanceof Interval } }
 	List<Class> getCreatedClasses() { return [Interval] }
-	def getHeader() { "Lithology" }
-	def getFooter() { "Lithology" }
+	def getHeader() { DEFAULT_TITLE }
+	def getFooter() { DEFAULT_TITLE }
 	def getWidth()  { return 72 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(Interval.class, [:]), new ResizePolicy()])
@@ -57,7 +61,7 @@ class IntervalTrack extends GeologyTrack {
 			graphics.setFill(getFill(m))
 			graphics.fillPolygon(outline)
 		}
-		if (Boolean.parseBoolean(getParameter('draw-outline', 'true'))) {
+		if (Boolean.parseBoolean(getParameter('draw-outline', PARAMETERS['draw-outline'].defaultValue))) {
 			graphics.drawPolygon(outline)
 		}
 	}

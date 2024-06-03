@@ -1,8 +1,10 @@
 <scene class="org.andrill.coretools.scene.DefaultScene">
 	<track class="org.andrill.coretools.geology.ui.ImageTrack"/>
-	<track class="org.andrill.coretools.geology.ui.UnitTrack"/>
+	<track class="org.andrill.coretools.geology.ui.csdf.UnitTrack"/>
 	<track class="org.andrill.coretools.geology.ui.RulerTrack" constraints="72"/>
-	<track class="org.andrill.coretools.geology.ui.IntervalTrack" constraints="72"/>
-	<track class="org.andrill.coretools.geology.ui.OccurrenceTrack"/>
+	<track class="org.andrill.coretools.geology.ui.csdf.LithologyTrack" constraints="144"/>
+	<track class="org.andrill.coretools.geology.ui.csdf.FeatureTrack" constraints="144"/>
+	<track class="org.andrill.coretools.geology.ui.csdf.GrainSizeTrack" constraints="72"/>
+	<track class="org.andrill.coretools.geology.ui.csdf.BeddingTrack" constraints="72"/>
 	<track class="org.andrill.coretools.geology.ui.AnnotationTrack" constraints="*"/>
 </scene>

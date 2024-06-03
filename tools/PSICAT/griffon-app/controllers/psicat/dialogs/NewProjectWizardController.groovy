@@ -70,9 +70,7 @@ class NewProjectWizardController {
 		if (model.file) {
 			Project project = new DefaultProject(model.file)
 			project.name = model.name ?: model.file.name
-			// 6/3/2024 Outcrops are broken and no one has ever asked for them in PSICAT. Disabling.
-			// project.origin = model.originTop ? 'top' : 'base'
-			project.origin = model.originTop
+			project.origin = 'top'
 			project.units = model.units
 			project.fontSize = '11' // default to medium font size - no GUI for now
 			project.saveConfiguration()

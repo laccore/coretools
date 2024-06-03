@@ -22,7 +22,7 @@ import psicat.util.Dialogs
 @Bindable class NewProjectWizardModel {
 	String name
 	String filePath
-	boolean originTop = true
+	// boolean originTop = true // 6/3/2024 disabling Well option
 	String units = 'cm'
 	boolean importSections = false
 	boolean useCustomSchemes = false

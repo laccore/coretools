@@ -20,8 +20,8 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.misc.util.SceneUtils
-import org.andrill.coretools.geology.ui.*
-import org.andrill.coretools.geology.ui.csdf.*
+import org.andrill.coretools.geology.ui.ImageTrack
+import org.andrill.coretools.geology.models.Length
 
 import psicat.util.*
 
@@ -58,6 +58,7 @@ class ExportDiagramWizardController {
 
 		scene.scalingFactor = 1000
 		scene.setRenderHint("preferred-units", view.units.selectedItem)
+		// scene.setRenderHint("borders", "false")
 		
 		// export each container
 		containers.eachWithIndex { k, v, index ->
@@ -70,7 +71,8 @@ class ExportDiagramWizardController {
 				sectionTop = section.top
 				GeoUtils.adjustUp(v, sectionTop)
 			}
-			final String sectionName = section?.name ?: ""
+			// final String sectionName = section?.name ?: ""
+			final String sectionName = ""
 			
 			// validate our scene
 			scene.models = v
@@ -79,7 +81,9 @@ class ExportDiagramWizardController {
 			// figure out the extents
 			def start = model.exportAll ? scene.contentSize.minY / scene.scalingFactor : model.start as Double
 			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
-			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, 1)
+			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, view.units.selectedItem.equals("cm") ? 100 : 1)
+
+			// println "scene.contentSize.maxY = ${scene.contentSize.maxY} start: $start, end: $end, end-start: ${end - start} pageSize: $pageSize"
 
 			Paper paper = null
 			if (model.standardFormat) {
@@ -108,9 +112,9 @@ class ExportDiagramWizardController {
 				if (imageTrack) { imageTrack.setParameter("embed-image", "true") }
 			}
 
-			if (!model.renderIntervalOutlines) {
-				def intervalTracks = scene.tracks.findAll { isIntervalTrack(it) }
-				intervalTracks.each { it.setParameter("draw-outline", "false") }
+			// Override the scene columns' draw-outline settings for now...
+			scene.tracks.findAll { it.PARAMETERS.containsKey("draw-outline") }.each {
+				it.setParameter("draw-outline", Boolean.toString(model.renderIntervalOutlines))
 			}
 
 			RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
@@ -119,15 +123,6 @@ class ExportDiagramWizardController {
 		
 		view.progress.value = 100
 		view.progress.string = "Export complete!"
-	}
-
-	private isIntervalTrack(track) {
-		boolean isInterval = track instanceof IntervalTrack ||
-			track instanceof BeddingTrack ||
-			track instanceof org.andrill.coretools.geology.ui.csdf.GrainSizeTrack ||
-			track instanceof org.andrill.coretools.geology.ui.csdf.LithologyTrack ||
-			track instanceof TextureTrack
-		return isInterval
 	}
 	
     def show() { 

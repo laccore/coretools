@@ -27,7 +27,7 @@ actions {
 	)
 	action(
 		id: 'newProjectAction',
-		name: 'Project...',
+		name: 'New Project...',
 		closure: controller.actions['newProject'],
 		accelerator: shortcut('N', 1),
 		shortDescription: 'Create a new project'
@@ -41,12 +41,19 @@ actions {
 		shortDescription: 'Create sections from image data'
 	)
 	action(
+		id: 'newCompositeSectionAction',
+		name: 'Composite Section (Stratigraphic Column)...',
+		enabled: bind { model.project != null },
+		closure: controller.actions['createStratSection'],
+		shortDescription: 'Create a composite section with section metadata or a Splice Interval Table'
+	)	
+	action(
 		id: 'newSectionAction',
-		name: 'Section...',
+		name: 'Section from depth range...',
 		closure: controller.actions['newSection'],
 		enabled: bind { model.project != null },
 		accelerator: shortcut('N'),
-		shortDescription: 'Create a new section'
+		shortDescription: 'Create a new section based on a depth interval and optional image'
 	)
 	action(
 		id: 'openProjectAction',
@@ -66,11 +73,6 @@ actions {
 		id: 'openSectionAction',
 		name: 'Open Section',
 		closure: controller.actions['openSection']
-	)
-	action(
-		id: 'createStratSectionAction',
-		name: 'Create Strat Section...',
-		closure: controller.actions['createStratSection']
 	)
 	action(
 		id: 'closeAction',

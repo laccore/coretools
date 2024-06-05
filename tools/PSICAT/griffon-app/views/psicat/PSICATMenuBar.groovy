@@ -19,20 +19,22 @@ import static griffon.util.GriffonApplicationUtils.*
 
 menuBar(id: 'menuBar') {
 	menu(text: 'File', mnemonic: 'F') {
-		menu(text: 'New') {
-			menuItem(newProjectAction)
-			menuItem(importImageAction)
-			menuItem(newSectionAction)
-		}
+		menuItem(newProjectAction)
 		menuItem(openProjectAction)
 		menuItem(closeProjectAction)
 		menuItem(openDISAction)
 		separator()
-		menuItem(closeAction)
-		menuItem(closeAllAction)
+		menu(text: 'Create New') {
+			menuItem(importImageAction)
+			menuItem(newCompositeSectionAction)
+			menuItem(newSectionAction)
+		}
 		separator()
 		menuItem(saveAction)
 		menuItem(saveAllAction)
+		separator()
+		menuItem(closeAction)
+		menuItem(closeAllAction)
 		separator()
 		menuItem(deleteSectionAction)
 		separator()
@@ -90,11 +92,11 @@ menuBar(id: 'menuBar') {
 		// 	radioButtonMenuItem(inUnitsAction, selected: bind { model.diagramState.units == 'in'})
 		// }
 		// TODO - remove
-		menu(text:"Font Size") {
-			menuItem(smallFontSizeAction)
-			menuItem(mediumFontSizeAction)
-			menuItem(largeFontSizeAction)
-		}
+		// menu(text:"Font Size") {
+		// 	menuItem(smallFontSizeAction)
+		// 	menuItem(mediumFontSizeAction)
+		// 	menuItem(largeFontSizeAction)
+		// }
 	}
 
 	menu(text: 'Help', mnemonic:'H') {
@@ -104,7 +106,6 @@ menuBar(id: 'menuBar') {
 		menuItem(feedbackAction)
 	}
 
-	menu(text: 'Debug', mnemonic:'D') {
-		menuItem(createStratSectionAction)
-	}
+	// menu(text: 'Debug', mnemonic:'D') {
+	// }
 }

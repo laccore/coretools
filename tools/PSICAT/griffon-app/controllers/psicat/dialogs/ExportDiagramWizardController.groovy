@@ -58,7 +58,7 @@ class ExportDiagramWizardController {
 
 		scene.scalingFactor = 1000
 		scene.setRenderHint("preferred-units", view.units.selectedItem)
-		// scene.setRenderHint("borders", "false")
+		scene.setRenderHint("borders", Boolean.toString(model.renderColumnBorders))
 		
 		// export each container
 		containers.eachWithIndex { k, v, index ->

@@ -63,9 +63,10 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 
 	separator(constraints: 'span, growx, wrap')
 
-	checkBox(text: 'Render Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true))
-	checkBox(text: 'Render Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'wrap')
-	checkBox(text: 'Render Interval Outlines', selected: bind(source: model, sourceProperty:'renderIntervalOutlines', mutual:true), constraints: 'wrap')
+	checkBox(text: 'Draw Header', selected: bind(source: model, sourceProperty:'renderHeader', mutual:true))
+	checkBox(text: 'Draw Footer', selected: bind(source: model, sourceProperty:'renderFooter', mutual:true), constraints: 'wrap')
+	checkBox(text: 'Draw Column Borders', selected: bind(source: model, sourceProperty:'renderColumnBorders', mutual:true))
+	checkBox(text: 'Draw Interval Outlines', selected: bind(source: model, sourceProperty:'renderIntervalOutlines', mutual:true), constraints: 'wrap')
 	separator(constraints: 'span, growx, wrap')
 	
 	label('Output Directory:')

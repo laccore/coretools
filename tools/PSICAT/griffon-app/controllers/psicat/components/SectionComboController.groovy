@@ -60,7 +60,7 @@ class SectionComboController {
 	def selectedSectionChanged = { evt ->
 		if (this.selection.equals(model.customSectionsText)) {
 			final int option = JOptionPane.showConfirmDialog(app.appFrames[0], [ view.sectionChooser ].toArray(),
-				"Select Sections", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+				"Select Sections for Export", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 			if (option == JOptionPane.OK_OPTION) {
 				model.customSections = view.sectionList.selectedValues
 			}

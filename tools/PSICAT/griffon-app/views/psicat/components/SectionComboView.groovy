@@ -18,6 +18,7 @@ package psicat.components
 import net.miginfocom.swing.MigLayout
 
 panel(id:'sectionChooser', layout: new MigLayout('fill, insets 5, wrap')) {
+	label("Select sections to export.")
 	scrollPane(constraints:'grow, wrap, hmin 400') {
 		list(id:'sectionList', items:model.project.containers)
 	}

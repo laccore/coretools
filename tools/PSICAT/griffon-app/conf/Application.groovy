@@ -69,6 +69,11 @@ mvcGroups {
 		controller="psicat.dialogs.ExportStratColumnWizardController"
 		view="psicat.dialogs.ExportStratColumnWizardView"
 	}
+	ExportStrat {
+		model="psicat.dialogs.ExportStratModel"
+		controller="psicat.dialogs.ExportStratController"
+		view="psicat.dialogs.ExportStratView"		
+	}
 	ImportImageWizard {
 		model="psicat.dialogs.ImportImageWizardModel"
 		controller="psicat.dialogs.ImportImageWizardController"

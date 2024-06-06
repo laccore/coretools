@@ -26,8 +26,8 @@ menuBar(id: 'menuBar') {
 		separator()
 		menu(text: 'Create New') {
 			menuItem(importImageAction)
-			menuItem(newCompositeSectionAction)
 			menuItem(newSectionAction)
+			menuItem(newCompositeSectionAction)
 		}
 		separator()
 		menuItem(saveAction)

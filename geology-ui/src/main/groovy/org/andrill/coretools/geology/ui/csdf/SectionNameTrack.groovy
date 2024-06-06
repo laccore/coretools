@@ -18,6 +18,8 @@ import org.andrill.coretools.geology.ui.GeologyTrack
 class SectionNameTrack extends GeologyTrack {
 	private static final String DEFAULT_TITLE = "Section"
 	private static final PARAMETERS = [
+		"omit-prefix" : new TrackParameter("omit-prefix", "Omit prefix", "<html>Text at the start of all section names to omit. Results in larger, more concise ID components.<br>Example: for sections GLAD9-PET06-2A-1H-1, GLAD9-PET06-2A-1H-2, GLAD9-PET06-2A-2H-1...,<br>if 'GLAD9-PET06-' is omitted, drawn section names will be 2A-1H-1, 2A-1H-2, 2A-2H-1...", TrackParameter.Type.STRING, ""),
+		"omit-suffix" : new TrackParameter("omit-suffix", "Omit suffix", "Text at the end of all section names to omit.", TrackParameter.Type.STRING, ""),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]
@@ -32,7 +34,7 @@ class SectionNameTrack extends GeologyTrack {
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
 		def r = getModelBounds(m)
 		
-		String name = m.name ?: ''
+		String name = m.name ? omit(m.name): ''
 		if (name.length() > 0) {
 			def oldClip = graphics.getClip() // clip to model bounds
 			graphics.setClip(r.createIntersection(oldClip))
@@ -62,5 +64,22 @@ class SectionNameTrack extends GeologyTrack {
 		def ytop = pts(m.top.to(units).value, bounds)
 		def ybase = pts(m.base.to(units).value, bounds)
 		graphics.drawRectangle(bounds.minX, ytop, bounds.maxX - bounds.minX, ybase - ytop)
+	}
+
+	private String omit(String sectionName) {
+		def result = sectionName
+		if (hasParameter("omit-prefix")) {
+			String prefix = getParameter("omit-prefix", "")
+			if (prefix.length() > 0 && sectionName.startsWith(prefix)) {
+				result = result.substring(prefix.length())
+			}
+		}
+		if (hasParameter("omit-suffix")) {
+			String suffix = getParameter("omit-suffix", "")
+			if (suffix.length() > 0 && sectionName.endsWith(suffix)) {
+				result = result.substring(0, result.length() - suffix.length())
+			}
+		}
+		return result
 	}
 }

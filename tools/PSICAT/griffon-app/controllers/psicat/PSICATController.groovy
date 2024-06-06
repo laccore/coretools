@@ -262,14 +262,15 @@ class PSICATController {
 		return matcher
 	}
 
-	private createProjectScene(project, scene) {
+	private createProjectScene(project, scene, name) {
 		File sceneDir = project.sceneDir
 		sceneDir.mkdirs()
-		File sceneFile = new File(sceneDir, "main.diagram") // or just stick with template.diagram???
+		File sceneFile = new File(sceneDir, name) // or just stick with template.diagram???
 		SceneUtils.toXML(scene, new FileWriter(sceneFile))
 		project.scenes.add(sceneFile.toURI().toURL())
 	}
 
+	// get diagram scene? editing scene? main scene?
 	Scene getProjectScene(project) {
 		def scene = null
 		if (project.scenes) {
@@ -277,7 +278,24 @@ class PSICATController {
 		}
 		if (!scene) {
 			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
-			createProjectScene(project, scene)
+			createProjectScene(project, scene, "main.diagram")
+		}
+		return scene
+	}
+
+	Scene getStratColumnScene(project) {
+		def scene = null
+		if (project.scenes) {
+			// scene = SceneUtils.fromXML(project.scenes[0])
+			File scFile = new File(project.sceneDir, "stratcolumn.diagram")
+			if (scFile.exists()) {
+				URL scUrl = scFile.toURI().toURL()
+				scene = SceneUtils.fromXML(scUrl)
+			}
+		}
+		if (!scene) {
+			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/stratcolumn.diagram"))
+			createProjectScene(project, scene, "stratcolumn.diagram")
 		}
 		return scene
 	}

@@ -58,11 +58,11 @@ class SectionComboController {
 	}
 
 	def selectedSectionChanged = { evt ->
-		if (this.selection.equals(model.customSectionsText)) {
+		if (this.selection.equals(model.selectSectionsText)) {
 			final int option = JOptionPane.showConfirmDialog(app.appFrames[0], [ view.sectionChooser ].toArray(),
 				"Select Sections for Export", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 			if (option == JOptionPane.OK_OPTION) {
-				model.customSections = view.sectionList.selectedValues
+				model.selectedSections = view.sectionList.selectedValues
 			}
 		}
 	}
@@ -84,8 +84,8 @@ class SectionComboController {
 			project.containers.each { c ->
 				containers[c] = copy(c)
 			}
-		} else if (view.section.selectedItem == model.customSectionsText) {
-			model.customSections.each { c ->
+		} else if (view.section.selectedItem == model.selectSectionsText) {
+			model.selectedSections.each { c ->
 				containers[c] = copy(c)
 			}
 		} else {
@@ -114,8 +114,8 @@ class SectionComboController {
         	containers[project.name] = container
         } else if (model.eachSection && view.section.selectedItem == model.eachSectionText) {
 			project.containers.each { containers[it] = project.openContainer(it) }
-        } else if (view.section.selectedItem == model.customSectionsText) {
-			model.customSections.each { containers[it] = project.openContainer(it) }
+        } else if (view.section.selectedItem == model.selectSectionsText) {
+			model.selectedSections.each { containers[it] = project.openContainer(it) }
 		} else {
 			def section = view.section.selectedItem
 			containers[section] = project.openContainer(section)

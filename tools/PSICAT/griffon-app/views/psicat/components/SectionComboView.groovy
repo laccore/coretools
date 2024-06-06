@@ -28,7 +28,7 @@ panel(id:'sectionChooser', layout: new MigLayout('fill, insets 5, wrap')) {
 def items = []
 if (model.allSections) { items.add(model.allSectionsText) }
 if (model.eachSection) { items.add(model.eachSectionText) }
-items.add(model.customSectionsText)
+if (model.selectSections) { items.add(model.selectSectionsText) }
 items.addAll(model.project.containers)
 
 // the panel

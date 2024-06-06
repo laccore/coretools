@@ -22,8 +22,9 @@ import groovy.beans.Bindable
 	def project
 	boolean allSections = false
 	boolean eachSection = true
+	boolean selectSections = true
 	String allSectionsText = "All Sections"
 	String eachSectionText = "Each Section"
-	String customSectionsText = "Select Sections..."
-	def customSections = []
+	String selectSectionsText = "Select Sections..."
+	def selectedSections = []
 }

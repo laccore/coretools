@@ -28,13 +28,13 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	textField(text: bind(source: model, sourceProperty:'name', mutual: true), constraints: 'width min(200px), growx, span, wrap')
 
 	// range
-	label('Range:')
+	label('Range (m):')
 	textField(columns: 4, text: bind(source: model, sourceProperty:'top', mutual: true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split')
 	label('-', constraints: 'split')
 	textField(columns: 4, text: bind(source: model, sourceProperty:'base', mutual: true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split, wrap')
 	separator(constraints: 'growx, span, wrap')
 
-	label('Image:')
+	label('Image (optional):')
 	textField(text: bind(source: model, sourceProperty:'filePath', mutual:true), constraints:'width min(200px), growx')
 	button(action: browseAction, constraints: 'wrap')
 }

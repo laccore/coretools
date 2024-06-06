@@ -565,13 +565,8 @@ Working Dir: ${System.getProperty("user.dir")}
 			}
 		},
 		'exportStratColumn': { evt = null ->
-			def file = StratColumnMetadataUtils.chooseMetadataFile(app.appFrames[0])
-			if (file) {
-				withMVC('ExportStratColumnWizard', project: model.project, metadataPath:file.absolutePath) { mvc ->
-					if (mvc.controller.chooseMetadata()) {
-						model.status = mvc.controller.show()
-					}
-				}
+			withMVC('ExportStrat', project:model.project) { mvc ->
+				mvc.controller.show()
 			}
 		},
 		'diagramOptions': { evt = null ->

@@ -14,6 +14,7 @@ class DiagramOptionsController {
 
 	void mvcGroupInit(Map args) {
 		model.scene = args.scene
+		model.sceneDirty = false
 	}
 
 	def show() {
@@ -42,6 +43,8 @@ class DiagramOptionsController {
 
 				// update project scene
 				setTrackParams(model.scene, mvc.model.track.class, paramValues)
+
+				model.sceneDirty = true
 			}
 		}
 	}
@@ -69,6 +72,7 @@ class DiagramOptionsController {
 		if (newWidth != null) {
 			this.model.scene.setTrackConstraints(view.trackList.selectedValue, newWidth)
 		}
+		model.sceneDirty = true
 	}
 
 	def addColumn = { evt = null ->
@@ -78,6 +82,7 @@ class DiagramOptionsController {
 			model.trackListModel.addElement(t)
 			model.scene.addTrack(t, "") // empty string to use track's default width constraint
 			model.scene.invalidate()
+			model.sceneDirty = true
 		}
 	}
 
@@ -89,6 +94,7 @@ class DiagramOptionsController {
 			idx < model.trackListModel.size() - 1 ? view.trackList.setSelectedIndex(idx) : view.trackList.setSelectedIndex(idx-1)
 		}
 		model.scene.invalidate()
+		model.sceneDirty = true
 	}
 
 	def moveColumnUp = { evt = null ->
@@ -100,6 +106,7 @@ class DiagramOptionsController {
 			model.trackListModel.insertElementAt(t, idx-1)
 			view.trackList.setSelectedIndex(idx-1)
 			model.scene.invalidate()
+			model.sceneDirty = true
 		}
 	}
 
@@ -112,6 +119,7 @@ class DiagramOptionsController {
 			model.trackListModel.insertElementAt(t, idx+1)
 			view.trackList.setSelectedIndex(idx+1)
 			model.scene.invalidate()
+			model.sceneDirty = true
 		}
 	}
 }

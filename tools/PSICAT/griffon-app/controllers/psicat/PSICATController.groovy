@@ -590,24 +590,30 @@ Working Dir: ${System.getProperty("user.dir")}
 
 			withMVC('DiagramOptions', scene:scene) { mvc ->
 				if (mvc.controller.show()) {
-					if (model.project.scenes) {
-						FileWriter writer = new FileWriter(new File(model.project.scenes[0].toURI()))
-						SceneUtils.toXML(mvc.model.scene, writer)
+					if (mvc.model.sceneDirty) {
+						if (model.project.scenes) {
+							FileWriter writer = new FileWriter(new File(model.project.scenes[0].toURI()))
+							SceneUtils.toXML(mvc.model.scene, writer)
+						} else {
+							println "Project has no diagrams, can't save"
+						}
 					} else {
-						println "Project has no diagrams, can't save"
+						println "No changes to main diagram scene, not saving."
 					}
 				} else {
-					// User cancelled, revert changes by closing and reopening diagrams
-					def diagramIds = model.openDiagrams.collect { it.model.id }
-					while (model.activeDiagram != null) { closeDiagram(model.activeDiagram)	}
-					diagramIds.each { app.controllers['PSICAT'].actions.openSection(null, it) }
-					
-					// restore last active diagram
-					if (activeDiagramId) {
-						for (int i = 0; i < view.diagrams.getTabCount(); i++) {
-							if (view.diagrams.getTitleAt(i).equals(activeDiagramId)) {
-								view.diagrams.setSelectedIndex(i)
-								break
+					if (mvc.model.sceneDirty) {
+						// User cancelled after modifying the scene; revert changes by closing and reopening diagrams
+						def diagramIds = model.openDiagrams.collect { it.model.id }
+						while (model.activeDiagram != null) { closeDiagram(model.activeDiagram)	}
+						diagramIds.each { app.controllers['PSICAT'].actions.openSection(null, it) }
+						
+						// restore last active diagram
+						if (activeDiagramId) {
+							for (int i = 0; i < view.diagrams.getTabCount(); i++) {
+								if (view.diagrams.getTitleAt(i).equals(activeDiagramId)) {
+									view.diagrams.setSelectedIndex(i)
+									break
+								}
 							}
 						}
 					}

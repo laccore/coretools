@@ -97,7 +97,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     	def project = model.project
 
     	// select a scene
-		def scene = app.controllers['PSICAT'].getProjectScene(project)
+		def scene = app.controllers['PSICAT'].getDiagramScene(project)
 	    			
     	// open our containers
 		def models = null

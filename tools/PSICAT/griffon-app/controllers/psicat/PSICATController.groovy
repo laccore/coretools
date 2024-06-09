@@ -65,6 +65,9 @@ class PSICATController {
 
 	private def prefs = Preferences.userNodeForPackage(PSICATController)
 	private static Logger logger = Logger.getLogger(PSICATController.class)
+
+	public final String DIAGRAM_SCENE_FILE = "main.diagram"
+	public final String STRATCOL_SCENE_FILE = "stratcolumn.diagram"
 	
 	void mvcGroupInit(Map args) {}
 
@@ -262,23 +265,22 @@ class PSICATController {
 		return matcher
 	}
 
-	private createProjectScene(project, scene, name) {
+	private addSceneToProject(project, scene, name) {
 		File sceneDir = project.sceneDir
 		sceneDir.mkdirs()
-		File sceneFile = new File(sceneDir, name) // or just stick with template.diagram???
+		File sceneFile = new File(sceneDir, name)
 		SceneUtils.toXML(scene, new FileWriter(sceneFile))
 		project.scenes.add(sceneFile.toURI().toURL())
 	}
 
-	// get diagram scene? editing scene? main scene?
-	Scene getProjectScene(project) {
+	Scene getDiagramScene(project) {
 		def scene = null
 		if (project.scenes) {
 			scene = SceneUtils.fromXML(project.scenes[0])
 		}
 		if (!scene) {
-			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template.diagram"))
-			createProjectScene(project, scene, "main.diagram")
+			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/main.diagram"))
+			addSceneToProject(project, scene, DIAGRAM_SCENE_FILE)
 		}
 		return scene
 	}
@@ -286,8 +288,7 @@ class PSICATController {
 	Scene getStratColumnScene(project) {
 		def scene = null
 		if (project.scenes) {
-			// scene = SceneUtils.fromXML(project.scenes[0])
-			File scFile = new File(project.sceneDir, "stratcolumn.diagram")
+			File scFile = new File(project.sceneDir, STRATCOL_SCENE_FILE)
 			if (scFile.exists()) {
 				URL scUrl = scFile.toURI().toURL()
 				scene = SceneUtils.fromXML(scUrl)
@@ -295,7 +296,7 @@ class PSICATController {
 		}
 		if (!scene) {
 			scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/stratcolumn.diagram"))
-			createProjectScene(project, scene, "stratcolumn.diagram")
+			addSceneToProject(project, scene, STRATCOL_SCENE_FILE)
 		}
 		return scene
 	}
@@ -312,10 +313,13 @@ class PSICATController {
 						actions.chooseSchemes()
 					} else {
 						ProjectLocal.copyDefaultSchemes(project, mvc.model.defaultSchemePaths)
-					}					
+					}
 					if (mvc.model.importSections) {
 						actions.importImage()
 					}
+					// 6/9/2024: As of 1.2.0, all new projects are created with a diagrams dir and default diagram scene.
+					def scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/main.diagram"))
+					addSceneToProject(project, scene, DIAGRAM_SCENE_FILE)
 				}
 			}
 		},
@@ -330,6 +334,17 @@ class PSICATController {
 			if (file && canClose(evt)) {
 				if (isProject(file)) { 
 					openProject(new DefaultProject(file))
+					if (model.project) {
+						if (!model.project.sceneDir.exists()) {
+							// project has no sceneDir ("diagrams" by default). As of 1.2.0, all new projects
+							// are created with a sceneDir and the default diagram template (main.diagram).
+							// So this project must be an old legacy project. Create a sceneDir and add the old
+							// default diagram template (template_pre120.diagram).
+							println "Legacy project, adding old template!"
+							def scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template_pre120.diagram"))
+							addSceneToProject(model.project, scene, DIAGRAM_SCENE_FILE)
+						}
+					}
 				} else {
 					Dialogs.showErrorDialog("Open Project", "The selected directory is not a PSICAT project directory.", app.appFrames[0])
 				}
@@ -581,14 +596,15 @@ Working Dir: ${System.getProperty("user.dir")}
 			def scene = null
 			def activeDiagramId = null
 			if (!model.activeDiagram) {	// no active diagram, fake out a scene
-				scene = getProjectScene(model.project)
+				scene = getDiagramScene(model.project)
 				scene.models = Platform.getService(ModelContainer.class)
 			} else {
 				scene = model.activeDiagram.model.scene
 				activeDiagramId = model.activeDiagram.model.id
 			}
 
-			withMVC('DiagramOptions', scene:scene, diagramTypeText:"<html>Changes will be reflected in the live diagram editing view and exported diagrams.<br>Stratigraphic column export diagrams will not be affected.</html>") { mvc ->
+			final diagramTypeText = "<html>Changes will be reflected in the live diagram editing view and exported diagrams.<br>Stratigraphic column export diagrams will not be affected.</html>"
+			withMVC('DiagramOptions', scene:scene, diagramTypeText:diagramTypeText) { mvc ->
 				if (mvc.controller.show()) {
 					if (mvc.model.sceneDirty) {
 						if (model.project.scenes) {

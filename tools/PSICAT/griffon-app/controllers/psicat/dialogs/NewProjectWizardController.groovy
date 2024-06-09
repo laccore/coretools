@@ -82,13 +82,16 @@ class NewProjectWizardController {
 	
 	private def getDefaultSchemes(type) {
 		def schemes = [:]
-		def res = new File("resources")
-		if (res.exists() && res.isDirectory()) {
-			res.listFiles().each { f ->
-				if (f.name.endsWith(".jar")) {
-					def schemeInfo = getSchemeInfo(f)
-					if (schemeInfo && schemeInfo.type == type) {
-						schemes[schemeInfo.name] = f.absolutePath
+		def schemeSearchPaths = ["resources", "/Library/Application Support/PSICAT/Default Schemes"]
+		schemeSearchPaths.each {
+			File path = new File(it)
+			if (path.exists() && path.isDirectory()) {
+				path.listFiles().each { f ->
+					if (f.name.endsWith(".jar")) {
+						def schemeInfo = getSchemeInfo(f)
+						if (schemeInfo && schemeInfo.type == type) {
+							schemes[schemeInfo.name] = f.absolutePath
+						}
 					}
 				}
 			}

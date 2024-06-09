@@ -588,7 +588,7 @@ Working Dir: ${System.getProperty("user.dir")}
 				activeDiagramId = model.activeDiagram.model.id
 			}
 
-			withMVC('DiagramOptions', scene:scene) { mvc ->
+			withMVC('DiagramOptions', scene:scene, diagramTypeText:"<html>Changes will be reflected in the live diagram editing view and exported diagrams.<br>Stratigraphic column export diagrams will not be affected.</html>") { mvc ->
 				if (mvc.controller.show()) {
 					if (mvc.model.sceneDirty) {
 						if (model.project.scenes) {

@@ -21,7 +21,7 @@ import org.andrill.coretools.graphics.util.Paper
 actions {
 	action(id: 'browseAction', name:'...', closure: controller.actions.browse)
 	action(id: 'exportAction', name:'Export', closure: controller.actions.export)
-	action(id: 'diagramOptionsAction', name:'Diagram Options...', closure: controller.actions.diagramOptions)
+	action(id: 'diagramOptionsAction', name:'Edit Strat Diagram Columns...', closure: controller.actions.diagramOptions)
 }
 
 def section = buildMVCGroup('SectionCombo', 'exportStratSections', project: model.project, allSections:false, eachSection:false, selectSections:false).view.root
@@ -45,7 +45,11 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 		label('pixels', enabled: bind { !model.standardFormat }, constraints: 'wrap')
 	}
 
-	button(id:'diagramOptionsButton', action:diagramOptionsAction, constraints:'wrap')
+	label('Included Columns:')
+	panel(constraints:'wrap') {
+		label(id: 'columnsLabel', constraints:'grow', text: bind(source:model, sourceProperty:'diagramColumns'))
+		button(id:'diagramOptionsButton', action:diagramOptionsAction, constraints:'wrap')
+	}
 
 	separator(constraints: 'span, growx, wrap')
 

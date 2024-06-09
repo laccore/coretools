@@ -14,6 +14,7 @@ class DiagramOptionsController {
 
 	void mvcGroupInit(Map args) {
 		model.scene = args.scene
+		model.diagramTypeText = args.diagramTypeText
 		model.sceneDirty = false
 	}
 

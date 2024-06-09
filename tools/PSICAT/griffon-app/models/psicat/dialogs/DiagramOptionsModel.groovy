@@ -9,5 +9,6 @@ class DiagramOptionsModel {
 	@Bindable scene
 	@Bindable trackListModel = new DefaultListModel<Track>()
 	@Bindable int selectedTrackIndex = -1
+	@Bindable String diagramTypeText
 	boolean sceneDirty
 }

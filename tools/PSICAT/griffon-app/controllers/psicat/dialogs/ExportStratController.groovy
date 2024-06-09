@@ -18,6 +18,7 @@ import org.andrill.coretools.Platform
 import org.andrill.coretools.graphics.util.Paper
 import org.andrill.coretools.misc.util.RenderUtils
 import org.andrill.coretools.misc.util.SceneUtils
+import org.andrill.coretools.misc.util.StringUtils
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.geology.ui.ImageTrack
 import org.andrill.coretools.geology.models.Length
@@ -30,9 +31,18 @@ class ExportStratController {
 
     void mvcGroupInit(Map args) { 
 		model.scene = app.controllers['PSICAT'].getStratColumnScene(args.project)
+		model.diagramColumns = getDiagramColumnsText()
 		model.scene.models = Platform.getService(ModelContainer.class) // must set a container
 	}
     void mvcGroupDestroy() { destroyMVCGroup('exportStratSections') }
+
+	private void updateDiagramColumns() {
+		model.diagramColumns = getDiagramColumnsText()
+	}
+
+	private String getDiagramColumnsText() {
+		return "<html>" + model.scene.tracks.collect { StringUtils.uncamel(it.class.simpleName).replace("Track", "Column") }.join("<br>") + "</html>"
+	}
 
     def actions = [
 	    'browse': {
@@ -47,18 +57,23 @@ class ExportStratController {
 			}
 		},
 		'diagramOptions': {
-			app.controllers['PSICAT'].withMVC('DiagramOptions', scene:model.scene) { mvc ->
+			app.controllers['PSICAT'].withMVC('DiagramOptions', scene:model.scene, diagramTypeText:"<html>Changes will be reflected only in exported stratigraphic columns.<br>Live diagram editing and exported diagrams will not be affected.</html>") { mvc ->
 				if (mvc.controller.show()) {
-					if (model.project.scenes) {
-						File stratColumnTemplate = new File(model.project.sceneDir, "stratcolumn.diagram")
-						if (stratColumnTemplate.exists()) {
-							FileWriter writer = new FileWriter(stratColumnTemplate)
-							SceneUtils.toXML(mvc.model.scene, writer)
+					if (mvc.model.sceneDirty) {
+						updateDiagramColumns()
+						if (model.project.scenes) {
+							File stratColumnTemplate = new File(model.project.sceneDir, "stratcolumn.diagram")
+							if (stratColumnTemplate.exists()) {
+								FileWriter writer = new FileWriter(stratColumnTemplate)
+								SceneUtils.toXML(mvc.model.scene, writer)
+							} else {
+								println "Can't find stratcolumn.diagram, no dice!"
+							}
 						} else {
-							println "Can't find stratcolumn.diagram, no dice!"
+							println "Project has no diagrams, can't save"
 						}
 					} else {
-						println "Project has no diagrams, can't save"
+						println "No changes to strat column scene, not saving."
 					}
 				} else {
 					// User cancelled, no need to do anything here.

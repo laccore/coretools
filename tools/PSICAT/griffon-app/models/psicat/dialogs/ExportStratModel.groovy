@@ -35,4 +35,5 @@ class ExportStratModel {
 	@Bindable String units = "m"
 	@Bindable String filePath = Dialogs.currentSaveDir.absolutePath
 	@Bindable String prefix = ''
+	@Bindable String diagramColumns
 }

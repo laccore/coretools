@@ -42,6 +42,7 @@ class TrackElementRenderer implements ListCellRenderer {
 }
 
 panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
+	label("${model.diagramTypeText}", id:'diagramTypeLabel', constraints:'grow, span 2, wrap, gapbottom 15')
 	panel(id:'trackPanel', constraints:'grow', border: titledBorder("Diagram Columns")) {
 		scrollPane() {
 			list(id:'trackList',

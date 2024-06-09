@@ -21,6 +21,7 @@ import org.andrill.coretools.misc.util.SceneUtils
 import org.andrill.coretools.misc.util.StringUtils
 import org.andrill.coretools.model.ModelContainer
 import org.andrill.coretools.geology.ui.ImageTrack
+import org.andrill.coretools.geology.ui.RulerTrack
 import org.andrill.coretools.geology.models.Length
 
 import psicat.util.*
@@ -41,7 +42,15 @@ class ExportStratController {
 	}
 
 	private String getDiagramColumnsText() {
-		return "<html>" + model.scene.tracks.collect { StringUtils.uncamel(it.class.simpleName).replace("Track", "Column") }.join("<br>") + "</html>"
+		return "<html>" + model.scene.tracks.collect { getColumnText(it) }.join("<br>") + "</html>"
+	}
+
+	private String getColumnText(def track) {
+		if (track instanceof RulerTrack) {
+			return "Ruler"
+		} else {
+			return track.header
+		}
 	}
 
     def actions = [
@@ -62,7 +71,7 @@ class ExportStratController {
 					if (mvc.model.sceneDirty) {
 						updateDiagramColumns()
 						if (model.project.scenes) {
-							File stratColumnTemplate = new File(model.project.sceneDir, "stratcolumn.diagram")
+							File stratColumnTemplate = new File(model.project.sceneDir, app.controllers['PSICAT'].STRATCOL_SCENE_FILE)
 							if (stratColumnTemplate.exists()) {
 								FileWriter writer = new FileWriter(stratColumnTemplate)
 								SceneUtils.toXML(mvc.model.scene, writer)

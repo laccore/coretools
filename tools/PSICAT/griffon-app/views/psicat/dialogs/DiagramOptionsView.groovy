@@ -10,6 +10,7 @@ import net.miginfocom.swing.MigLayout
 import org.andrill.coretools.scene.*
 import org.andrill.coretools.misc.util.StringUtils
 import org.andrill.coretools.geology.ui.ImageTrack
+import org.andrill.coretools.geology.ui.RulerTrack
 
 
 class TrackElementRenderer implements ListCellRenderer {
@@ -35,7 +36,8 @@ class TrackElementRenderer implements ListCellRenderer {
 		}
 
 		return new SwingBuilder().panel(layout:new MigLayout("fillx, wrap, insets 5", "[grow]", ""), background:bgcolor, border:border) {
-			label("${StringUtils.uncamel(track.class.simpleName).replace(' Track', '')}", font:trackNameFont, constraints:'grow, w 200')
+			def trackTypeLabel = track instanceof RulerTrack ? "Ruler" : track.header
+			label("$trackTypeLabel", font:trackNameFont, constraints:'grow, w 200')
 			label("Width: $widthConstraint", constraints:'grow')
 		}
 	}

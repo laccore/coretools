@@ -17,7 +17,7 @@ import org.andrill.coretools.graphics.fill.*
 class BeddingTrack extends AbstractIntervalTrack {
 	private static final String DEFAULT_TITLE = "Bedding"
 	private static final PARAMETERS = [
-		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "true"),
+		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "false"),
 		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "<html>Draw a border around intervals. Applies only when Tile symbols is <b>enabled</b>.</html>", TrackParameter.Type.BOOLEAN, "true"),
 		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "<html>Size, in pixels, of bedding symbols. Applies only when Tile symbols is <b>disabled</b>.</html>", TrackParameter.Type.INTEGER, "32"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
@@ -37,7 +37,7 @@ class BeddingTrack extends AbstractIntervalTrack {
 
 	@Override
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
-		if (Boolean.parseBoolean(getParameter("draw-repeating", "true"))) {
+		if (Boolean.parseBoolean(getParameter("draw-repeating", PARAMETERS["draw-repeating"].defaultValue))) {
 			super.renderModel(m, graphics, bounds)
 		} else {
 			def r = getModelBounds(m)

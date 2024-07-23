@@ -20,7 +20,8 @@ import org.andrill.coretools.geology.models.Length;
 import org.andrill.coretools.model.edit.Command;
 import org.andrill.coretools.model.edit.CompositeCommand;
 import org.andrill.coretools.model.edit.EditableProperty;
-/**
+
+/**
  * A Groovy implementation of the EditableProperty interface.
  * 
  * @author Josh Reed (jareed@andrill.org)
@@ -39,7 +40,7 @@ class GProperty implements EditableProperty {
 	}
 	
 	boolean isValid(String newValue) {
-		try { 
+		try {
 			return validators.inject(true) { prev, cur -> prev && cur.call([newValue, source]) } 
 		} catch (e) {
 			return false

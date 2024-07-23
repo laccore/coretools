@@ -48,7 +48,30 @@ abstract class GeologyModel implements Model {
 		 	}
 		}
 	}
-	
+
+	// confirm obj.top <= obj.base
+	static boolean validInterval(propname, value, obj) {
+		def valid = true
+		def bdval
+		try {
+			bdval = new BigDecimal(value)
+		} catch (e) {
+			return false
+		}
+		if (propname.equals("top")) {
+			final baseval = obj.base.value
+			valid = bdval <= baseval
+		} else if (propname.equals("base")) {
+			final topval = obj.top.value
+			valid = bdval >= topval
+		}
+		// 7/23/2024: All interval models should use the propnames 'top' and 'base'.
+		// If not, return true. Otherwise focus will be forever trapped in the input Widget.
+
+		// if (!valid) { println "invalid interval" }
+		return valid
+	}
+
 	Object getAdapter(Class adapter) {
 		if (adapter == EditableProperty[].class) {
 			if (propertyList == null && this?.@constraints) {
@@ -84,7 +107,10 @@ abstract class GeologyModel implements Model {
 		if (!args?.nullable)	list << { value, obj -> value != null }
 		if (!args?.blank)		list << { value, obj -> value == null || value.trim() != "" }
 		if (this.metaClass.getMetaProperty(name).type == Number.class)		list << { value, obj -> value == null || new BigDecimal(value) }
-		if (this.metaClass.getMetaProperty(name).type == Length.class)		list << { value, obj -> value == null || Length.validLength(value) }
+		if (this.metaClass.getMetaProperty(name).type == Length.class) {
+			list << { value, obj -> value == null || Length.validLength(value) }
+			list << { value, obj -> validInterval(name, value, obj) }
+		}
 		if (this.metaClass.getMetaProperty(name).type == SchemeRef.class)	list << { value, obj -> value == null || value?.indexOf(':') > -1 }
 		return list
 	}

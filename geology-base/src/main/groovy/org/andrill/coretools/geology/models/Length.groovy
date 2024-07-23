@@ -37,7 +37,9 @@ class Length {
 	static boolean validLength(String str) {
 		def numericRegex = "-?\\d*(\\.\\d+)?" // numeric portion
 		def unitRegex = " *(" + CONVERSIONS.keySet().join("|") + "){0,1} *" // optional unit portion with 0+ leading/trailing spaces
-		return str.matches(numericRegex + unitRegex)
+		final valid = str.matches(numericRegex + unitRegex)
+		// if (!valid) { println "invalid length string" }
+		return valid
 	}
 	
 	Length(BigDecimal value) { 

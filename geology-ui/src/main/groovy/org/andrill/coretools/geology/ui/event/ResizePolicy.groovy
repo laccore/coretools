@@ -17,11 +17,15 @@ package org.andrill.coretools.geology.ui.event
 
 import java.awt.Cursor
 
+import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.model.edit.Command;
 import org.andrill.coretools.model.edit.EditableProperty;
 import org.andrill.coretools.scene.event.Feedback
-import org.andrill.coretools.scene.event.EventPolicy.Typeimport org.andrill.coretools.scene.event.DefaultFeedback
-import org.andrill.coretools.scene.event.SceneEvent/**
+import org.andrill.coretools.scene.event.EventPolicy.Type
+import org.andrill.coretools.scene.event.DefaultFeedback
+import org.andrill.coretools.scene.event.SceneEvent
+
+/**
  * An event policy for resizing geology-related models.
  *
  * @author Josh Reed (jareed@andrill.org)
@@ -43,7 +47,14 @@ class ResizePolicy extends GeologyPolicy {
 				case Cursor.W_RESIZE_CURSOR: r.setFrame(Math.max(e.x, r.x), r.y, Math.abs(e.x - r.maxX), r.height); break
 				default: return null
 			}
-			new DefaultFeedback(Feedback.RESIZE_TYPE, null, handle, null, new RectangleFeedback(r))	
+
+			// if interval is invalid (base above top), no feedback rectangle
+			final propname = (handle == Cursor.N_RESIZE_CURSOR) ? "top" : "base"
+			if (!GeologyModel.validInterval(propname, round(phys(e.y)), target)) {
+				return null
+			}
+
+			return new DefaultFeedback(Feedback.RESIZE_TYPE, null, handle, null, new RectangleFeedback(r))	
 		}
 	}
 
@@ -52,7 +63,11 @@ class ResizePolicy extends GeologyPolicy {
 		def p = getHandleProperty(handle, target)
 		if (p) {
 			if (handle == Cursor.N_RESIZE_CURSOR || handle == Cursor.S_RESIZE_CURSOR) {
-				return p.getCommand("${round(phys(e.y))} ${track.units}")
+				final depth = "${round(phys(e.y))}"
+				if (!GeologyModel.validInterval(p.name, depth, target)) {
+					return null
+				}
+				return p.getCommand("${depth} ${track.units}")
 			} else {
 				// TODO: need to scale x-values properly
 				return p.getCommand("${phys(e.x)}")

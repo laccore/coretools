@@ -22,9 +22,7 @@ import org.andrill.coretools.graphics.GraphicsContext
 import org.andrill.coretools.model.edit.Command;
 import org.andrill.coretools.model.edit.CreateCommand;
 import org.andrill.coretools.scene.Scene.Origin
-import org.andrill.coretools.scene.event.Feedback
-import org.andrill.coretools.scene.event.SceneEvent
-import org.andrill.coretools.scene.event.DefaultFeedback
+import org.andrill.coretools.scene.event.*
 import org.andrill.coretools.scene.event.EventPolicy.Type
 
 /**
@@ -37,17 +35,23 @@ class CreatePolicy extends GeologyPolicy {
 	Map template
 	boolean linked = false
 	int width
+	FeedbackProvider feedbackProvider = null
 
-	CreatePolicy(clazz, template = [:], width = -1) {
+	CreatePolicy(clazz, template = [:], width = -1, feedbackProvider = null) {
 		this.clazz = clazz
 		this.template = template
 		linked = (clazz?.constraints?.top?.linkTo || clazz?.constraints?.base?.linkTo)
 		this.width = width
+		this.feedbackProvider = feedbackProvider
 	}
 		
 	Type getType() { Type.CREATE }
 		
 	Feedback getFeedback(SceneEvent e, Object target) {
+		if (feedbackProvider) {
+			return feedbackProvider.getFeedback(e, target)
+		}
+
 		int val1, val2
 		if (linked) {
 			def models = track.models

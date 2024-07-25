@@ -22,7 +22,8 @@ import org.andrill.coretools.model.edit.EditableProperty;
 import org.andrill.coretools.scene.Track
 import org.andrill.coretools.scene.event.EventPolicy
 import org.andrill.coretools.scene.event.Feedback
-import org.andrill.coretools.scene.event.DefaultFeedback
+import org.andrill.coretools.scene.event.DefaultFeedback
+
 /**
  * An abstract base class for geology-related event policies.
  * 
@@ -103,15 +104,4 @@ abstract class GeologyPolicy implements EventPolicy {
 	
 	protected pts(val)	{ track.pts(val, track.bounds) }
 	protected phys(val)	{ track.phys(val, track.bounds) }
-}
-
-class RectangleFeedback implements DefaultFeedback.Figure {
-	def rect
-	
-	RectangleFeedback(rect) { this.rect = rect }
-	
-	void render(GraphicsContext g) {
-		g.setFill(Feedback.COLOR)
-		g.fillRectangle(rect)
-	}
 }

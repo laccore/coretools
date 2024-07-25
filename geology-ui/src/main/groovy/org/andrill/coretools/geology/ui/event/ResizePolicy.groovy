@@ -20,10 +20,8 @@ import java.awt.Cursor
 import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.model.edit.Command;
 import org.andrill.coretools.model.edit.EditableProperty;
-import org.andrill.coretools.scene.event.Feedback
+import org.andrill.coretools.scene.event.*
 import org.andrill.coretools.scene.event.EventPolicy.Type
-import org.andrill.coretools.scene.event.DefaultFeedback
-import org.andrill.coretools.scene.event.SceneEvent
 
 /**
  * An event policy for resizing geology-related models.

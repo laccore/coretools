@@ -15,16 +15,12 @@ import org.andrill.coretools.model.edit.Command
 import org.andrill.coretools.model.edit.EditableProperty
 import org.andrill.coretools.scene.Scene.Origin
 import org.andrill.coretools.scene.TrackParameter
-import org.andrill.coretools.scene.event.Feedback
-import org.andrill.coretools.scene.event.DefaultFeedback
-import org.andrill.coretools.scene.event.SceneEventHandler
-import org.andrill.coretools.scene.event.SceneMouseEvent
-import org.andrill.coretools.scene.event.DefaultTrackEventHandler
+import org.andrill.coretools.scene.event.*
 import org.andrill.coretools.geology.ui.*
 import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.geology.models.csdf.Feature
 
-class FeatureTrack extends AbstractFeatureTrack {
+class FeatureTrack extends AbstractFeatureTrack implements FeedbackProvider {
 	private static final String DEFAULT_TITLE = "Features"
 	private static final PARAMETERS = [
 		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "false"),
@@ -41,6 +37,19 @@ class FeatureTrack extends AbstractFeatureTrack {
 	def getFilter() { return { it instanceof Feature } }
 	List<Class> getCreatedClasses() { return [Feature] }
 	protected SceneEventHandler createHandler() { 
-		new DefaultTrackEventHandler(this, [new CreatePolicy(Feature.class, [:], symbolSize), new ResizePolicy(), new MovePolicy()])
+		new DefaultTrackEventHandler(this, [new CreatePolicy(Feature.class, [:], -1, this), new ResizePolicy(), new MovePolicy()])
 	}
+
+	Feedback getFeedback(SceneEvent e, Object target) {
+		int val1, val2
+		if (e.dragY == -1) {
+			val1 = val2 = e.y
+		} else {
+			val1 = e.dragY
+			val2 = e.y
+		}
+		final ss = getSymbolSize()
+		def r = new Rectangle((int) bounds.x, Math.min(val1, val2), ss, ss)
+		new DefaultFeedback(Feedback.CREATE_TYPE, null, Cursor.CROSSHAIR_CURSOR, null, new RectangleFeedback(r))
+	}	
 }

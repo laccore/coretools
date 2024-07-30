@@ -84,7 +84,7 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 		}
 	}
 
-	private static final SchemeEntry NONE = new SchemeEntry(null, "None", null, null);
+	private static SchemeEntry NONE = new SchemeEntry(null, "None", null, null);
 	protected JPanel panel = null;
 	protected JLabel icon = null;
 	protected JComboBox combo = null;
@@ -128,12 +128,25 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 				}
 			}
 
-			// sort alphabetically
-			Collections.sort(entries, new Comparator<SchemeEntry>() {
-				public int compare(final SchemeEntry o1, final SchemeEntry o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
+ 			// 7/29/2024: sort Grain Size entries by width ascending. If further per-scheme-type sorting
+			// is required, some refactoring is probably in order (e.g. SchemeEntrySortingProvider/Method).
+			if (type.equals("grainsize")) {
+				Collections.sort(entries, new Comparator<SchemeEntry>() {
+					public int compare(final SchemeEntry o1, final SchemeEntry o2) {
+						// The NONE SchemeEntry will not have a width property: default
+						// to 999 so it appears at the end of the list.
+						final Integer width1 = new Integer(o1.getProperty("width", "999"));
+						final Integer width2 = new Integer(o2.getProperty("width", "999"));
+						return width1.compareTo(width2);
+					}
+				});
+			} else { // sort alphabetically
+				Collections.sort(entries, new Comparator<SchemeEntry>() {
+					public int compare(final SchemeEntry o1, final SchemeEntry o2) {
+						return o1.getName().compareTo(o2.getName());
+					}
+				});
+			}
 
 			// build our icon label
 			icon = new JLabel();

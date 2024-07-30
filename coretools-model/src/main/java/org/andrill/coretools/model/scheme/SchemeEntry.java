@@ -77,7 +77,7 @@ public class SchemeEntry {
 	 * @param loader
 	 *            the resource loader.
 	 */
-	public SchemeEntry(final String code, final String name, final Map<String, String> properties,	        final ResourceLoader loader) {
+	public SchemeEntry(final String code, final String name, final Map<String, String> properties, final ResourceLoader loader) {
 		this.code = code;
 		this.name = name;
 		this.properties = properties == null ? new HashMap<String, String>() : properties;

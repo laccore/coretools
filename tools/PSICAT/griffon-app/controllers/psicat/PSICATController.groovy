@@ -572,7 +572,8 @@ Working Dir: ${System.getProperty("user.dir")}
 			LauncherUtils.openURL('http://dev.psicat.org/documentation/')
 		},
 		'feedback': { evt = null ->
-			LauncherUtils.openURL('https://docs.google.com/forms/d/1Jn--CnpLSXFeiW3DrULAw25r8IYHF0zshimBx4Utm6c/')
+			final feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdKJB-ayDo4btwBa-By4Cd4cL5_MxcE7vcu90K_CfYx03HwuA/viewform?usp=sf_link"
+			LauncherUtils.openURL(feedbackUrl)
 		},
 		'exportDiagram': { evt = null ->
 			withMVC('ExportDiagramWizard', project: model.project) { mvc ->

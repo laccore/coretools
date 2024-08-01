@@ -71,8 +71,7 @@ class ExportDiagramWizardController {
 				sectionTop = section.top
 				GeoUtils.adjustUp(v, sectionTop)
 			}
-			// final String sectionName = section?.name ?: ""
-			final String sectionName = ""
+			final String sectionName = section?.name ?: ""
 			
 			// validate our scene
 			scene.models = v

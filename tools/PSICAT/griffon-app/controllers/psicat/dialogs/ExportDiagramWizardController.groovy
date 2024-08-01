@@ -51,7 +51,6 @@ class ExportDiagramWizardController {
 
 		// get our containers
 		def containers = app.controllers['exportDiagramSections'].copyContainers()
-		boolean appendName = containers.size() > 1
 
 		// select a scene
 		def scene = app.controllers['PSICAT'].getDiagramScene(project)

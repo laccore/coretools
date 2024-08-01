@@ -97,7 +97,6 @@ class ExportStratController {
 
 		// get our containers
 		def containers = app.controllers['exportStratSections'].copyContainers()
-		boolean appendName = containers.size() > 1
 
 		// select a scene
 		// def scene = app.controllers['PSICAT'].getStratColumnScene(project)

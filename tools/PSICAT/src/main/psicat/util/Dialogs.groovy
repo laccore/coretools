@@ -114,12 +114,20 @@ class Dialogs {
 		JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE)
 	}
 	
-	static boolean showCustomDialog(title, message, parent = null, showAppIcon=true) {
+	// The type of objectToDisplay is - surprise! - Object. This is true of the 'message' arg in the
+	// showInput/CustomInput/MessageDialog() methods above as well. I renamed 'message' to 'objectToDisplay'
+	// for showCustomDialog() and showCustomOneButtonDialog() to clarify that it's more than a String, since these
+	// are the methods we, in practice, "overload" with JComponents to show our own UIs in PSICAT.
+	// According to https://docs.oracle.com/javase/8/docs/api/javax/swing/JOptionPane.html,
+	// String, Component, Icon are all handled as expected by underlying f'n JOptionPane.showOptionDialog().
+	// Object and Object[] use the result of toString().
+	static boolean showCustomDialog(title, objectToDisplay, parent = null, showAppIcon=true) {
 		def icon = showAppIcon ? JOptionPane.QUESTION_MESSAGE : JOptionPane.PLAIN_MESSAGE
-		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.OK_CANCEL_OPTION, icon, null, null, null) == JOptionPane.OK_OPTION
+		JOptionPane.showOptionDialog(parent, objectToDisplay, title, JOptionPane.OK_CANCEL_OPTION, icon, null, null, null) == JOptionPane.OK_OPTION
 	}
 	
-	static boolean showCustomOneButtonDialog(title, message, parent = null) {
-		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, ["Close"].toArray(), null) == JOptionPane.OK_OPTION
+	// objectToDisplay - see above
+	static boolean showCustomOneButtonDialog(title, objectToDisplay, parent = null) {
+		JOptionPane.showOptionDialog(parent, objectToDisplay, title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, ["Close"].toArray(), null) == JOptionPane.OK_OPTION
 	}
 }

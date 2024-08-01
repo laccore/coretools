@@ -60,8 +60,9 @@ menuBar(id: 'menuBar') {
 		menuItem(redoAction)
 		menuItem(deleteAction)
 		menuItem(splitAction)
-		separator()
-		menuItem(findAndReplaceAction)
+		// separator()
+		// 8/1/2024 Hiding F&R until it can handle new CSD models
+		// menuItem(findAndReplaceAction)
 		separator()
 		menuItem(grainSizeScaleAction)
 		menuItem(chooseSchemesAction)
@@ -102,6 +103,7 @@ menuBar(id: 'menuBar') {
 	menu(text: 'Help', mnemonic:'H') {
 		menuItem(aboutAction)
 		menuItem(updateAction)
+		// 8/1/2024 ATM there is no User Guide/documentation beyond dated tutorial videos.
 		//menuItem(documentationAction)
 		menuItem(feedbackAction)
 	}

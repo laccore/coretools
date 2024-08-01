@@ -18,9 +18,10 @@ class DiagramOptionsController {
 		model.sceneDirty = false
 	}
 
-	def show() {
+	def show(parent = null) {
 		model.scene.tracks.each { model.trackListModel.addElement(it) }
-		def result = Dialogs.showCustomDialog("Diagram Options", view.root, app.appFrames[0], false)
+		def dialogParent = parent ?: app.appFrames[0]
+		def result = Dialogs.showCustomDialog("Diagram Options", view.root, dialogParent, false)
 		return result
 	}
 
@@ -33,7 +34,7 @@ class DiagramOptionsController {
 
 	def trackOptions = { evt = null ->
 		app.controllers['PSICAT'].withMVC('TrackOptions', track: view.trackList.selectedValue) { mvc ->
-			if (mvc.controller.show()) {
+			if (mvc.controller.show(view.root)) {
 				def paramValues = mvc.controller.getParameterValues()
 
 				 // redraw all open diagrams

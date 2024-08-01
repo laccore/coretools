@@ -83,7 +83,7 @@ panel(id:'root', layout: new MigLayout('', "[grow,fill][]", "")) {
 
 String promptForTrack(trackTypes) {
 	def result = JOptionPane.showInputDialog(
-		app.appFrames[0],
+		view.root,
 		"Select a column to add:",
 		"Add Column",
 		JOptionPane.PLAIN_MESSAGE,
@@ -95,7 +95,7 @@ String promptForTrack(trackTypes) {
 
 String promptForWidth(String initWidth) {
 	def newWidth = JOptionPane.showInputDialog(
-		app.appFrames[0],
+		view.root,
 		"Enter a new width.\nEnter an asterisk (*) to use available space.\nLeave blank to use the column's default width.",
 		initWidth
 	)

@@ -34,7 +34,7 @@ class ExportTabularWizardController {
 			switch (view.format.selectedItem) {
 				case 'XLS':  filter = new CustomFileFilter(extensions:['.xls'], description:'Excel Workbook (*.xls)'); break
 			}
-			def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], app.appFrames[0])
+			def file = Dialogs.showSaveDialog(model.title, filter, filter.extensions[0], view.root)
 			if (file) { model.filePath = file.absolutePath }
 		},
 		'export': {

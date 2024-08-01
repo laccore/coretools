@@ -55,7 +55,7 @@ class ExportStratController {
 
     def actions = [
 	    'browse': {
-			def file = Dialogs.showSaveDirectoryDialog("Select Export Directory", null, app.appFrames[0])
+			def file = Dialogs.showSaveDirectoryDialog("Select Export Directory", null, view.root)
     		if (file) { model.filePath = file.absolutePath }
     	},
 		'export': { 
@@ -66,8 +66,9 @@ class ExportStratController {
 			}
 		},
 		'diagramOptions': {
-			app.controllers['PSICAT'].withMVC('DiagramOptions', scene:model.scene, diagramTypeText:"<html>Changes will be reflected only in exported stratigraphic columns.<br>Live diagram editing and exported diagrams will not be affected.</html>") { mvc ->
-				if (mvc.controller.show()) {
+			final msg = "<html>Changes will be reflected only in exported stratigraphic columns.<br>Live diagram editing and exported diagrams will not be affected.</html>"
+			app.controllers['PSICAT'].withMVC('DiagramOptions', scene:model.scene, diagramTypeText:msg) { mvc ->
+				if (mvc.controller.show(view.root)) {
 					if (mvc.model.sceneDirty) {
 						updateDiagramColumns()
 						if (model.project.scenes) {

@@ -44,7 +44,7 @@ class ImportImageWizardController {
 
     def actions = [
 		browse: { evt = null ->
-			def selectedFiles = Dialogs.showOpenMultipleDialog("Select Image(s) to Import", CustomFileFilter.IMAGES, app.appFrames[0])
+			def selectedFiles = Dialogs.showOpenMultipleDialog("Select Image(s) to Import", CustomFileFilter.IMAGES, view.root)
 			if (selectedFiles) {
 				def nonDupFiles = cullDuplicateImages(selectedFiles)
 				def culledCount = selectedFiles.size() - nonDupFiles.size()

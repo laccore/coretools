@@ -70,7 +70,7 @@ class OpenStratColumnDepthsController {
 	
 	def actions = [
 		'browse': { evt = null ->
-			def file = StratColumnMetadataUtils.chooseMetadataFile(app.appFrames[0])
+			def file = StratColumnMetadataUtils.chooseMetadataFile(view.root)
 			if (file) {
 				parse(file.absolutePath)
 			}

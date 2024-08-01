@@ -17,13 +17,13 @@ class TrackOptionsController {
 		model.parameterValues = new HashMap<TrackParameter, JComponent>()
 	}
 
-	def show() {
+	def show(JComponent parent) {
 		model.track.trackParameters.each {
 			def value = model.track.hasParameter(it.key) ? model.track.getParameter(it.key, "") : it.defaultValue
 			def comp = view.addComponent(view.root, it.type, it.label, it.description, value)
 			model.parameterValues[it] = comp
 		}
-		def result = Dialogs.showCustomDialog("${StringUtils.uncamel(model.track.class.simpleName).replace('Track', 'Column')} Options", view.root, app.appFrames[0], false)
+		def result = Dialogs.showCustomDialog("${StringUtils.uncamel(model.track.class.simpleName).replace('Track', 'Column')} Options", view.root, parent, false)
 		if (result) {
 			getParameterValues()
 		}

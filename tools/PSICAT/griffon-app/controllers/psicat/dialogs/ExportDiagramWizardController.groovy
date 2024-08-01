@@ -34,7 +34,7 @@ class ExportDiagramWizardController {
 
     def actions = [
 	    'browse': {
-			def file = Dialogs.showSaveDirectoryDialog("Select Export Directory", null, app.appFrames[0])
+			def file = Dialogs.showSaveDirectoryDialog("Select Export Directory", null, view.root)
     		if (file) { model.filePath = file.absolutePath }
     	},
 		'export': { 

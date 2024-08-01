@@ -35,7 +35,7 @@ class NewProjectWizardController {
 
     def actions = [
 	    'browse': { evt = null ->
-	    	def file = Dialogs.showSaveDirectoryDialog("Select Root Project Directory", null, app.appFrames[0])
+	    	def file = Dialogs.showSaveDirectoryDialog("Select Root Project Directory", null, view.root)
 	    	if (file) { 
 	    		model.filePath = file.absolutePath
 	    		if (!model.name) { model.name = file.name }

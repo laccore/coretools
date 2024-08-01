@@ -32,7 +32,7 @@ class NewSectionWizardController {
 
     def actions = [
         'browse': { evt = null ->
-        	def file = Dialogs.showOpenDialog('Select Image File', CustomFileFilter.IMAGES, app.appFrames[0])
+        	def file = Dialogs.showOpenDialog('Select Image File', CustomFileFilter.IMAGES, view.root)
         	if (file) { 
         		model.filePath = file.absolutePath
         		if (!model.name) {

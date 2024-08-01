@@ -62,7 +62,7 @@ class ImportTabularWizardController {
 
     def actions = [
 	    browse: { evt = null ->
-	    	def file = Dialogs.showOpenDialog('Import Tabular', new CustomFileFilter(extensions:['.xls'], description:'Excel Workbooks (*.xls)'), app.appFrames[0])
+	    	def file = Dialogs.showOpenDialog('Select Tabular Data', new CustomFileFilter(extensions:['.xls'], description:'Excel Workbooks (*.xls)'), view.root)
 	    	if (file) { model.filePath = file.absolutePath }
     	},
 		doImport: { evt = null ->

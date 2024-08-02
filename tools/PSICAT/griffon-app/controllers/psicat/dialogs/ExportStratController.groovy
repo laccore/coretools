@@ -98,10 +98,8 @@ class ExportStratController {
 		// get our containers
 		def containers = app.controllers['exportStratSections'].copyContainers()
 
-		// select a scene
-		// def scene = app.controllers['PSICAT'].getStratColumnScene(project)
+		// prepare the scene
 		def scene = model.scene
-
 		scene.scalingFactor = 1000
 		scene.setRenderHint("preferred-units", view.units.selectedItem)
 		scene.setRenderHint("borders", Boolean.toString(model.renderColumnBorders))
@@ -111,14 +109,7 @@ class ExportStratController {
 			view.progress.value = (index / containers.size() * 100).intValue()
 			view.progress.string = "Exporting $k"
 			
-			def sectionTop = 0.0
-			def section = v.models.find { it.modelType == 'Section' }
-			if (section) {
-				sectionTop = section.top
-				GeoUtils.adjustUp(v, sectionTop)
-			}
-			// final String sectionName = section?.name ?: ""
-			final String sectionName = ""
+			final String sectionName = view.title.text
 			
 			// validate our scene
 			scene.models = v

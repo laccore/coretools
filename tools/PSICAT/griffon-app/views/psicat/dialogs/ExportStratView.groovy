@@ -34,6 +34,12 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	label('Units:')
 	comboBox(id:'units', items: ['m', 'cm'], selectedItem: bind(source: model, sourceProperty: 'units', mutual:true), constraints: 'wrap')
 
+	// 8/2/2024 Tabling for now, as PageableScene insists on starting from depth 0. End Depth does (almost) work as expected.
+	// label('Start Depth (m):')
+	// textField(id:'startDepth', constraints:'wmax 100, growx, wrap')
+	// label('End Depth (m):')
+	// textField(id:'endDepth', constraints:'wmax 100, growx, wrap')
+
 	label('Page Format:', constraints: 'span 1 2')
 	buttonGroup().with {
 		add radioButton(text: 'Standard:', selected: bind(source:model, sourceProperty:'standardFormat', mutual:true), constraints: 'split')
@@ -44,6 +50,11 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 		textField(id: 'paperHeight', enabled: bind { !model.standardFormat }, constraints: 'grow')
 		label('pixels', enabled: bind { !model.standardFormat }, constraints: 'wrap')
 	}
+
+	separator(constraints: 'span, growx, wrap')
+
+	label('Title:')
+	textField(id:'title', constraints:'growx, wrap')
 
 	label('Included Columns:')
 	panel(constraints:'wrap') {

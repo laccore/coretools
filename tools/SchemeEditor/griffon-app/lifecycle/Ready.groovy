@@ -42,3 +42,5 @@ def getDirPref(prefKey) {
 // restore the last open and save directories
 app.controllers.SchemeEditor.currentOpenDir = getDirPref('schemeEditor.lastOpenDir')
 app.controllers.SchemeEditor.currentSaveDir = getDirPref('schemeEditor.lastSaveDir')
+
+app.controllers.SchemeEditor.updateTitle()

@@ -125,7 +125,7 @@ schemeId.document.addDocumentListener({ controller.schemeChanged() } as Document
 schemeName.document.addDocumentListener({ controller.schemeChanged() } as DocumentListener)
 model.schemeEntries.addListEventListener(controller)
 
-TableComparatorChooser.install(schemeEntries, model.schemeEntries, AbstractTableComparatorChooser.SINGLE_COLUMN)
+model.tableSorter = TableComparatorChooser.install(schemeEntries, model.schemeEntries, AbstractTableComparatorChooser.SINGLE_COLUMN)
 
 // build our image chooser panel
 panel(id:'imageChooser', layout: new MigLayout('fill')) {

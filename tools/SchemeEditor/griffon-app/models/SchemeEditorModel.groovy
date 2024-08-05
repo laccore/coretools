@@ -15,6 +15,8 @@
  */
 import ca.odell.glazedlists.BasicEventList
 import ca.odell.glazedlists.SortedList
+import ca.odell.glazedlists.swing.TableComparatorChooser
+
 import groovy.beans.Bindable
 
 class SchemeEditorModel {
@@ -29,4 +31,6 @@ class SchemeEditorModel {
 	@Bindable Map entry = null
 	@Bindable String entryColor = null
 	@Bindable String entryImage = null
+
+	TableComparatorChooser tableSorter = null
 }

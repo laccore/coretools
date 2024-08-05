@@ -133,6 +133,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		fc.fileSelectionMode = JFileChooser.FILES_ONLY
 		fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))
 		if (fc.showOpenDialog(app.appFrames[0]) == JFileChooser.APPROVE_OPTION) {
+			resetTableSorting()
 			currentOpenDir = fc.currentDirectory
 			updateSchemeFile(fc.selectedFile)
 
@@ -165,7 +166,16 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 				return
 			}
 		}
+		resetTableSorting()
 		newScheme(null)
+	}
+
+	// 8/5/2024: Reset table sorting comparators to ensure grain size 'width' column
+	// sorting isn't applied to next-opened scheme, which breaks opening process.
+	def resetTableSorting() {
+		if (model.tableSorter) {
+			model.tableSorter.clearComparator()
+		}
 	}
     
     /**

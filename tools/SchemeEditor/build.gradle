@@ -23,6 +23,7 @@ dependencies {
 	compile files('../../lib/itext-2.1.7-patched.jar')
 	// SchemeEditor pulls stock lithology/symbol imagery from these schemes
 	compile files('schemes/SE_lithologies.jar', 'schemes/SE_symbols.jar')
+	compile project(":coretools")
 }
 
 // copies in the dependencies

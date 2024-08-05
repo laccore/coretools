@@ -4,6 +4,8 @@ import ca.odell.glazedlists.GlazedLists
 import ca.odell.glazedlists.gui.AdvancedTableFormat
 import ca.odell.glazedlists.gui.WritableTableFormat
 
+import org.andrill.coretools.AlphanumComparator
+
 
 class SchemeEntryTableFormat implements WritableTableFormat, AdvancedTableFormat {
 	def colnames = ['name', 'code']
@@ -63,5 +65,14 @@ class SchemeEntryTableFormat implements WritableTableFormat, AdvancedTableFormat
 	
 	// AdvancedTableFormat methods - make column sorting case-insensitive
 	public Class getColumnClass(int column) { return Object.class }
-	public Comparator getColumnComparator(int column) { return GlazedLists.caseInsensitiveComparator() }	
+	public Comparator getColumnComparator(int column) {
+		if (column < 2) {
+			return GlazedLists.caseInsensitiveComparator()
+		} else if (column == 2) {
+			// sort grainsize 'width' column values numerically (1,2,3...9,10,11...),
+			// not lexicographically (1,10,11,2,3...)
+			return new AlphanumComparator.StringAlphanumComparator()
+		}
+		throw new IllegalStateException("Unexpected column number ${column}")
+	}
 }

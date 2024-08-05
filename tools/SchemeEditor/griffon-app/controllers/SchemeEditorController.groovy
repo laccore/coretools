@@ -124,6 +124,11 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	 * Open an existing scheme file.
 	 */
 	def open = { evt = null ->
+		if (model.schemeDirty) {
+			JOptionPane.showMessageDialog(app.appFrames[0], "The current scheme must be closed before opening a scheme.",
+				"Close Current Scheme", JOptionPane.WARNING_MESSAGE)
+			return
+		}
 		def fc = new JFileChooser(currentOpenDir)
 		fc.fileSelectionMode = JFileChooser.FILES_ONLY
 		fc.addChoosableFileFilter(new CustomFileFilter(extensions: ['.jar', '.zip'], description: 'Scheme Packs (*.jar)'))

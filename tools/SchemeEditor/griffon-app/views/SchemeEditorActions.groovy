@@ -21,7 +21,7 @@ actions {
 	action( id: 'newAction',
 		name: 'New',
 		mnemonic: 'N',
-		enabled: bind { model.schemeFile != null },
+		enabled: bind { model.schemeFile != null && !model.schemeDirty },
 		accelerator: shortcut('N'),
 		closure: controller.newScheme,
 		shortDescription: 'New scheme'

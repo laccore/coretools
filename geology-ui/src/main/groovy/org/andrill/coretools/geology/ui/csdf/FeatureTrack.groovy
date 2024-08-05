@@ -48,8 +48,9 @@ class FeatureTrack extends AbstractFeatureTrack implements FeedbackProvider {
 			val1 = e.dragY
 			val2 = e.y
 		}
-		final ss = getSymbolSize()
-		def r = new Rectangle((int) bounds.x, Math.min(val1, val2), ss, ss)
+		int w = getSymbolSize()
+		int h = (val1 == val2 ? getSymbolSize() : Math.abs(val1 - val2))
+		def r = new Rectangle((int) bounds.x, Math.min(val1, val2), w, h)
 		new DefaultFeedback(Feedback.CREATE_TYPE, null, Cursor.CROSSHAIR_CURSOR, null, new RectangleFeedback(r))
-	}	
+	}
 }

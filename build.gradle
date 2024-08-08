@@ -49,6 +49,7 @@ tasks.withType(AbstractCompile) {
 
 task packageCheckMac() {
 	doLast {
+		stagingDirCheck()
 		def javaRuntimeDir = file("${project.rootDir}/package/java_runtime/mac")
 		println "Checking for Mac Java runtime dir and JRE..."
 		if (!javaRuntimeDir.exists()) {
@@ -59,12 +60,13 @@ task packageCheckMac() {
 		}
 		if (javaRuntimeDir.listFiles().find { it.name.equals(javaRuntimeFile) } == null) {
 			throw new Error("Error: Missing Java runtime file '${javaRuntimeFile}' in ${javaRuntimeDir.absolutePath}")
-		}	
+		}
 	}
 }
 
 task packageCheckWin() {
 	doLast {
+		stagingDirCheck()
 		def javaRuntimeDir = file("${project.rootDir}/package/java_runtime/win")
 		println "Checking for Windows Java runtime dir and JRE..."
 		if (!javaRuntimeDir.exists()) {
@@ -75,7 +77,24 @@ task packageCheckWin() {
 		}
 		if (javaRuntimeDir.listFiles().find { it.name.equals(javaRuntimeFile) } == null) {
 			throw new Error("Error: Missing Java runtime file '${javaRuntimeFile}' in ${javaRuntimeDir.absolutePath}")
-		}	
+		}
+	}
+}
+
+// Ensure staging dir is present for PSICAT and SchemeEditor.
+// The staging dir is created by griffon on the run-app command. It differs from the sibling lib
+// dir in one very important way: in addition to dependencies' JARs, it contains the application's
+// JAR (PSICAT.jar or SchemeEditor.jar).
+//
+// JARs are copied into binary packages from the staging dir. Additionally, the Mac binary's Info.plist
+// classpath is built from the staging dir's contents. Without a staging dir at package-time,
+// built .apps and .exes will not launch and you will be confused.
+def stagingDirCheck() {
+	['PSICAT', 'SchemeEditor'].each {
+		def stagingDir = file("${project.rootDir}/tools/${it}/staging")
+		if (!stagingDir.exists()) {
+			throw new Error("Error: tools/$it/staging directory does not exist. Run $it (`griffon run-app` in tools/$it) to build this directory.")
+		}
 	}
 }
 

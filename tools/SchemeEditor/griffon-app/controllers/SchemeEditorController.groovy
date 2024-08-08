@@ -124,7 +124,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	 * Open an existing scheme file.
 	 */
 	def open = { evt = null ->
-		if (model.schemeDirty) {
+		if (model.schemeDirty && model.schemeValid) {
 			JOptionPane.showMessageDialog(app.appFrames[0], "The current scheme must be closed before opening a scheme.",
 				"Close Current Scheme", JOptionPane.WARNING_MESSAGE)
 			return
@@ -158,7 +158,8 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	// close current scheme
 	def close = { evt = null ->
 		if (model.schemeDirty) {
-			def choice = JOptionPane.showOptionDialog(app.appFrames[0], "Do you want to save changes to ${model.schemeFile.name}?",
+			def schemeFile = model.schemeFile?.name ?: "New Untitled Scheme"
+			def choice = JOptionPane.showOptionDialog(app.appFrames[0], "Do you want to save changes to $schemeFile?",
 				"Save Before Closing?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, ["Save", "Don't Save", "Cancel"] as String[], "Save")
 			if (choice == JOptionPane.YES_OPTION) {
 				save(null)
@@ -268,6 +269,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
      * Save the scheme.
      */
     def save = { evt = null ->
+		if (!canSave()) { return }
 	    if (model.schemeFile == null) {
 	    	saveAs(evt)
 	    } else {
@@ -279,6 +281,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
      * Save the scheme, prompting the user for a filename.
      */
     def saveAs = { evt = null ->
+		if (!canSave()) { return }
 	    def fc = new JFileChooser(currentSaveDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions:['.jar'], description:'Scheme Packs (*.jar)'))
@@ -288,6 +291,25 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 			saveScheme()
 	    }
     }
+
+	def canSave() {
+		def error = null
+		if (!view.schemeName.text) {
+			error = "a Name"
+		} else if (!view.schemeId.text) {
+			error = "an ID"
+		} else if (!view.schemeType.selectedItem) {
+			error = "a Type"
+		} else if (model.schemeEntries.size() == 0) {
+			error = "at least one entry"
+		}
+		if (error) {
+			final msg = "The scheme must have $error to be saved."
+			JOptionPane.showMessageDialog(app.appFrames[0], msg, "Can't Save Scheme", JOptionPane.INFORMATION_MESSAGE)
+			return false
+		}
+		return true
+	}
 
 	/**
 	 * Write scheme to file and pop success message

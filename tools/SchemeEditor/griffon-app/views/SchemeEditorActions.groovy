@@ -49,7 +49,6 @@ actions {
 	)
 	action( id: 'saveAction',
 		name: 'Save',
-		enabled: bind { model.schemeValid },
 		closure: controller.save,
 		mnemonic: 'S',
 		accelerator: shortcut('S'),
@@ -57,7 +56,6 @@ actions {
 	)
 	action( id: 'saveAsAction',
 		name: 'Save As...',
-		enabled: bind { model.schemeValid },
 		closure: controller.saveAs
 	)
 	action(

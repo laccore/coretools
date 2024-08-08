@@ -96,7 +96,7 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']} $s
 		label('Type:')
 		comboBox(id:'schemeType', items: ['lithology', 'texture', 'bedding', 'grainsize', 'features', 'symbol'], editable: false, constraints: 'growx', action: updateSchemeTypeAction)
 	}
-	panel(layout:new MigLayout("fill, wrap, insets 5", '', '[grow][]'), constraints:'grow, wrap', border:titledBorder("Scheme Entries")) {
+	panel(layout:new MigLayout("fill, wrap, insets 5", '', '[][grow][]'), constraints:'grow, wrap', border:titledBorder("Scheme Entries")) {
 		label("Double-click a cell to edit text.")
 	    scrollPane(constraints:'grow') {
 	    	table(id:"schemeEntries", model: new DefaultEventTableModel(model.schemeEntries, new SchemeEntryTableFormat(model.schemeEntries)),

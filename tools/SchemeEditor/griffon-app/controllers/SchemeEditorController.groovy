@@ -448,7 +448,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 	    def fc = new JFileChooser(currentOpenDir)
 	    fc.fileSelectionMode = JFileChooser.FILES_ONLY
 	    fc.addChoosableFileFilter(new CustomFileFilter(extensions: helper.IMAGE_EXTENSIONS, description: 'Images'))
-	    if ( fc.showDialog(app.appFrames[0], "Open" ) == JFileChooser.APPROVE_OPTION ) {
+	    if (fc.showDialog(view.imageChooser, "Open") == JFileChooser.APPROVE_OPTION) {
 	    	currentOpenDir = fc.currentDirectory
 	    	def f = fc.selectedFile
 	    	def m = [name:f.name, image:f.toURL().toExternalForm(), icon:helper.iconify(f.toURL().toExternalForm()), custom:true]

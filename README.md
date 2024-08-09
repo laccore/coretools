@@ -3,8 +3,7 @@ PSICAT
 
 ![PSICAT mascot](https://github.com/laccore/coretools/blob/master/tools/PSICAT/img/psicat.gif)
 
-PSICAT is a desktop application for capturing Initial Core Description (ICD) data.
-
+PSICAT (Paleontological Stratigraphic Interval Construction and Analysis Tool) is a desktop application for capturing Initial Core Description (ICD) data.
 
 Captured description data can be exported in a variety of forms:
 - tabular data (Excel)
@@ -23,7 +22,9 @@ If you're having trouble running PSICAT on a Mac, check [this troubleshooting pa
 
 If you're still having trouble, think you've found a bug, or have other questions/comments, please use the [feedback form](https://docs.google.com/forms/d/e/1FAIpQLSdKJB-ayDo4btwBa-By4Cd4cL5_MxcE7vcu90K_CfYx03HwuA/viewform) and we'll respond as soon as possible.
 
-PSICAT was originally developed by Josh Reed, in partnership with [CHRONOS](http://chronos.org/index.html) and [ANDRILL](http://www.andrill.org/static/index.html).
+PSICAT was originally developed by Josh Reed, in partnership with CHRONOS and ANDRILL.
+
+Since 2014, the [CSD Facility](https://cse.umn.edu/csd) has continued maintenance and development of PSICAT.
 
 ![PSICAT screenshot](http://www.beerolf.com/img/psicat.gif)
 
@@ -38,7 +39,7 @@ The following instructions are for a macOS or Linux environment. Binaries for bo
 ### Requirements
 
 ##### Griffon 0.2
-PSICAT is based on version 0.2 of the [Griffon Framework](https://griffon-framework.org), which is really, really old. Because it's impossible to find in the wild as of October 2021, a complete Griffon 0.2 package has been included in the `bootstrap` dir.
+PSICAT is based on version 0.2 of the [Griffon Framework](http://new.griffon-framework.org/index.html), which is really, really old. Because it's impossible to find in the wild as of October 2021, a complete Griffon 0.2 package has been included in the `bootstrap` dir.
 
 ##### Java 6 Development Kit
 Java 6 is required to compile source files, and for the Griffon command-line interface to function.

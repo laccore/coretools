@@ -127,17 +127,51 @@ model.schemeEntries.addListEventListener(controller)
 
 model.tableSorter = TableComparatorChooser.install(schemeEntries, model.schemeEntries, AbstractTableComparatorChooser.SINGLE_COLUMN)
 
-// build our image chooser panel
-panel(id:'imageChooser', layout: new MigLayout('fill')) {
-	label('Filter:', constraints: 'split')
-	imageFilter = textField(id:'imageFilter', constraints:'span,growx, wrap')
-	scrollPane(constraints: 'grow, wrap') {
-    	list(id:"standardImages", cellRenderer: new EntryListRenderer(), model:new EventListModel(new FilterList(model.standardImages, 
-    			new TextComponentMatcherEditor(imageFilter, ([getFilterStrings: { list, obj -> list.add(obj?.name) }] as TextFilterator)))))
-    }
-	button(constraints:'right', action:customImageAction)
+
+// Image Chooser dialog
+def updateSelectImageButton = { evt = null ->
+	if (!evt.valueIsAdjusting) {
+		selectImage.enabled = true
+	}
 }
 
+dialog(
+	id:'imageChooserDialog',
+	title:'Select Image',
+	owner:app.appFrames[0],
+	layout: new MigLayout('fill', '', '[grow][]'),
+	pack:true,
+	modal:true,
+	resizable:true)
+{
+	panel(id:'imageChooser', layout: new MigLayout('fill', '', '[][grow][]'), constraints: 'grow, wrap') {
+		label('Filter:', constraints: 'split')
+		imageFilter = textField(id:'imageFilter', constraints:'span,growx, wrap')
+		scrollPane(constraints: 'grow, wrap') {
+			list(id:"standardImages", cellRenderer: new EntryListRenderer(),
+				valueChanged: updateSelectImageButton,
+				model:new EventListModel(new FilterList(model.standardImages, new TextComponentMatcherEditor(imageFilter, ([getFilterStrings: { list, obj -> list.add(obj?.name) }] as TextFilterator)))))
+		}
+		button(constraints:'right', action:customImageAction)
+	}
+	button(action:cancel, constraints:'split, align right')
+	button(id:'selectImage', text:'Select Image', enabled:false, actionPerformed: controller.updateEntryImage)
+}
+imageChooserDialog.rootPane.defaultButton = selectImage
+
+
+// Image Chooser list cell renderer
+class EntryListRenderer extends DefaultListCellRenderer {
+	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean hasFocus) {
+	    def label = super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
+		def labelText = ""
+	    if (value?.name) { labelText += value.name }
+		if (value?.custom) { labelText += " (custom)" }
+		label.text = labelText
+	    if (value?.icon) { label.icon = value.icon } 
+	    return label;
+	}
+}
 
 // consume up and down arrow keys and adjust selected row - allowing JTable
 // to handle these messages results in a table change event, which screws
@@ -161,20 +195,6 @@ class SchemeEntryTableKeyListener extends KeyAdapter {
 			}
 			event.consume();
 		}
-	}
-}
-
-
-// Choose Image list cell renderer
-class EntryListRenderer extends DefaultListCellRenderer {
-	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean hasFocus) {
-	    def label = super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
-		def labelText = ""
-	    if (value?.name) { labelText += value.name }
-		if (value?.custom) { labelText += " (custom)" }
-		label.text = labelText
-	    if (value?.icon) { label.icon = value.icon } 
-	    return label;
 	}
 }
 

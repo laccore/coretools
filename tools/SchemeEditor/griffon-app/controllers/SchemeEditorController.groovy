@@ -50,6 +50,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     static File currentOpenDir = new File(System.getProperty("user.home"))
 	static File currentSaveDir = new File(System.getProperty("user.home"))
 	final tileImageTypes = ['lithology', 'bedding', 'texture', 'grainsize']
+	def imageChooserOpened = false
 
     void mvcGroupInit(Map args) {
     	helper = new SchemeHelper()
@@ -432,17 +433,23 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
 		}
     }
     
-    def updateImage = { evt = null ->
-    	final int option = JOptionPane.showConfirmDialog(app.appFrames[0], [ view.imageChooser ].toArray(), 
-    			"Choose Image", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-		if (option == JOptionPane.OK_OPTION) {
-			model.entryImage = view.standardImages.selectedValue?.image
-			model.entry.image = view.standardImages.selectedValue?.image
+    def openImageChooser = { evt = null ->
+		if (!imageChooserOpened) {
+			view.imageChooserDialog.setSize(500, 800)
+			view.imageChooserDialog.setLocationRelativeTo(app.appFrames[0])
+			imageChooserOpened = true
 		}
+		view.imageChooserDialog.setVisible(true)
+    }
+
+	def updateEntryImage = { evt = null ->
+		view.imageChooserDialog.setVisible(false)
+		model.entryImage = view.standardImages.selectedValue?.image
+		model.entry.image = view.standardImages.selectedValue?.image
     	view.imageFilter.text = ""
 		schemeChanged()
     	updatePreview()
-    }
+	}
     
     def updatePreview = { evt = null ->
     	// handle our color

@@ -125,7 +125,7 @@ public class SchemeHelper {
 		def url = null
 		if (path) {
     		if (path.startsWith("rsrc:/")) {
-				url =  getClass()?.getResource(path.substring(5))
+				url = getClass()?.getResource(path.substring(5))
 				if (url == null) {
 					// 10/20/2021 brg: Ensure cacheDir isn't null, otherwise we run into
 					// an ambiguous overload error in the File c'tor (is the first arg a
@@ -137,7 +137,7 @@ public class SchemeHelper {
 					}
 				}
     		} else if (path.contains(":/")) {
-				url =  new URL(path)
+				url = new URL(path)
     		} else {
 				url = new File(path).toURL()
     		}

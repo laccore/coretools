@@ -95,7 +95,7 @@ actions {
 	action( id:'updateImageAction',
 		name: 'Set Image',
 		enabled: bind { model.entry != null },
-		closure: controller.updateImage
+		closure: controller.openImageChooser
 	)
 	action( id:'updatePreviewAction',
 		name:'Update Preview',
@@ -103,7 +103,9 @@ actions {
 		closure: controller.updatePreview
 	)
 	action( id:'customImageAction', 
-		name: 'Custom Image', 
+		name: 'Custom Image...', 
 		closure: controller.customImage
 	)
+	action(id:'cancel', name:'Cancel', closure: { imageChooserDialog.setVisible(false) })
+	action(id:'selectImage', name:'Select Image', closure:controller.updateEntryImage, enabled: false)
 }

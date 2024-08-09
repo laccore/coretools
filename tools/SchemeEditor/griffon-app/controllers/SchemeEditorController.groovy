@@ -460,13 +460,9 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     	// handle our image
     	view.preview.tileImage = (view.schemeType.selectedItem in tileImageTypes)
     	if (model?.entryImage) {
-    		doOutside {
-    			def image = helper.parseImage(model.entryImage)
-    			doLater {
-    				view.preview.image = image
-    				view.preview.repaint()
-    			}
-    		}
+			def image = helper.parseImage(model.entryImage)
+			view.preview.image = image
+			view.preview.repaint()
     	} else {
     		view.preview.image = null
     	}

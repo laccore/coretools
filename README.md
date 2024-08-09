@@ -16,7 +16,7 @@ Pre-built Windows (.exe) and Mac (.app) applications are provided. See the [rele
 
 On Linux systems, PSICAT can be built and run from source code using the "For Developers" instructions below. If you'd rather not build from scratch, the Windows build runs on Linux under [WINE](https://www.winehq.org/).
 
-These [video tutorials](https://www.youtube.com/playlist?list=PLLHxfH9IrTIMit13zSZs91_IJBMfNEUYi) describe basic and more advanced features of PSICAT.
+These [video tutorials](https://www.youtube.com/playlist?list=PLLHxfH9IrTIMit13zSZs91_IJBMfNEUYi) describe basic and more advanced features of PSICAT. **Please note:** As of version 1.2.0, PSICAT has changed sigificantly. Most notably, several new column types and corresponding schemes have been added. Much of the video tutorial content remains relevant, but portions may be out of date. New video tutorials will be produced when PSICAT 1.2.* features are refined and become more settled. You can always [contact the CSD Facility](https://cse.umn.edu/csd/about-us) if you need support using PSICAT.
 
 If you're having trouble running PSICAT on a Mac, check [this troubleshooting page](https://github.com/laccore/coretools/wiki/Running-PSICAT-on-a-Mac-(macOS-or-OSX)).
 
@@ -26,7 +26,7 @@ PSICAT was originally developed by Josh Reed, in partnership with CHRONOS and AN
 
 Since 2014, the [CSD Facility](https://cse.umn.edu/csd) has continued maintenance and development of PSICAT.
 
-![PSICAT screenshot](http://www.beerolf.com/img/psicat.gif)
+![PSICAT_screenshot](https://github.com/user-attachments/assets/889bc6d0-3aa8-415d-9a03-0756d632d79d)
 
 
 For Developers: Building PSICAT and SchemeEditor

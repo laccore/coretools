@@ -105,8 +105,8 @@ class LegendTrack extends GeologyTrack {
 	}
 
 	private void renderEntry(GraphicsContext graphics, Point2D pt, int availableWidth, SchemeEntry entry) {
+		def rect = new Rectangle2D.Double(pt.x, pt.y, SYMBOL_SIZE, SYMBOL_SIZE)
 		if (entry.image) {
-			def rect = new Rectangle2D.Double(pt.x, pt.y, SYMBOL_SIZE, SYMBOL_SIZE)
 			if (['features', 'symbol'].contains(entry.scheme.type)) { // untiled image
 				graphics.drawImage(rect, entry.imageURL)
 			} else { // tile image

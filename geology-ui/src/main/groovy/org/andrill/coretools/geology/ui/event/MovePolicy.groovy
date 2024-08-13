@@ -38,8 +38,8 @@ class MovePolicy extends GeologyPolicy {
 			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, null)
 		} else {
 			def r = track.getModelBounds(target)
-			r.setFrame(r.x + (e.x - e.dragX), r.y + (e.y - e.dragY), r.width, r.height)
-			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, new RectangleFeedback(r))	
+			r.setFrame(r.x, r.y + (e.y - e.dragY), r.width, r.height)
+			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, new RectangleFeedback(r))
 		}
 	}
 

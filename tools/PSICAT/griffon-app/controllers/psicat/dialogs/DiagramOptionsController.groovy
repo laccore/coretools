@@ -73,6 +73,7 @@ class DiagramOptionsController {
 		def newWidth = view.promptForWidth(constraints)
 		if (newWidth != null) {
 			this.model.scene.setTrackConstraints(view.trackList.selectedValue, newWidth)
+			view.trackList.repaint()
 		}
 		model.sceneDirty = true
 	}

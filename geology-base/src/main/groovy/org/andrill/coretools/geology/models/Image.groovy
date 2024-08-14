@@ -27,8 +27,8 @@ class Image extends GeologyModel {
 	String group
 	
 	static constraints = [
-		top: 	[:],
-		base:	[:],
+		top: 	[editable: false],
+		base:	[editable: false],
 		path:	[editable: false],
 		group:	[nullable: true]
 	]

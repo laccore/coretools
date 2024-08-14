@@ -130,7 +130,7 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 
  			// 7/29/2024: sort Grain Size entries by width ascending. If further per-scheme-type sorting
 			// is required, some refactoring is probably in order (e.g. SchemeEntrySortingProvider/Method).
-			if (type.equals("grainsize")) {
+			if (type != null && type.equals("grainsize")) {
 				Collections.sort(entries, new Comparator<SchemeEntry>() {
 					public int compare(final SchemeEntry o1, final SchemeEntry o2) {
 						// The NONE SchemeEntry will not have a width property: default

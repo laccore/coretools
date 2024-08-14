@@ -139,7 +139,9 @@ class LithologyTrack extends AbstractIntervalTrack {
 				def width = 0
 				if (gsi.scheme) {
 					def entry = getSchemeEntry(gsi.scheme.scheme, gsi.scheme.code)
-					width = Integer.parseInt(entry.getProperty('width', '0'))
+					if (entry) {
+						width = Integer.parseInt(entry.getProperty('width', '0'))
+					}
 				}
 				outline << pt(gswidth(width), intersection.y)
 				outline << pt(gswidth(width), intersection.y + intersection.height)

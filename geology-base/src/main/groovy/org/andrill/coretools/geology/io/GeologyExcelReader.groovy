@@ -45,7 +45,7 @@ class GeologyExcelReader {
 		workbook.sheets.each { parseSheet(it, modelMap) }
 		workbook.close()
 		
-		logger.info("Read ${modelMap.size()} sections from file")
+		logger.warn("Read ${modelMap.size()} sections from file")
 		
 		return modelMap
 	}
@@ -55,35 +55,36 @@ class GeologyExcelReader {
 		def modelType = getModelType(sheet.name)
 		// (avoid certain sheets e.g. Images?)
 		
+		// create an empty GeologyModel to gather its properties to match against tabular data column names
 		def model = factory.build(modelType, [:])
 		if (!model) {
-			logger.error("Error: Unknown model type '$modelType'. Valid types are ${GeologyFactory.TYPES}")
+			logger.error("ERROR: Unknown model type '$modelType'. Valid types are ${GeologyFactory.TYPES}")
 			return
 		}
 		
 		def constraints = model.constraints.keySet()
-		logger.warn("Model type is ${modelType}...seeking columns named $constraints}")
+		logger.warn("Model type is ${modelType}...seeking columns named $constraints")
 		
 		// find indices of required colums
-		def modelPropIndices = getPropColumns(sheet, constraints)
-		if (!modelPropIndices) {
-			return
-		}
-		logger.warn("Found required columns: $modelPropIndices")
+		def propColumnMetadata = getPropColumnMetadata(sheet, constraints)
+		if (!propColumnMetadata) { return }
+
+		final colIdxStr = propColumnMetadata.collect { name, cmd -> "$name: ${cmd.index}" }.join(", ")
+		logger.warn("Found required columns: $colIdxStr")
 
 		// get section ID column
-		def sectionIDIndex = getColumnIndexByName(sheet, "Section ID")
-		logger.info("SectionID column index = $sectionIDIndex")
+		def sectionColumn = getColumnMetadata(sheet, "Section ID")
+		logger.warn("SectionID column index = ${sectionColumn.index}")
 		
 		// create model with each row after header
 		def createCount = 0
 		for (row in 1..<sheet.rows) {
-			def newModel = createModelWithRow(sheet, row, modelType, modelPropIndices)
+			def newModel = createModelWithRow(sheet, row, modelType, propColumnMetadata)
 			if (!newModel) {
-				logger.error("Error: Couldn't create model from row $row")
+				logger.error("ERROR: Couldn't create model from row $row")
 				continue
 			}
-			def sectionID = sheet.getCell(sectionIDIndex, row).contents
+			def sectionID = sheet.getCell(sectionColumn.index, row).contents
 			
 			if (modelMap.containsKey(sectionID)) {
 				modelMap[sectionID].add(newModel)
@@ -96,21 +97,19 @@ class GeologyExcelReader {
 		logger.warn("Found $createCount models of type $modelType")
 	}
 	
-	// create and return model with properties in row's cells
-	def createModelWithRow(sheet, row, modelType, modelPropIndices) {
+	// Create and return model with properties set to values of the contents of cells
+	// in row that correspond to the columns in propColumnMetadata.
+	def createModelWithRow(sheet, row, modelType, propColumnMetadata) {
 		def props = [:]
 		
 		// for each required column, grab value in row and store in map
-		modelPropIndices.each { key, col ->
-			def value = sheet.getCell(col, row).contents
+		propColumnMetadata.each { name, cmd ->
+			def value = sheet.getCell(cmd.index, row).contents
 			if (value.length() > 0) {
-				def header = sheet.getCell(col, 0).contents
-				def headerUnits = getHeaderUnits(header)
-				if (headerUnits) {
-					// header has units, add units to cell value for proper Length creation
-					value += " $headerUnits"
+				if (cmd.units) { // add units to cell value for proper Length creation
+					value += " ${cmd.units}"
 				}
-				props[key] = value
+				props[name] = value
 			}
 		}
 		
@@ -120,7 +119,7 @@ class GeologyExcelReader {
 		return newModel
 	}
 
-	// Check for parenthesized units at the end of the header string e.g. 'top (m)', 'base (cm)'.
+	// Check for parenthesized units at the end of the header e.g. 'top (m)', 'base (cm)'.
 	// If present, return unit String, otherwise null.
 	private String getHeaderUnits(String header) {
 		final units = Length.CONVERSIONS.keySet().join('|') // all the units Length handles: m, cm, mm, dm, hm, km, in, ft, yd
@@ -133,34 +132,48 @@ class GeologyExcelReader {
 		return null
 	}
 	
-	// find column that starts with name in sheet, return column index or -1 if no match found
-	private int getColumnIndexByName(sheet, name) {
-		int index = -1
+	// Find column header starting with name in sheet.
+	// Return ColumnMetadata, or null if no match found.
+	private ColumnMetadata getColumnMetadata(sheet, name) {
+		ColumnMetadata cmd = null
 		for (i in 0..<sheet.columns) {
-			if (sheet.getCell(i, 0).contents.startsWith(name)) {
-				index = i
+			final String header = sheet.getCell(i, 0).contents
+			if (header.startsWith(name)) {
+				String units = getHeaderUnits(header)
+				if (units) {
+					logger.warn("Detected units '$units', using for all values in $header column")
+				}
+				if (!units && ['top', 'base'].contains(name)) {
+					logger.warn("WARNING: no units detected for column $header, assuming meters")
+				}
+				cmd = new ColumnMetadata(index:i, units:units)
 				break
 			}
 		}
-		return index
+		return cmd
 	}
 	
-	// return map of property column indexes keyed on property name (e.g. 'top', 'description')
-	private def getPropColumns(sheet, propNames) {
+	// return map of ColumnMetadata objects keyed on property name (e.g. 'top', 'description')
+	private def getPropColumnMetadata(sheet, propNames) {
 		def success = true
-		def modelPropIndices = [:]
-		propNames.each { it ->
-			def colIndex = getColumnIndexByName(sheet, it)
-			if (colIndex != -1) {
-				modelPropIndices[it] = colIndex
+		def propColumnMetadata = [:]
+		propNames.each { name ->
+			def cmd = getColumnMetadata(sheet, name)
+			if (cmd) {
+				propColumnMetadata[name] = cmd
 			} else {
-				logger.error("Error: No matching column found for $it, can't parse sheet")
+				logger.error("ERROR: No matching column found for property '$name', can't parse sheet")
 				success = false
 			}
 		}
-		success ? modelPropIndices : null
+		success ? propColumnMetadata : null
 	}
 	
 	// derive model name from sheet name by stripping trailing 's'
 	private def getModelType(str) { str.endsWith('s') ? str[0..-2] : str }
+}
+
+class ColumnMetadata {
+	int index = -1
+	String units = null
 }

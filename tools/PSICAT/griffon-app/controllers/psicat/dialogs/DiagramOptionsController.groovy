@@ -33,6 +33,10 @@ class DiagramOptionsController {
 	}
 
 	def trackOptions = { evt = null ->
+		if (view.trackList.selectedValue.trackParameters.size() == 0) {
+			Dialogs.showMessageDialog("No Options", "This track type has no options.", view.root)
+			return
+		}
 		app.controllers['PSICAT'].withMVC('TrackOptions', track: view.trackList.selectedValue) { mvc ->
 			if (mvc.controller.show(view.root)) {
 				def paramValues = mvc.controller.getParameterValues()
@@ -64,9 +68,9 @@ class DiagramOptionsController {
 		"Symbol (Andrill)" : "org.andrill.coretools.geology.ui.OccurrenceTrack",
 		"Ruler" : "org.andrill.coretools.geology.ui.RulerTrack",
 		"Texture" : "org.andrill.coretools.geology.ui.csdf.TextureTrack",
-		"Unit" : "org.andrill.coretools.geology.ui.csdf.UnitTrack"
+		"Unit (CSD Facility)" : "org.andrill.coretools.geology.ui.csdf.UnitTrack",
+		"Unit (Andrill)" : "org.andrill.coretools.geology.ui.UnitTrack"
 	]
-
 
 	def editColumnWidth = { evt = null ->
 		def constraints = this.model.scene.getTrackConstraints(view.trackList.selectedValue)

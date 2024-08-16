@@ -15,6 +15,9 @@
  */
 package org.andrill.coretools.geology.io
 
+import java.util.regex.Pattern
+import java.util.regex.Matcher
+
 import jxl.*
 import jxl.write.*
 import jxl.write.Label
@@ -32,7 +35,7 @@ class GeologyExcelReader {
 	private factory = new GeologyFactory()
 		
 	String getFormat() { 'xls' }
-	
+
 	// read stream, return map of ModelContainers, one for each project-level section to be created
 	def read(stream, logger) {
 		Workbook workbook = Workbook.getWorkbook(stream)
@@ -67,7 +70,7 @@ class GeologyExcelReader {
 			return
 		}
 		logger.warn("Found required columns: $modelPropIndices")
-		
+
 		// get section ID column
 		def sectionIDIndex = getColumnIndexByName(sheet, "Section ID")
 		logger.info("SectionID column index = $sectionIDIndex")
@@ -100,14 +103,34 @@ class GeologyExcelReader {
 		// for each required column, grab value in row and store in map
 		modelPropIndices.each { key, col ->
 			def value = sheet.getCell(col, row).contents
-			if (value.length() > 0)
+			if (value.length() > 0) {
+				def header = sheet.getCell(col, 0).contents
+				def headerUnits = getHeaderUnits(header)
+				if (headerUnits) {
+					// header has units, add units to cell value for proper Length creation
+					value += " $headerUnits"
+				}
 				props[key] = value
+			}
 		}
 		
 		logger.debug("Creating model type $modelType with props $props")
 		def newModel = factory.build(modelType, props)
 		
 		return newModel
+	}
+
+	// Check for parenthesized units at the end of the header string e.g. 'top (m)', 'base (cm)'.
+	// If present, return unit String, otherwise null.
+	private String getHeaderUnits(String header) {
+		final units = Length.CONVERSIONS.keySet().join('|') // all the units Length handles: m, cm, mm, dm, hm, km, in, ft, yd
+		
+		Pattern unitPattern = Pattern.compile(".+\\((${units})\\)\$")
+		Matcher m = unitPattern.matcher(header)
+		if (m.matches()) {
+			return m.group(1) // group 0 is always the entire input string, we want units
+		}
+		return null
 	}
 	
 	// find column that starts with name in sheet, return column index or -1 if no match found

@@ -122,7 +122,7 @@ class ImportTabularWizardController {
 					container.addAll(modelList)
 					edt { model.project.saveContainer(container) } // see brg 9/9/2015
 					createCount++
-					logger.info("Saved new section $sectionID")
+					logger.warn("Saved new section $sectionID")
 				}
 			} else {
 				logger.warn("Container $sectionID already exists, skipping")
@@ -137,7 +137,7 @@ class ImportTabularWizardController {
 			imageModels.addAll(modelList.findAll { it instanceof Image })
 		}
 		def imageCount = imageModels.size()
-		logger.info("found $imageCount Images to copy")
+		logger.warn("found $imageCount Images to copy")
 		
 		imageModels.eachWithIndex { image, index ->
 			updateProgress("Copying images ($index/$imageCount)", (index/imageCount * 100).intValue())
@@ -149,7 +149,7 @@ class ImportTabularWizardController {
 			}
 			if (imageFile && imageFile.exists()) {
 				ProjectLocal.copyImageFile(imageFile, model.project.path)
-				logger.info("Copying ${image.path} to project")
+				logger.warn("Copying ${image.path} to project")
 			} else {
 				logger.warn("Image file ${image.path} does not exist, skipping")
 			}

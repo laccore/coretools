@@ -44,29 +44,35 @@ class GeologyFactory implements Factory {
 			case 'Interval':	return initInterval(new Interval(), data)
 			case 'Image':		return init(new Image(), data)
 			case 'Section':		return init(new Section(), data)
-			case 'BeddingInterval': return initInterval(new BeddingInterval(), data)
-			case 'TextureInterval': return initInterval(new TextureInterval(), data)
-			case 'GrainSizeInterval': return initInterval(new GrainSizeInterval(), data)
+			case 'BeddingInterval': return init(new BeddingInterval(), data)
+			case 'TextureInterval': return init(new TextureInterval(), data)
+			case 'GrainSizeInterval': return init(new GrainSizeInterval(), data)
 			case 'Feature': return init(new Feature(), data)
-			case 'LithologyInterval': return initInterval(new LithologyInterval(), data)
-			case 'UnitInterval': return initInterval(new UnitInterval(), data)
+			case 'LithologyInterval': return init(new LithologyInterval(), data)
+			case 'UnitInterval': return init(new UnitInterval(), data)
 			default:			return null
 		}
 	}
-	 
+
+	// Set properties for all model types, except old (Andrill) Interval lithology models.
 	private def init(obj, data) {
 		data.each { k,v ->
 			if (obj.properties.containsKey(k)) { obj."$k" = v }
 		}
 		return obj
 	}
-	 
-	// 1/13/2015 brg: Convert old Length-based grain sizes to BigDecimals, grain size is always mm
+
+	// Set properties for old (Andrill) Interval lithology models, which include properties
+	// requiring special handling. At one time, grainSizeTop and grainSizeBase were Lengths,
+	// which caused all manner of confusion. Now those properties are converted to BigDecimals,
+	// with unit assumed to be mm.
 	private def initInterval(obj, data) {
 		data.each { k,v ->
 			if (obj.properties.containsKey(k) && ['grainSizeTop', 'grainSizeBase'].contains(k)) {
 				def bdValue = null
-				try { // v is a String that may be a BigDecimal or Length...try parsing as BigDecimal and treat as Length if it fails
+				// String v may be a BigDecimal or, for older projects, a Length.
+				// Try parsing as BigDecimal. If it fails, treat as a Length.
+				try {
 					bdValue = new BigDecimal(v)
 					obj."$k" = v
 				} catch (NumberFormatException nfe) {

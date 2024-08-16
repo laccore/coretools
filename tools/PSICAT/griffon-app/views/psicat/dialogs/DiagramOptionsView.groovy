@@ -17,6 +17,25 @@ class TrackElementRenderer implements ListCellRenderer {
 	private final model
 	private final Font trackNameFont = new Font("SansSerif", Font.BOLD, 14)
 
+	// Because we're stuck with ancient Groovy 1.6.4 (Griffon 0.2), we can't just reverse
+	// TRACK_TO_CLASS with collectEntries() here.
+	static public final HashMap<String, String> CLASS_TO_TRACK = [
+		"org.andrill.coretools.geology.ui.AnnotationTrack" : "Annotation",
+		"org.andrill.coretools.geology.ui.csdf.BeddingTrack" : "Bedding",
+		"org.andrill.coretools.geology.ui.csdf.FeatureTrack" : "Feature",
+		"org.andrill.coretools.geology.ui.csdf.GrainSizeTrack" : "Grain Size",
+		"org.andrill.coretools.geology.ui.ImageTrack" : "Image",
+		"org.andrill.coretools.geology.ui.csdf.LegendTrack" : "Legend",
+		"org.andrill.coretools.geology.ui.csdf.LithologyTrack" : "Lithology (CSD Facility)",
+		"org.andrill.coretools.geology.ui.IntervalTrack" : "Lithology (Andrill)",
+		"org.andrill.coretools.geology.ui.csdf.SectionNameTrack" : "Section Name",
+		"org.andrill.coretools.geology.ui.OccurrenceTrack" : "Symbol (Andrill)",
+		"org.andrill.coretools.geology.ui.RulerTrack" : "Ruler",
+		"org.andrill.coretools.geology.ui.csdf.TextureTrack" : "Texture",
+		"org.andrill.coretools.geology.ui.csdf.UnitTrack" : "Unit (CSD Facility)",
+		"org.andrill.coretools.geology.ui.UnitTrack" : "Unit (Andrill)" 
+	]
+
 	public TrackElementRenderer(model) { this.model = model }
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		return makePanel((Track)value, isSelected)
@@ -39,6 +58,7 @@ class TrackElementRenderer implements ListCellRenderer {
 			def trackTypeLabel = track instanceof RulerTrack ? "Ruler" : track.header
 			label("$trackTypeLabel", font:trackNameFont, constraints:'grow, w 200')
 			label("Width: $widthConstraint", constraints:'grow')
+			label("Column Type: ${CLASS_TO_TRACK[track.class.name]}", constraints: 'grow')
 		}
 	}
 }

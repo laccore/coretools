@@ -70,7 +70,9 @@ class ExportTabularWizardController {
 			containers.each { k, v ->
 				// assume single section per container - adjust model depths to section depth
 				def section = v.find { it.modelType == "Section" }
-				GeoUtils.adjustUp(v, section.top)
+				if (section) {
+					GeoUtils.adjustUp(v, section.top)
+				}
 			}
 			
 			// determine output file path

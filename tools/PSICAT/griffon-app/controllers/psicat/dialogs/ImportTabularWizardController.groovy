@@ -80,10 +80,8 @@ class ImportTabularWizardController {
     }
 	
 	private def updateProgress(str, value) {
-		if (str)
-			view.progress.string = str
-		if (value)
-			view.progress.value = value
+		if (str) { view.progress.string = str }
+		if (value) { view.progress.value = value }
 	}
 	
 	private def importTabular() {
@@ -93,8 +91,9 @@ class ImportTabularWizardController {
 			updateProgress("Reading Tabular Data...", -1)
 			def containerMap = model.file.withInputStream { stream -> (Platform.getService(GeologyExcelReader.class)).read(stream, logger) }
 			def sectionCount = createSections(containerMap)
-			if (model.copyImages)
+			if (model.copyImages) {
 				copyImages(containerMap)
+			}
 			updateProgress("Import complete", 100)
 			
 			def elapsedTime = (System.currentTimeMillis() - startTime) / 1000.0

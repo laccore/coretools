@@ -27,11 +27,23 @@ import org.andrill.coretools.model.ModelContainer
 
 
 private class ModelSchemeMetadata {
-	String prop // name of Model's scheme property
-	String type // scheme type: lithology, bedding, texture, feature, symbol, etc
+	String prop // name of Model's SchemeEntry property; should be "scheme" for all but old Andrill Interval, which uses "lithology"
+	String type // Model's scheme type: bedding, features, grainsize, lithology, symbol, or texture
+	String headerName // name of column header for human-readable scheme entry names
+
+	final static schemeTypeToHeader = [
+		'bedding': 'Bedding',
+		'features': 'Feature',
+		'grainsize': 'Grain Size',
+		'lithology': 'Lithology',
+		'symbol': 'Symbol',
+		'texture': 'Texture'
+	]
+
 	ModelSchemeMetadata(String prop, String type) {
 		this.prop = prop
-		this.type = type		
+		this.type = type
+		this.headerName = "${schemeTypeToHeader[type]} Name"
 	}
 }
 
@@ -90,8 +102,8 @@ class GeologyExcelWriter {
 		if (schemeMD) {
 			def entry = getSchemeEntry(model, schemeMD.prop)
 			if (entry) {
-				def colName = schemeMD.type
-				sheet.addCell(cell(head.indexOf(colName), row, entry.name))
+				def headerName = schemeMD.headerName
+				sheet.addCell(cell(head.indexOf(headerName), row, entry.name))
 			}
 		}
 
@@ -119,7 +131,7 @@ class GeologyExcelWriter {
 		for (MetaProperty metaprop : model.metaClass.properties) {
 			if (metaprop.type == SchemeRef.class) {
 				def schemeProp = metaprop.name
-				def schemeType = '[scheme type]' // default for Model (e.g. Unit) without defined widgetProperties.schemeType
+				def schemeType = '[scheme type]' // default for Model (e.g. old Andrill Unit) without defined widgetProperties.schemeType
 				def schemeConstraintsMap = model.constraints[schemeProp]
 				if (schemeConstraintsMap) {
 					// println("Got constraints for $schemeProp: $schemeConstraintsMap")
@@ -146,9 +158,11 @@ class GeologyExcelWriter {
 				newHeaders << k
 			}
 			
+			// Header for human-readable scheme entry names. This column exists
+			// for convenience, and will not be consumed on tabular import.
 			def schemeMD = getModelSchemeMetadata(model)
 			if (schemeMD) {
-				def schemeHeaderName = schemeMD.type
+				def schemeHeaderName = schemeMD.headerName
 				if (schemeHeaderName) {
 					newHeaders << schemeHeaderName
 				}
@@ -159,8 +173,9 @@ class GeologyExcelWriter {
 			// add header row with units to sheet
 			newHeaders.eachWithIndex { name, col ->
 				def h = name
-				if (['top', 'base'].contains(name))
+				if (['top', 'base'].contains(name)) {
 					h += " ($units)"
+				}
 				sheet.addCell(new Label(col, 0, h))
 			}
 			

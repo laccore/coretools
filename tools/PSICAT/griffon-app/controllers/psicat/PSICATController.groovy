@@ -690,8 +690,27 @@ Working Dir: ${System.getProperty("user.dir")}
 			}
 		},
 		'auditProject': { evt = null ->
-			if (app.views.AuditProject == null)
-				createMVCGroup('AuditProject', project: model.project)
+			if (app.views.AuditProject == null) {
+				def pb = ProgressBarFactory.create("Building list of project models...")
+				pb.setVisible(true)
+				pb.setLocationRelativeTo(app.appFrames[0])
+
+				doOutside {
+					HashSet modelTypeSet = new HashSet()
+					model.project.containers.each { containerName ->
+						def container = model.project.openContainer(containerName)
+						container.models.each { model ->
+							if (!["Section", "Image"].contains(model.modelType)) {
+								modelTypeSet.add(model.modelType)
+							}
+						}
+						model.project.closeContainer(container)
+					}
+					println "modelTypeSet = $modelTypeSet"
+					pb.setVisible(false)
+					createMVCGroup('AuditProject', project: model.project, modelTypes: modelTypeSet as List)
+				}
+			}
 		},
 		'openStratColumnDepths': { evt = null ->
 			withMVC('OpenStratColumnDepths', project: model.project) { mvc ->

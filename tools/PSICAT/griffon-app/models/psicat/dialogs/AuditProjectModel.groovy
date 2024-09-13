@@ -25,6 +25,7 @@ class AuditProjectModel {
 	// brgtodo: overlapping intervals, non-abutting adjacent intervals, negative depths(?)
 	
 	@Bindable def auditResults = new DefaultListModel()
+	def modelTypes = []
 	@Bindable def undescribedSecs = true
 	@Bindable def noIntervalSecs = true
 	@Bindable def noneInts = true

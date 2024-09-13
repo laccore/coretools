@@ -15,6 +15,7 @@
  */
 package psicat.dialogs
 
+import java.util.HashSet
 import javax.swing.JOptionPane
 
 import org.andrill.coretools.model.edit.CommandStack
@@ -30,6 +31,7 @@ import org.andrill.coretools.model.scheme.SchemeManager
 import org.andrill.coretools.ui.widget.swing.SchemeEntryWidget
 
 import org.andrill.coretools.Platform
+import org.andrill.coretools.misc.util.StringUtils
 
 import psicat.util.*
 
@@ -39,6 +41,7 @@ class AuditProjectController {
 
     void mvcGroupInit(Map args) {
 		model.project = args.project
+		model.modelTypes = args.modelTypes.sort()
     }
 	
 	void exportLog() {
@@ -56,6 +59,22 @@ class AuditProjectController {
 			}
 		}
 	}
+
+	List<String> undefinedModelsAudit(def container, def modelTypes) {
+		List<String> issues = []
+		def definedModelTypes = []
+		container.models.each {
+			if (it.modelType in modelTypes && !(it.modelType in definedModelTypes)) {
+				definedModelTypes.add(it.modelType)
+			}
+		}
+		def undefinedModelTypes = modelTypes - definedModelTypes
+		if (undefinedModelTypes.size() > 0) {
+			issues << "No defined ${undefinedModelTypes.collect { StringUtils.uncamelReplace(it, " Interval", "") }.join(', ')}"
+		}
+
+		return issues
+	}
 	
 	void audit() {
 		view.auditButton.enabled = false
@@ -65,7 +84,40 @@ class AuditProjectController {
 
 		def auditResults = []
 		model.project.containers.each { containerName ->
-			edt { view.progressText.text = "Auditing $containerName, ${auditResults.size} issues found so far." }
+			edt { view.progressText.text = "Auditing $containerName, ${auditResults.size} issues found so far..." }
+			
+			def container = model.project.openContainer(containerName)
+			List<String> issues = []
+			
+			// perform selected audits
+			issues += undefinedModelsAudit(container, view.undescribedModels.getSelectedModels())
+
+			if (issues.size() > 0) { auditResults << new AuditResult(containerName, issues)	}
+			
+			model.project.closeContainer(container)
+			return
+		}
+		
+		edt {
+			auditResults.each {	model.auditResults.addElement(it) }
+		}
+		
+		view.exportLogButton.enabled = model.auditResults.size > 0
+		view.auditButton.enabled = true
+		view.progress.indeterminate = false
+		view.progress.value = 0
+		view.progressText.text = "Audit complete, ${model.auditResults.size} issues found."
+	}
+
+	void _audit() {
+		view.auditButton.enabled = false
+		view.progress.indeterminate = true
+		
+		edt { model.auditResults.clear() }
+
+		def auditResults = []
+		model.project.containers.each { containerName ->
+			edt { view.progressText.text = "Auditing $containerName, ${auditResults.size} issues found so far..." }
 			
 			def container = model.project.openContainer(containerName)
 

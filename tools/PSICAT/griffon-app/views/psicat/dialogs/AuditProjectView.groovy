@@ -17,14 +17,14 @@ package psicat.dialogs
 
 import java.awt.Component
 
-import javax.swing.BorderFactory
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.ListCellRenderer
+import javax.swing.*
 
 import groovy.swing.SwingBuilder
 
 import net.miginfocom.swing.MigLayout
+
+import org.andrill.coretools.misc.util.StringUtils
+
 import psicat.util.*
 
 class AuditElementRenderer implements ListCellRenderer {
@@ -66,33 +66,63 @@ class AuditLogMouseListener extends java.awt.event.MouseAdapter {
 	}
 }
 
+class ModelListPanel extends JPanel {
+	private HashMap<String, JCheckBox> modelMap
+
+	static ModelListPanel create(List<String> models) {
+		ModelListPanel panel = new ModelListPanel(models.sort())
+		return panel
+	}
+
+	private ModelListPanel(List<String> models) {
+		super(new MigLayout("fillx, insets 5"))
+		modelMap = new HashMap<String, JCheckBox>()
+		models.each { modelType ->
+			def cb = new JCheckBox(StringUtils.uncamel(modelType).replace(" Interval", ""))
+			this.add(cb)
+			this.modelMap.put(modelType, cb)
+		}
+	}
+
+	public List<String> getSelectedModels() {
+		def models = []
+		this.modelMap.each { modelType, cb ->
+			if (cb.isSelected()) { models << modelType }
+		}
+		println "selected models = $models"
+		return models
+	}
+}
 
 actions {
-	action(id:'auditAction', name:'Audit', closure:controller.actions.audit)
+	action(id:'auditAction', name:'Start Audit', closure:controller.actions.audit)
 	action(id:'closeAction', name:'Close', closure:controller.actions.close)
 	action(id:'exportLogAction', name:'Export Log to File...', closure:controller.actions.exportLog)
 }
 
 dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], pack:true, modal:false,
 		resizable:true, windowClosing:controller.actions.close) {
-	panel(id:'root', layout: new MigLayout('fill, wrap 1', '', '[][grow][]')) {
-		panel(border: titledBorder("Check Project for Selected Problems"), layout:new MigLayout('fillx, wrap 1'), constraints:'grow') {
-			checkBox(text:'Undescribed Sections', selected: bind(source:model, sourceProperty:'undescribedSecs', mutual:true))
-			checkBox(text:'Sections With No Defined Intervals', selected: bind(source:model, sourceProperty:'noIntervalSecs', mutual:true))
-			checkBox(text:'Intervals With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneInts', mutual:true))
-			checkBox(text:'Undescribed Intervals', selected: bind(source:model, sourceProperty:'undescribedInts', mutual:true))
-			checkBox(text:'Symbols With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneSyms', mutual:true))
-			checkBox(text:'Undescribed Symbols', selected: bind(source:model, sourceProperty:'undescribedSyms', mutual:true))
-			checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
-			checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
-			checkBox(text:'Missing Scheme Entries', selected: bind(source:model, sourceProperty:'missingSchemeEntries', mutual:true),
-				toolTipText:"Scheme entries used in project diagrams that are missing from the project's schemes")
-			panel(layout:new MigLayout('insets 5', '[grow][]', ''), constraints:'growx') {
-				progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
-				button(id:'auditButton', action:auditAction, constraints:'align right')
-			}
-			label("Click Audit to begin", id:'progressText')
+	panel(id:'root', layout: new MigLayout('fill, wrap 1', '', '[]15[][][grow][]')) {
+		label("Check Project for the Selected Problems:")
+		panel(border: titledBorder("Sections without defined"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
+			widget(new ModelListPanel(model.modelTypes), id:'undescribedModels')
 		}
+
+			// checkBox(text:'Sections With No Defined Intervals', selected: bind(source:model, sourceProperty:'noIntervalSecs', mutual:true))
+			// checkBox(text:'Intervals With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneInts', mutual:true))
+			// checkBox(text:'Undescribed Intervals', selected: bind(source:model, sourceProperty:'undescribedInts', mutual:true))
+			// checkBox(text:'Symbols With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneSyms', mutual:true))
+			// checkBox(text:'Undescribed Symbols', selected: bind(source:model, sourceProperty:'undescribedSyms', mutual:true))
+			// checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
+			// checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
+			// checkBox(text:'Missing Scheme Entries', selected: bind(source:model, sourceProperty:'missingSchemeEntries', mutual:true),
+			// 	toolTipText:"Scheme entries used in project diagrams that are missing from the project's schemes")
+		panel(layout:new MigLayout('insets 5', '[grow][]', ''), constraints:'growx') {
+			progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
+			button(id:'auditButton', action:auditAction, constraints:'align right, wrap')
+			label(" ", id:'progressText')
+		}
+	
 		panel(border: titledBorder('Audit Log - double-click an issue to open section diagram'), layout:new MigLayout('fill, wrap, insets 5'), constraints:'grow') {
 			scrollPane(constraints:'grow') {
 				auditLog = list(id:'logList', model:bind(source:model, sourceProperty:'auditResults', mutual:true),

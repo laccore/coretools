@@ -23,10 +23,11 @@ import java.awt.Font
 import java.awt.event.KeyEvent
 
 import javax.swing.*
-
 import javax.swing.event.ChangeListener
 
 import java.util.prefs.Preferences
+
+import groovy.swing.SwingBuilder
 
 import ca.odell.glazedlists.swing.EventListModel
 
@@ -86,6 +87,16 @@ application(title:"PSICAT ${app.applicationProperties['app.version']} $subversio
 // listen for tab changes
 diagrams.addChangeListener({ controller.activeDiagramChanged() } as ChangeListener)
 
+class ProgressBarFactory {
+	static create(String msg) {
+		def progressBar = new SwingBuilder().frame(id:'progressFrame', layout:new MigLayout('fillx, wrap 1'), undecorated:true, alwaysOnTop:true) {
+			label(msg)
+			progressBar(indeterminate:true, constraints:'grow')
+		}
+		progressBar.pack()
+		return progressBar
+	}
+}
 
 class ModelChooserPanel extends JPanel {
 	private HashMap<Class, JCheckBox> modelMap

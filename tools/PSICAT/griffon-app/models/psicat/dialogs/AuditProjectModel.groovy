@@ -22,19 +22,8 @@ import groovy.beans.Bindable
 class AuditProjectModel {
 	def project = null
 
-	// brgtodo: overlapping intervals, non-abutting adjacent intervals, negative depths(?)
-	
 	@Bindable def auditResults = new DefaultListModel()
 	def modelTypes = []
-	@Bindable def undescribedSecs = true
-	@Bindable def noIntervalSecs = true
-	@Bindable def noneInts = true
-	@Bindable def undescribedInts = true
-	@Bindable def noneSyms = true
-	@Bindable def undescribedSyms = true
-	@Bindable def zeroLengthInts = true 
-	@Bindable def invertedInts = true
-	@Bindable def missingSchemeEntries = true
 }
 
 class AuditResult {

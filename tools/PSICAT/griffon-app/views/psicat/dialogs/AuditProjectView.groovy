@@ -89,7 +89,6 @@ class ModelListPanel extends JPanel {
 		this.modelMap.each { modelType, cb ->
 			if (cb.isSelected()) { models << modelType }
 		}
-		println "selected models = $models"
 		return models
 	}
 }
@@ -104,19 +103,24 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 		resizable:true, windowClosing:controller.actions.close) {
 	panel(id:'root', layout: new MigLayout('fill, wrap 1', '', '[]15[][][grow][]')) {
 		label("Check Project for the Selected Problems:")
-		panel(border: titledBorder("Sections without defined"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-			widget(new ModelListPanel(model.modelTypes), id:'undescribedModels')
+		panel(layout:new MigLayout('fillx, wrap 1, insets 0')) {
+			panel(border: titledBorder("Sections without defined"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
+				widget(new ModelListPanel(model.modelTypes), id:'undefinedModels')
+			}
+			panel(border: titledBorder("Sections with undescribed"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
+				widget(new ModelListPanel(model.modelTypes), id:'undescribedModels')
+			}
+			panel(border: titledBorder("Inverted or zero-length intervals"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
+				widget(new ModelListPanel(model.modelTypes), id:'bogusIntervals')
+			}
+			panel(border: titledBorder("No selected scheme entry ('None')"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
+				widget(new ModelListPanel(model.modelTypes - ["UnitInterval"]), id:'noSchemeEntry')
+			}
+			panel(border: titledBorder("Unknown scheme entry"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
+				widget(new ModelListPanel(model.modelTypes - ["UnitInterval"]), id:'missingSchemeEntry')
+			}		
 		}
-
-			// checkBox(text:'Sections With No Defined Intervals', selected: bind(source:model, sourceProperty:'noIntervalSecs', mutual:true))
-			// checkBox(text:'Intervals With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneInts', mutual:true))
-			// checkBox(text:'Undescribed Intervals', selected: bind(source:model, sourceProperty:'undescribedInts', mutual:true))
-			// checkBox(text:'Symbols With No Scheme Entry ("None")', selected: bind(source:model, sourceProperty:'noneSyms', mutual:true))
-			// checkBox(text:'Undescribed Symbols', selected: bind(source:model, sourceProperty:'undescribedSyms', mutual:true))
-			// checkBox(text:'Zero-Length Intervals', selected: bind(source:model, sourceProperty:'zeroLengthInts', mutual:true))
-			// checkBox(text:'Inverted Intervals (base above top)', selected: bind(source:model, sourceProperty:'invertedInts', mutual:true))
-			// checkBox(text:'Missing Scheme Entries', selected: bind(source:model, sourceProperty:'missingSchemeEntries', mutual:true),
-			// 	toolTipText:"Scheme entries used in project diagrams that are missing from the project's schemes")
+		
 		panel(layout:new MigLayout('insets 5', '[grow][]', ''), constraints:'growx') {
 			progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
 			button(id:'auditButton', action:auditAction, constraints:'align right, wrap')

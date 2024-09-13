@@ -706,7 +706,6 @@ Working Dir: ${System.getProperty("user.dir")}
 						}
 						model.project.closeContainer(container)
 					}
-					println "modelTypeSet = $modelTypeSet"
 					pb.setVisible(false)
 					createMVCGroup('AuditProject', project: model.project, modelTypes: modelTypeSet as List)
 				}

@@ -23,5 +23,9 @@ public class StringUtils {
 		}
 		def uncamel = b.toString()
 		return uncamel[0].toUpperCase() + uncamel[1..-1]
-	}    
+	}
+
+	public static String uncamelReplace(String str, String search, String replace) {
+		return uncamel(str).replace(search, replace)
+	}
 }

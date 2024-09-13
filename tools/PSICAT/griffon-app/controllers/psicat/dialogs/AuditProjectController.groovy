@@ -70,9 +70,83 @@ class AuditProjectController {
 		}
 		def undefinedModelTypes = modelTypes - definedModelTypes
 		if (undefinedModelTypes.size() > 0) {
-			issues << "No defined ${undefinedModelTypes.collect { StringUtils.uncamelReplace(it, " Interval", "") }.join(', ')}"
+			issues << "No defined ${undefinedModelTypes.collect { type -> prettyModelName(type) }.join(', ')}"
 		}
 
+		return issues
+	}
+
+	List<String> undescribedModelsAudit(def container, def modelTypes) {
+		List<String> issues = []
+		def undescribedCounts = zeroInitMap(modelTypes)
+		container.models.each {
+			if (it.modelType in modelTypes && it.description == null) {
+				undescribedCounts[it.modelType] += 1
+			}
+		}
+		def undescStrings = undescribedCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count undescribed ${prettyModelName(type)}" }
+
+		if (undescStrings.size() > 0) {
+			issues << "${undescStrings.join(', ')}"
+		}
+
+		return issues
+	}
+
+	List<String> bogusIntervalsAudit(def container, def modelTypes) {
+		List<String> issues = []
+		def invertedCounts = zeroInitMap(modelTypes)
+		def zeroLengthCounts = zeroInitMap(modelTypes)
+		container.models.each {
+			if (it.modelType in modelTypes) {
+				if (it.top.compareTo(it.base) == 1) { invertedCounts[it.modelType] += 1	}
+				if (it.top.equals(it.base)) { zeroLengthCounts[it.modelType] += 1 }
+			}
+		}
+		def invertedStrings = invertedCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count inverted ${prettyModelName(type)}" }
+		def zeroLengthStrings = zeroLengthCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count zero-length ${prettyModelName(type)}" }
+		if (invertedStrings.size() > 0) {
+			issues << "${invertedStrings.join(', ')}"
+		}
+		if (zeroLengthStrings.size() > 0) {
+			issues << "${zeroLengthStrings.join(', ')}"
+		}
+		return issues
+	}
+
+	List<String> noSelectedSchemeEntryAudit(def container, def modelTypes) {
+		List<String> issues = []
+		def noEntryCounts = zeroInitMap(modelTypes)
+		container.models.each {
+			if (it.modelType in modelTypes) {
+				if (it.hasProperty("lithology") && it.lithology == null) { noEntryCounts[it.modelType] += 1	}
+				if (it.hasProperty("scheme") && it.scheme == null) { noEntryCounts[it.modelType] += 1 }
+			}
+		}
+		def noEntryStrings = noEntryCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count ${prettyModelName(type)} with 'None' scheme" }
+		if (noEntryStrings.size() > 0) {
+			issues << "${noEntryStrings.join(', ')}"
+		}
+		return issues
+	}
+
+	List<String> missingSchemeEntryAudit(def container, def modelTypes) {
+		List<String> issues = []
+		def missingSchemeCounts = zeroInitMap(modelTypes)
+		container.models.each {
+			if (it.modelType in modelTypes) {
+				def schemeProp = null
+				if (it.hasProperty("lithology") && it.lithology != null) { 
+					schemeProp = it.lithology
+				} else if (it.hasProperty("scheme") && it.scheme != null) {
+					schemeProp = it.scheme
+				}
+				if (schemeProp && !validSchemeEntry(schemeProp.scheme, schemeProp.code)) {
+					def msg = "${prettyModelName(it.modelType)} scheme entry ${schemeProp.scheme}:${schemeProp.code} not found"
+					issues << msg
+				}
+			}
+		}
 		return issues
 	}
 	
@@ -89,13 +163,23 @@ class AuditProjectController {
 			def container = model.project.openContainer(containerName)
 			List<String> issues = []
 			
-			// perform selected audits
-			issues += undefinedModelsAudit(container, view.undescribedModels.getSelectedModels())
+			// Perform selected audits. 'this.&' syntax is required to pass methods around.
+			[
+				[this.&undefinedModelsAudit, view.undefinedModels],
+				[this.&undescribedModelsAudit, view.undescribedModels],
+				[this.&bogusIntervalsAudit, view.bogusIntervals],
+				[this.&noSelectedSchemeEntryAudit, view.noSchemeEntry],
+				[this.&missingSchemeEntryAudit, view.missingSchemeEntry]
+			].each { auditMethod, modelTypePanel ->
+				def selectedModels = modelTypePanel.getSelectedModels()
+				if (selectedModels.size() > 0) {
+					issues += auditMethod(container, selectedModels)
+				}
+			}
 
 			if (issues.size() > 0) { auditResults << new AuditResult(containerName, issues)	}
 			
 			model.project.closeContainer(container)
-			return
 		}
 		
 		edt {
@@ -108,147 +192,6 @@ class AuditProjectController {
 		view.progress.value = 0
 		view.progressText.text = "Audit complete, ${model.auditResults.size} issues found."
 	}
-
-	void _audit() {
-		view.auditButton.enabled = false
-		view.progress.indeterminate = true
-		
-		edt { model.auditResults.clear() }
-
-		def auditResults = []
-		model.project.containers.each { containerName ->
-			edt { view.progressText.text = "Auditing $containerName, ${auditResults.size} issues found so far..." }
-			
-			def container = model.project.openContainer(containerName)
-
-			def issues = []
-			
-			def secTop = null
-			def intervals = []
-			def symbols = []
-			def units = []
-
-			// gather section's models			
-			def modelIterator = container.iterator()
-			while (modelIterator.hasNext()) {
-				GeologyModel mod = modelIterator.next()
-				if (mod.modelType.equals("Section")) {
-					secTop = mod.top
-					GeoUtils.adjustUp(container, secTop, false)
-				}
-				if (mod.modelType.equals("Interval"))
-					intervals << mod
-				else if (mod.modelType.equals("Occurrence"))
-					symbols << mod
-				else if (mod.modelType.equals("Unit"))
-					units << mod
-			}
-			
-			// perform selected audits
-			def undescribed = false
-			if (model.undescribedSecs) {
-				if (intervals.size() == 0 && symbols.size() == 0 && units.size() == 0) {
-					def msg = "Section is undescribed (no intervals, symbols, or units)" 
-					issues << msg
-					undescribed = true
-				}
-			}
-			
-			if (model.noIntervalSecs && !undescribed) {
-				if (intervals.size() == 0) {
-					def msg = "Has no lithologic intervals defined"
-					issues << msg
-				}
-			}
-			
-			if (model.noneInts || model.undescribedInts) {
-				intervals.each { it ->
-					boolean isNone = false, noDesc = false
-					if (model.noneInts && it.lithology == null) {
-						isNone = true
-					}
-					if (model.undescribedInts && it.description == null) {
-						noDesc = true
-					}
-					if (isNone || noDesc) {
-						issues << "Interval $it " + makeNoneAndOrUndescribedMsg(isNone, noDesc)
-					}
-				}
-			}
-			
-			if (model.noneSyms || model.undescribedSyms) {
-				symbols.each { it ->
-					boolean isNone = false, noDesc = false
-					if (model.noneSyms && it.scheme == null) {
-						isNone = true
-					}
-					if (model.undescribedSyms && it.description == null) {
-						noDesc = true
-					}
-					if (isNone || noDesc) {
-						issues << "Symbol $it " + makeNoneAndOrUndescribedMsg(isNone, noDesc)
-					}
-				}
-			}
-			
-			if (model.zeroLengthInts) {
-				intervals.each { it ->
-					if (it.top && it.base && it.top.compareTo(it.base) == 0) {
-						def msg = "Interval $it has zero length" 
-						issues << msg
-					}
-				}
-			}
-			
-			if (model.invertedInts) {
-				intervals.each { it ->
-					if (it.top && it.base && it.top.compareTo(it.base) == 1) {
-						def msg = "Interval $it is inverted (top depth > base depth)" 
-						issues << msg
-					}
-				}
-			}
-			
-			if (model.missingSchemeEntries) {
-				intervals.each { it ->
-					if (it.lithology) {
-						def scheme = it.lithology.scheme
-						def code = it.lithology.code
-						if (!validSchemeEntry(scheme, code)) {
-							def msg = "Lithology scheme entry $scheme:$code not found in project schemes"
-							issues << msg
-						}
-					}
-				}
-				
-				symbols.each { it ->
-					if (it.scheme) {
-						def scheme = it.scheme.scheme
-						def code = it.scheme.code
-						if (scheme && code && !validSchemeEntry(scheme, code)) {
-							def msg = "Symbol scheme entry ${scheme}:${code} not found in project schemes"
-							issues << msg
-						}
-					}
-				}
-			}
-			
-			if (issues.size() > 0) { auditResults << new AuditResult(containerName, issues)	}
-			
-			GeoUtils.adjustDown(container, secTop, false)
-			model.project.closeContainer(container)
-		}
-		
-		edt {
-			auditResults.each {	model.auditResults.addElement(it) }
-		}
-		
-		view.exportLogButton.enabled = model.auditResults.size > 0
-		view.auditButton.enabled = true
-		view.progress.indeterminate = false
-		view.progress.value = 0
-		view.progressText.text = "Audit complete, ${model.auditResults.size} issues found"
-	}
 	
 	private boolean validSchemeEntry(String schemeId, String code) {
 		def valid = false
@@ -260,17 +203,16 @@ class AuditProjectController {
 		return valid
 	}
 
-	private makeNoneAndOrUndescribedMsg(isNone, noDesc) {
-		def msg = null
-		if (isNone && noDesc)
-			msg = "has scheme entry 'None' and has no description"
-		else if (isNone)
-			msg = "has scheme entry 'None'"
-		else if (noDesc)
-			msg = "has no description"
-		return msg
+	private String prettyModelName(String modelName) {
+		return StringUtils.uncamelReplace(modelName, " Interval", "")
 	}
 	
+	private zeroInitMap(def keys) {
+		def map = [:]
+		keys.each { key -> map[key] = 0 }
+		return map
+	}
+
     def actions = [
 		'audit': { evt = null ->
 			doOutside { audit() }

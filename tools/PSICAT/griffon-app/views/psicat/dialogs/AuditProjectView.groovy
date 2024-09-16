@@ -66,33 +66,6 @@ class AuditLogMouseListener extends java.awt.event.MouseAdapter {
 	}
 }
 
-class ModelListPanel extends JPanel {
-	private HashMap<String, JCheckBox> modelMap
-
-	static ModelListPanel create(List<String> models) {
-		ModelListPanel panel = new ModelListPanel(models.sort())
-		return panel
-	}
-
-	private ModelListPanel(List<String> models) {
-		super(new MigLayout("fillx, insets 5"))
-		modelMap = new HashMap<String, JCheckBox>()
-		models.each { modelType ->
-			def cb = new JCheckBox(StringUtils.uncamel(modelType).replace(" Interval", ""))
-			this.add(cb)
-			this.modelMap.put(modelType, cb)
-		}
-	}
-
-	public List<String> getSelectedModels() {
-		def models = []
-		this.modelMap.each { modelType, cb ->
-			if (cb.isSelected()) { models << modelType }
-		}
-		return models
-	}
-}
-
 actions {
 	action(id:'auditAction', name:'Start Audit', closure:controller.actions.audit)
 	action(id:'closeAction', name:'Close', closure:controller.actions.close)

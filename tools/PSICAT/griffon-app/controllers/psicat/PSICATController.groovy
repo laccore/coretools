@@ -711,6 +711,29 @@ Working Dir: ${System.getProperty("user.dir")}
 				}
 			}
 		},
+		'projectStats': { evt = null ->
+			def pb = ProgressBarFactory.create("Gathering project stats...")
+			pb.setVisible(true)
+			pb.setLocationRelativeTo(app.appFrames[0])
+
+			doOutside {
+				def modelCountMap = [:]
+				model.project.containers.each { containerName ->
+					def container = model.project.openContainer(containerName)
+					container.models.each { model ->
+						if (modelCountMap.containsKey(model.modelType)) {
+							modelCountMap[model.modelType] += 1
+						} else {
+							modelCountMap[model.modelType] = 1
+						}
+					}
+					model.project.closeContainer(container)
+				}
+				def statsString = modelCountMap.collect { type, count -> "$type: $count" }.join('\n')
+				pb.setVisible(false)
+				Dialogs.showMessageDialog("Project Stats", "$statsString", app.appFrames[0])
+			}
+		},
 		'openStratColumnDepths': { evt = null ->
 			withMVC('OpenStratColumnDepths', project: model.project) { mvc ->
 				model.status = mvc.controller.show()

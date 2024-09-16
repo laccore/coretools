@@ -63,13 +63,7 @@ menuBar(id: 'menuBar') {
 		// separator()
 		// 8/1/2024 Hiding F&R until it can handle new CSD models
 		// menuItem(findAndReplaceAction)
-		separator()
-		menuItem(grainSizeScaleAction)
-		menuItem(chooseSchemesAction)
-		separator()
-		menuItem(auditProjectAction)
 	}
-
 
 	menu(text: 'View', mnemonic:'V') {
 		menuItem(showDiagramOptionsAction)
@@ -98,6 +92,14 @@ menuBar(id: 'menuBar') {
 		// 	menuItem(mediumFontSizeAction)
 		// 	menuItem(largeFontSizeAction)
 		// }
+	}
+
+	menu(text: 'Project', mnemonic: 'P') {
+		menuItem(grainSizeScaleAction)
+		menuItem(chooseSchemesAction)
+		separator()
+		menuItem(auditProjectAction)
+		menuItem(projectStatsAction)
 	}
 
 	menu(text: 'Help', mnemonic:'H') {

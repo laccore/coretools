@@ -44,7 +44,7 @@ actions {
 		id: 'newCompositeSectionAction',
 		name: 'Composite Section (Stratigraphic Column)...',
 		enabled: bind { model.project != null },
-		closure: controller.actions['createStratSection'],
+		closure: controller.actions['createCompositeSection'],
 		shortDescription: 'Create a composite section with section metadata or a Splice Interval Table'
 	)	
 	action(

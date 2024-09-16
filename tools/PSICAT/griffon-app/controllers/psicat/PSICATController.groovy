@@ -383,7 +383,7 @@ class PSICATController {
 				}
 			}
 		},
-		'createStratSection': { evt = null ->
+		'createCompositeSection': { evt = null ->
 			try {
 				app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:null) { mvc ->
 					def dlg = mvc.view.openSCMD

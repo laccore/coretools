@@ -70,7 +70,7 @@ class AuditProjectController {
 		}
 		def undefinedModelTypes = modelTypes - definedModelTypes
 		if (undefinedModelTypes.size() > 0) {
-			issues << "No defined ${undefinedModelTypes.collect { type -> prettyModelName(type) }.join(', ')}"
+			issues << "No defined ${undefinedModelTypes.collect { type -> StringUtils.humanizeModelName(type) }.join(', ')}"
 		}
 
 		return issues
@@ -84,7 +84,7 @@ class AuditProjectController {
 				undescribedCounts[it.modelType] += 1
 			}
 		}
-		def undescStrings = undescribedCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count undescribed ${prettyModelName(type)}" }
+		def undescStrings = undescribedCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count undescribed ${StringUtils.humanizeModelName(type)}" }
 
 		if (undescStrings.size() > 0) {
 			issues << "${undescStrings.join(', ')}"
@@ -103,8 +103,8 @@ class AuditProjectController {
 				if (it.top.equals(it.base)) { zeroLengthCounts[it.modelType] += 1 }
 			}
 		}
-		def invertedStrings = invertedCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count inverted ${prettyModelName(type)}" }
-		def zeroLengthStrings = zeroLengthCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count zero-length ${prettyModelName(type)}" }
+		def invertedStrings = invertedCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count inverted ${StringUtils.humanizeModelName(type)}" }
+		def zeroLengthStrings = zeroLengthCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count zero-length ${StringUtils.humanizeModelName(type)}" }
 		if (invertedStrings.size() > 0) {
 			issues << "${invertedStrings.join(', ')}"
 		}
@@ -123,7 +123,7 @@ class AuditProjectController {
 				if (it.hasProperty("scheme") && it.scheme == null) { noEntryCounts[it.modelType] += 1 }
 			}
 		}
-		def noEntryStrings = noEntryCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count ${prettyModelName(type)} with 'None' scheme" }
+		def noEntryStrings = noEntryCounts.findAll { type, count -> count > 0 }.collect { type, count -> "$count ${StringUtils.humanizeModelName(type)} with 'None' scheme" }
 		if (noEntryStrings.size() > 0) {
 			issues << "${noEntryStrings.join(', ')}"
 		}
@@ -142,7 +142,7 @@ class AuditProjectController {
 					schemeProp = it.scheme
 				}
 				if (schemeProp && !validSchemeEntry(schemeProp.scheme, schemeProp.code)) {
-					def msg = "${prettyModelName(it.modelType)} scheme entry ${schemeProp.scheme}:${schemeProp.code} not found"
+					def msg = "${StringUtils.humanizeModelName(it.modelType)} scheme entry ${schemeProp.scheme}:${schemeProp.code} not found"
 					issues << msg
 				}
 			}
@@ -203,10 +203,6 @@ class AuditProjectController {
 		return valid
 	}
 
-	private String prettyModelName(String modelName) {
-		return StringUtils.uncamelReplace(modelName, " Interval", "")
-	}
-	
 	private zeroInitMap(def keys) {
 		def map = [:]
 		keys.each { key -> map[key] = 0 }

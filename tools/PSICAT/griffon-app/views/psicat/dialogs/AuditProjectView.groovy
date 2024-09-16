@@ -16,16 +16,14 @@
 package psicat.dialogs
 
 import java.awt.Component
-
 import javax.swing.*
 
 import groovy.swing.SwingBuilder
-
 import net.miginfocom.swing.MigLayout
-
 import org.andrill.coretools.misc.util.StringUtils
 
-import psicat.util.*
+import psicat.ui.ModelListPanel
+
 
 class AuditElementRenderer implements ListCellRenderer {
 	public AuditElementRenderer() { }

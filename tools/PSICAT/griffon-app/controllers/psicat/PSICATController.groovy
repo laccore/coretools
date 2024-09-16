@@ -515,7 +515,7 @@ class PSICATController {
 			}
 
 			if (!maxesEqual) {
-				def maxesStrList = maxes.collect { clazz, max -> "${StringUtils.uncamel(clazz.simpleName).replace(' Interval', '')} ($max)".toString() }
+				def maxesStrList = maxes.collect { clazz, max -> "${StringUtils.humanizeModelName(clazz.simpleName)} ($max)".toString() }
 				Dialogs.showMessageDialog("Cannot Create Intervals", "Bottommost ${maxesStrList.join(', ')} must be equal to create intervals.", app.appFrames[0])
 				return
 			}

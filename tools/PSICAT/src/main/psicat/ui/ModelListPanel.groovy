@@ -1,6 +1,6 @@
 // A panel with a horizontally laid-out series of checkboxes, one for each 
 // GeologyModel class String provided in the ModelListPanel.create() method.
-// Checkboxes are labeled with humanized class names e.g. "GrainSizeInterval" -> "Grain Size".
+// Checkboxes are labeled with humanized model names e.g. "GrainSizeInterval" -> "Grain Size".
 
 package psicat.ui
 
@@ -21,7 +21,7 @@ class ModelListPanel extends JPanel {
 		super(new MigLayout("fillx, insets 5"))
 		modelMap = new HashMap<String, JCheckBox>()
 		models.each { modelType ->
-			def cb = new JCheckBox(StringUtils.uncamel(modelType).replace(" Interval", ""))
+			def cb = new JCheckBox(StringUtils.humanizeModelName(modelType))
 			this.add(cb)
 			this.modelMap.put(modelType, cb)
 		}

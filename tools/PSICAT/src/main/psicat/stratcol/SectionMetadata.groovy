@@ -98,7 +98,7 @@ class SectionMetadata implements StratColumnMetadata {
 		return intervalsToDraw.sort { it.top }
 	}
 
-	def getContainers(project) {
+	def getContainers(project, includeModels=[]) {
 		def containers = [:]
 		this.metadata.each {
 			def section = it['section']
@@ -106,14 +106,15 @@ class SectionMetadata implements StratColumnMetadata {
 				BigDecimal top = it['top']
 				BigDecimal base = it['base']
 
-				// Cull Sections and Images. Inclusion of color cards in Images results in Sections longer
-				// than the drilled interval, resulting in over-compression of models to fit that interval.
-				def models = GeoUtils.getModels(project, section).findAll { !(["Section", "Image"].contains(it.modelType)) }
+				// gather all requested models from the container
+				def models = GeoUtils.getModels(project, section).findAll { includeModels.contains(it.modelType) }
 
 				GeoUtils.zeroBase(models)
 				compressToInterval(models, top, base)
 				GeoUtils.offsetModels(models, new Length(top, 'm'))
 
+				// Add Section with original section name and length of metadata interval.
+				// Used to display each Section's name and interval in composite sections.
 				models << new Section(name:section, top:new Length(top, 'm'), base:new Length(base, 'm'))
 
 				def c = new DefaultContainer()

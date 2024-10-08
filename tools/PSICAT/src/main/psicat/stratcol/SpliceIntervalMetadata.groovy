@@ -120,12 +120,13 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		this.sectionMapping = sectionMapping
 	}
 	
+	// TODO: Old strat column logic, purge throughout this file!
 	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
 	// 'drawData':list of SectionDrawData to be drawn in that range]
 	def createDrawData(project) {
 		def drawData = []
 		this.metadata.each { secMap ->
-			def sectionModels = gatherModels(project, secMap)
+			def sectionModels = gatherModels(project, secMap, [])
 			
 			def intervalModels = []
 			def top = secMap.startMcd
@@ -142,10 +143,10 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		return drawData.sort { it.top }
 	}
 
-	def getContainers(project) {
+	def getContainers(project, includeModels=[]) {
 		def containers = [:]
 		this.metadata.each { secMap ->
-			def sectionModels = gatherModels(project, secMap)
+			def sectionModels = gatherModels(project, secMap, includeModels)
 
 			// offset all models by secMap.startMcd and throw them in a container
 			def top = secMap.startMcd
@@ -164,7 +165,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 
 	// return a list of models within secMap.startSecDepth and secMap.endSecDepth, trimmed
 	// to fit start/endSecDepth and downscaled to fit the secMap.startMcd to secMap.endMcd interval
-	private gatherModels(project, secMap) {
+	private gatherModels(project, secMap, includeModels) {
 		def sectionModels = [:]
 		Length secTop = new Length(secMap.startSecDepth, 'cm')
 		Length secBase = new Length(secMap.endSecDepth, 'cm')
@@ -175,7 +176,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			Length trimMin = (sectionNum.equals(secMap.startSec)) ? secTop : null
 			Length trimMax = (sectionNum.equals(secMap.endSec)) ? secBase : null
 
-			def models = GeoUtils.getModels(project, sectionName).findAll { !(["Section", "Image"].contains(it.modelType)) }
+			def models = GeoUtils.getModels(project, sectionName).findAll { includeModels.contains(it.modelType) }
 			GeoUtils.trimModels(project, models, trimMin, trimMax)
 
 			if (models.size() > 0) {

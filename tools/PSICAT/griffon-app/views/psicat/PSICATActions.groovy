@@ -41,11 +41,11 @@ actions {
 		shortDescription: 'Create sections from image data'
 	)
 	action(
-		id: 'newCompositeSectionAction',
-		name: 'Composite Section (Stratigraphic Column)...',
+		id: 'createStratColumnAction',
+		name: 'Stratigraphic Column...',
 		enabled: bind { model.project != null },
-		closure: controller.actions['createCompositeSection'],
-		shortDescription: 'Create a composite section with section metadata or a Splice Interval Table'
+		closure: controller.actions['createStratColumn'],
+		shortDescription: 'Create a strat column using depths from section metadata or a Splice Interval Table'
 	)	
 	action(
 		id: 'newSectionAction',

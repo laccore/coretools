@@ -4,6 +4,7 @@
 
 package psicat.ui
 
+import java.awt.LayoutManager
 import javax.swing.*
 import net.miginfocom.swing.MigLayout
 import org.andrill.coretools.misc.util.StringUtils
@@ -12,16 +13,17 @@ import org.andrill.coretools.misc.util.StringUtils
 class ModelListPanel extends JPanel {
 	private HashMap<String, JCheckBox> modelMap
 
-	static ModelListPanel create(List<String> models) {
-		ModelListPanel panel = new ModelListPanel(models.sort())
+	static ModelListPanel create(List<String> models, boolean check, LayoutManager layout=null) {
+		if (!layout) { layout = new MigLayout("fillx, insets 5")}
+		ModelListPanel panel = new ModelListPanel(models.sort(), check, layout)
 		return panel
 	}
 
-	private ModelListPanel(List<String> models) {
-		super(new MigLayout("fillx, insets 5"))
+	private ModelListPanel(List<String> models, boolean check, LayoutManager layout) {
+		super(layout)
 		modelMap = new HashMap<String, JCheckBox>()
 		models.each { modelType ->
-			def cb = new JCheckBox(StringUtils.humanizeModelName(modelType))
+			def cb = new JCheckBox(StringUtils.humanizeModelName(modelType), check)
 			this.add(cb)
 			this.modelMap.put(modelType, cb)
 		}
@@ -33,5 +35,11 @@ class ModelListPanel extends JPanel {
 			if (cb.isSelected()) { models << modelType }
 		}
 		return models
+	}
+
+	public checkModelTypes(List<String> modelTypes, boolean check) {
+		modelTypes.each { mt ->
+			this.modelMap[mt].setSelected(check)
+		}
 	}
 }

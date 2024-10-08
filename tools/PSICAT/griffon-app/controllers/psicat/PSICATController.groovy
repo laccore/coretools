@@ -301,6 +301,20 @@ class PSICATController {
 		return scene
 	}
 
+	private List<String> gatherProjectModelTypes(List<String> excludeTypes) {
+		HashSet modelTypeSet = new HashSet()
+		model.project.containers.each { containerName ->
+			def container = model.project.openContainer(containerName)
+			container.models.each { model ->
+				if (!excludeTypes.contains(model.modelType)) {
+					modelTypeSet.add(model.modelType)
+				}
+			}
+			model.project.closeContainer(container)
+		}
+		return modelTypeSet as List
+	}
+
 	// our action implementations
 	def actions = [
 		'exit': { evt -> if (canClose(evt)) app.shutdown() },
@@ -383,53 +397,69 @@ class PSICATController {
 				}
 			}
 		},
-		'createCompositeSection': { evt = null ->
-			try {
-				app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:null) { mvc ->
-					def dlg = mvc.view.openSCMD
-					dlg.setLocationRelativeTo(app.appFrames[0])
-					dlg.setVisible(true)
-					if (!mvc.model.confirmed) return;
+		'createStratColumn': { evt = null ->
+			app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:null) { oscdMVC ->			
+				oscdMVC = buildMVCGroup('OpenStratColumnDepths', project:model.project, metadataPath:null)
+				oscdMVC.view.openSCMD.setLocationRelativeTo(app.appFrames[0])
+				oscdMVC.view.openSCMD.setVisible(true)
+				if (!oscdMVC.model.confirmed) { return }
 
-					def sectionName = null
-					def suggestedName = FileUtils.removeExtension(new File(mvc.model.metadataPath))
-					while (sectionName == null) {
-						def enteredSectionName = JOptionPane.showInputDialog(app.appFrames[0], "Enter a name for the new strat section:", suggestedName)
-						if (enteredSectionName == null) {
-							return
-						} else if (enteredSectionName.length() == 0) {
-							Dialogs.showMessageDialog("Empty Section Name", "The name must contain at least one character.", app.appFrames[0])
-						} else if (model.project.containers.contains(enteredSectionName)) {
-							Dialogs.showMessageDialog("Duplicate Section Name", "A section named $enteredSectionName already exists, choose a different name.", app.appFrames[0])
-						} else {
-							sectionName = enteredSectionName
-						}
+				doOutside {
+					def pb = ProgressBarFactory.create("Building list of project models...")
+					pb.setVisible(true)
+					pb.setLocationRelativeTo(app.appFrames[0])
+					
+					// exclude Section option in UI, it always exists and must included
+					List<String> modelTypes = gatherProjectModelTypes(["Section"])
+
+					pb.setVisible(false)
+
+					StratColumnOptionsPanel stratColumnOptionsPanel = StratColumnOptionsPanel.create(modelTypes, FileUtils.removeExtension(new File(oscdMVC.model.metadataPath)))
+					def result = JOptionPane.showConfirmDialog(app.appFrames[0], stratColumnOptionsPanel, "Create Strat Column Options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+					if (result != JOptionPane.OK_OPTION) {
+						return
 					}
 
-					def stratMetadata = mvc.model.stratColumnMetadata
+					pb = ProgressBarFactory.create("Creating strat column...")
+					pb.setVisible(true)
+					pb.setLocationRelativeTo(app.appFrames[0])
+
+					def stratMetadata = oscdMVC.model.stratColumnMetadata
 					stratMetadata.logger = logger
-					def containers = stratMetadata.getContainers(model.project)
-					def acceptedModels = ["Section", "Interval", "Occurrence", "LithologyInterval", "Feature", "BeddingInterval", "TextureInterval", "GrainSizeInterval"]
+					def containers = stratMetadata.getContainers(model.project, stratColumnOptionsPanel.getSelectedModels())
+					def acceptedModels = ["Section"] + stratColumnOptionsPanel.getSelectedModels()
 					containers.each { sectionNameKey, c ->
 						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
 						modelsToRemove.each { c.remove(it) }
 					}
 
 					// merge contents into a single container representing the strat column
-					def stratContainer = model.project.createContainer(sectionName)
-					containers.each { sectionNameKey, c ->
-						stratContainer.addAll(c.models)
+					String sectionName = stratColumnOptionsPanel.getStratColumnName()
+					while (model.project.containers.contains(sectionName)) {
+						pb.setVisible(false)
+						sectionName = JOptionPane.showInputDialog(app.appFrames[0], "A section named $sectionName already exists, enter a unique section name.", "Duplicate Section Name", JOptionPane.QUESTION_MESSAGE)
+						if (sectionName == null) { return }
+					}
+					pb.setVisible(true)
+					def stratColumnContainer = null
+					edt {
+						stratColumnContainer = model.project.createContainer(sectionName)
 					}
 
-					if (stratContainer.models.size() > 0) {
-						model.project.saveContainer(stratContainer)
-						model.status = "Created new section $sectionName with strat depths from ${mvc.model.metadataPath}"
-					} else {
-						Dialogs.showMessageDialog("No Data", "No data was found in the specified metadata depth intervals.", app.appFrames[0])
+					containers.each { sectionNameKey, c ->
+						stratColumnContainer.addAll(c.models)
+					}
+					pb.setVisible(false)
+
+					edt {
+						if (stratColumnContainer.models.size() > 0) {
+							model.project.saveContainer(stratColumnContainer)
+							model.status = "Created new section $sectionName with strat depths from ${oscdMVC.model.metadataPath}"
+						} else {
+							Dialogs.showMessageDialog("No Data", "No data was found in the specified metadata depth intervals.", app.appFrames[0])
+						}
 					}
 				}
-			} catch (Exception e) {
-				errbox("Metadata Error", "${e.message}")
 			}
 		},		
 		'close': 	{ evt = null -> closeDiagram(model.activeDiagram) },

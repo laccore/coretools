@@ -29,7 +29,7 @@ interface StratColumnMetadata {
 	public getDrawData(project)
 
 	// Return list of ModelContainers with models' depths adjusted to reflect top MCD depth of interval.
-	public getContainers(project)
+	public getContainers(project, includeModels)
 
 	public getTop() // get topmost depth in metadata
 	public getBase() // get bottommost depth in metadata

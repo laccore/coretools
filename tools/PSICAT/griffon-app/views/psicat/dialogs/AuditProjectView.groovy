@@ -76,19 +76,19 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 		label("Check Project for the Selected Problems:")
 		panel(layout:new MigLayout('fillx, wrap 1, insets 0')) {
 			panel(border: titledBorder("Sections without defined"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(new ModelListPanel(model.modelTypes), id:'undefinedModels')
+				widget(ModelListPanel.create(model.modelTypes, true), id:'undefinedModels')
 			}
 			panel(border: titledBorder("Sections with undescribed"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(new ModelListPanel(model.modelTypes), id:'undescribedModels')
+				widget(ModelListPanel.create(model.modelTypes, true), id:'undescribedModels')
 			}
 			panel(border: titledBorder("Inverted or zero-length intervals"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(new ModelListPanel(model.modelTypes), id:'bogusIntervals')
+				widget(ModelListPanel.create(model.modelTypes, true), id:'bogusIntervals')
 			}
 			panel(border: titledBorder("No selected scheme entry ('None')"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(new ModelListPanel(model.modelTypes - ["UnitInterval"]), id:'noSchemeEntry')
+				widget(ModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'noSchemeEntry')
 			}
 			panel(border: titledBorder("Unknown scheme entry"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(new ModelListPanel(model.modelTypes - ["UnitInterval"]), id:'missingSchemeEntry')
+				widget(ModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'missingSchemeEntry')
 			}		
 		}
 		

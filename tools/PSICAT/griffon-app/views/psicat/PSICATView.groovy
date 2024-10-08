@@ -36,6 +36,8 @@ import net.miginfocom.swing.MigLayout
 import org.andrill.coretools.ui.PropertiesPanel
 import org.andrill.coretools.misc.util.StringUtils
 
+import psicat.ui.*
+
 // build actions
 build(PSICATActions)
 
@@ -91,13 +93,17 @@ class ProgressBarFactory {
 	static create(String msg) {
 		def progressBar = new SwingBuilder().frame(id:'progressFrame', layout:new MigLayout('fillx, wrap 1'), undecorated:true, alwaysOnTop:true) {
 			label(msg)
-			progressBar(indeterminate:true, constraints:'grow')
+			progressBar(id:'progressBar', indeterminate:true, constraints:'grow')
 		}
 		progressBar.pack()
 		return progressBar
 	}
 }
 
+// TODOs:
+// - bad naming;
+// - use ModelListPanel with vertical layout?
+// - move to psicat.ui package?
 class ModelChooserPanel extends JPanel {
 	private HashMap<Class, JCheckBox> modelMap
 	private JTextField depth
@@ -138,4 +144,37 @@ class ModelChooserPanel extends JPanel {
 	}
 
 	public String getRawDepth() { return depth.getText() }
+}
+
+class StratColumnOptionsPanel extends JPanel {
+	private JTextField stratColumnName = null
+	private ModelListPanel modelListPanel = null
+	
+	static StratColumnOptionsPanel create(List<String> modelTypes, String defaultName) {
+		StratColumnOptionsPanel panel = new StratColumnOptionsPanel(modelTypes, defaultName)
+		return panel
+	}
+
+	private StratColumnOptionsPanel(List<String> modelTypes, String defaultName) {
+		super(new MigLayout("fill, wrap, insets 5", "", "[][grow]15[]"))
+		
+		stratColumnName = new JTextField(defaultName)
+		this.add(new JLabel("Strat column name:"), "split 2")
+		this.add(this.stratColumnName, "grow")
+		modelListPanel = ModelListPanel.create(modelTypes, false) // boxes initially unchecked
+		modelListPanel.setBorder(BorderFactory.createTitledBorder("Components to include"))
+		this.add(modelListPanel, "grow")
+
+		String msg1 = "<html>Note: The created strat column is a snapshot of the included sections and their components.<br>"
+		String msg2 = "It will not update to reflect future changes to included components.</html>"
+		JLabel msg = new JLabel(msg1+msg2)
+		this.add(msg)
+
+		// Check all model types by default except for Image, whose inclusion
+		// we discourage.
+		modelListPanel.checkModelTypes(modelTypes.findAll { !it.equals("Image") }, true)
+	}
+
+	public String getStratColumnName() { return stratColumnName.getText() }
+	public List<String> getSelectedModels() { return modelListPanel.getSelectedModels() }
 }

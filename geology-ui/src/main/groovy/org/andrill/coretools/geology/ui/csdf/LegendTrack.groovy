@@ -73,8 +73,10 @@ class LegendTrack extends GeologyTrack {
 					final schemeProp = model."$propName"
 					if (schemeProp && !entryMap.containsKey(schemeProp.toString())) {
 						def entry = getSchemeEntry(schemeProp.scheme, schemeProp.code)
-						types.add(entry.scheme.type)
-						entryMap[schemeProp.toString()] = entry
+						if (entry && entry.scheme) {
+							types.add(entry.scheme.type)
+							entryMap[schemeProp.toString()] = entry
+						}
 					}
 				}			
 			}

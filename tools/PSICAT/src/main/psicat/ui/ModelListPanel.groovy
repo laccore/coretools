@@ -42,4 +42,8 @@ class ModelListPanel extends JPanel {
 			this.modelMap[mt].setSelected(check)
 		}
 	}
+
+	public checkAll(boolean checkAll) {
+		this.modelMap.each { _, checkbox -> checkbox.setSelected(checkAll) }
+	}
 }

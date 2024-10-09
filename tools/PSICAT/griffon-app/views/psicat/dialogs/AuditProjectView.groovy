@@ -77,18 +77,28 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 		panel(layout:new MigLayout('fillx, wrap 1, insets 0')) {
 			panel(border: titledBorder("Sections without defined"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
 				widget(ModelListPanel.create(model.modelTypes, true), id:'undefinedModels')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> undefinedModels.checkAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> undefinedModels.checkAll(false) })
 			}
 			panel(border: titledBorder("Sections with undescribed"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
 				widget(ModelListPanel.create(model.modelTypes, true), id:'undescribedModels')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> undescribedModels.checkAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> undescribedModels.checkAll(false) })
 			}
 			panel(border: titledBorder("Inverted or zero-length intervals"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
 				widget(ModelListPanel.create(model.modelTypes, true), id:'bogusIntervals')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> bogusIntervals.checkAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> bogusIntervals.checkAll(false) })
 			}
 			panel(border: titledBorder("No selected scheme entry ('None')"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
 				widget(ModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'noSchemeEntry')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> noSchemeEntry.checkAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> noSchemeEntry.checkAll(false) })
 			}
 			panel(border: titledBorder("Unknown scheme entry"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
 				widget(ModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'missingSchemeEntry')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> missingSchemeEntry.checkAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> missingSchemeEntry.checkAll(false) })
 			}		
 		}
 		

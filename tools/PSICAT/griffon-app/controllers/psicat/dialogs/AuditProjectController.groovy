@@ -203,6 +203,7 @@ class AuditProjectController {
 		return valid
 	}
 
+	// If we weren't running against 2010-era Groovy this would not be necessary [crying face]
 	private zeroInitMap(def keys) {
 		def map = [:]
 		keys.each { key -> map[key] = 0 }

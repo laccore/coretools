@@ -15,6 +15,7 @@
  */
 package org.andrill.coretools.graphics.util;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -27,8 +28,13 @@ import java.util.Map.Entry;
  */
 public class Paper {
 	private static Map<String, Paper> PAGES = new HashMap<String, Paper>();
+	private static ArrayList<Paper> PAGES_LIST = new ArrayList<Paper>();
 	private static final int DEFAULT_MARGIN = 36; // 0.5"
 
+	// Default to US Letter (8.5" x 11") at double resolution (144dpi), which works
+	// well with the new columns added in PSICAT v1.2.0.
+	public static final Paper DEFAULT = new Paper("Letter (144dpi)", 1224, 1584, DEFAULT_MARGIN);
+	
 	public static final Paper A0 = new Paper("A0", 2384, 3371, DEFAULT_MARGIN);
 	public static final Paper A1 = new Paper("A1", 1685, 2384, DEFAULT_MARGIN);
 	public static final Paper A2 = new Paper("A2", 1190, 1684, DEFAULT_MARGIN);
@@ -42,18 +48,35 @@ public class Paper {
 	public static final Paper FOLIO = new Paper("Folio", 612, 936, DEFAULT_MARGIN);
 	public static final Paper LEDGER = new Paper("Ledger", 1224, 792, DEFAULT_MARGIN);
 	public static final Paper LEGAL = new Paper("Legal", 612, 1008, DEFAULT_MARGIN);
-	public static final Paper LETTER = new Paper("Letter", 612, 792, DEFAULT_MARGIN);
+	public static final Paper LETTER = new Paper("Letter (72dpi)", 612, 792, DEFAULT_MARGIN);
 	public static final Paper QUARTO = new Paper("Quarto", 610, 780, DEFAULT_MARGIN);
 	public static final Paper STATEMENT = new Paper("Statement", 396, 612, DEFAULT_MARGIN);
 	public static final Paper TABLOID = new Paper("Tabloid", 792, 1224, DEFAULT_MARGIN);
 
 	static {
+		PAGES_LIST.add(DEFAULT);
+		PAGES_LIST.add(LETTER);
+		PAGES_LIST.add(LEGAL);
+		PAGES_LIST.add(A0);
+		PAGES_LIST.add(A1);
+		PAGES_LIST.add(A2);
+		PAGES_LIST.add(A3);
+		PAGES_LIST.add(A4);
+		PAGES_LIST.add(A5);
+		PAGES_LIST.add(B4);
+		PAGES_LIST.add(B5);
+		PAGES_LIST.add(TABLOID);
+		PAGES_LIST.add(LEDGER);
+		PAGES_LIST.add(STATEMENT);
+		PAGES_LIST.add(EXECUTIVE);
+		PAGES_LIST.add(FOLIO);
+		PAGES_LIST.add(QUARTO);
+	}
+	
+	static {
+		PAGES.put("default", DEFAULT);
 		PAGES.put("letter", LETTER);
-		PAGES.put("tabloid", TABLOID);
-		PAGES.put("ledger", LEDGER);
 		PAGES.put("legal", LEGAL);
-		PAGES.put("statement", STATEMENT);
-		PAGES.put("executive", EXECUTIVE);
 		PAGES.put("a0", A0);
 		PAGES.put("a1", A1);
 		PAGES.put("a2", A2);
@@ -62,6 +85,10 @@ public class Paper {
 		PAGES.put("a5", A5);
 		PAGES.put("b4", B4);
 		PAGES.put("b5", B5);
+		PAGES.put("tabloid", TABLOID);
+		PAGES.put("ledger", LEDGER);
+		PAGES.put("statement", STATEMENT);
+		PAGES.put("executive", EXECUTIVE);
 		PAGES.put("folio", FOLIO);
 		PAGES.put("quarto", QUARTO);
 	}
@@ -271,7 +298,7 @@ public class Paper {
 		for (Entry<String, Paper> entry : PAGES.entrySet()) {
 			if (entry.getValue().equals(this)) {
 				Paper p = (Paper)entry.getValue();
-				return p.name + " (" + p.width + " x " + p.height + ")";
+				return p.name + " (" + p.width + " x " + p.height + " pixels)";
 			}
 		}
 		// otherwise return a string representation

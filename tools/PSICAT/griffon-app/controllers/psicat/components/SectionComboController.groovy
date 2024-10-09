@@ -31,6 +31,7 @@ class SectionComboController {
      * Gets the name of the selection.
      */
     String getSelection() { view.section.selectedItem }
+	ModelContainer getSelectedContainer() { return copy(view.section.selectedItem) }
 
 	/**
 	 * Creates a new container with copies of all input containers' models

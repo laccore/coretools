@@ -90,7 +90,8 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	// separator(constraints: 'span, growx, wrap')
 	
 	panel(layout:new MigLayout('','[grow][]',''), constraints:'span, growx') {
-		progressBar(id:'progress', minimum:0, maximum:100, stringPainted:true, string:'', constraints:'growx, gapright 10px')
+		label(' ', id:'progressMessage', constraints:'wrap')
+		progressBar(id:'progress', constraints:'growx, gapright 10px')
 		button(id:'exportBtn', action: exportAction)
 	}
 }

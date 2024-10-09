@@ -75,6 +75,13 @@ public interface ModelContainer {
 	void addListener(Listener listener);
 
 	/**
+	 * Count number of models of type in this container.
+	 * 
+	 * @return the model count.
+	 */
+	int countModels(String modelType);
+
+	/**
 	 * Gets an immutable list of models in this container.
 	 * 
 	 * @return the list of models.

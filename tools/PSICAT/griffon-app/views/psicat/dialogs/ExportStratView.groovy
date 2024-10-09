@@ -24,7 +24,14 @@ actions {
 	action(id: 'diagramOptionsAction', name:'Edit Strat Diagram Columns...', closure: controller.actions.diagramOptions)
 }
 
-def section = buildMVCGroup('SectionCombo', 'exportStratSections', project: model.project, allSections:false, eachSection:false, selectSections:false).view.root
+def section = buildMVCGroup('SectionCombo',
+							'exportStratSections',
+							project: model.project,
+							allSections:false,
+							eachSection:false,
+							selectSections:false,
+							sectionFilter: { container -> container.countModels("Section") > 1 }
+							).view.root
 final prefixToolTip = "Optional: prefix output files' names with specified text, e.g. 'my_[section_name].pdf'"
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {

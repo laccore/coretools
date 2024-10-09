@@ -73,6 +73,19 @@ public class DefaultContainer implements ModelContainer, Iterable<Model> {
 	/**
 	 * {@inheritDoc}
 	 */
+	public int countModels(String modelType) {
+		int count = 0;
+		for (Model m : models) {
+			if (m.getModelType().equals(modelType)) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public ImmutableList<Model> getModels() {
 		return ImmutableList.copyOf(models);
 	}

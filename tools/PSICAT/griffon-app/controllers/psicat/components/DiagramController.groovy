@@ -64,8 +64,7 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 		int sectionModelCount = 0;
 		if (sections.size() == 1) {
 			def c = model.project.openContainer(sections[0])
-			sectionModelCount = c.models.findAll { it.modelType == "Section" }.size()
-
+			sectionModelCount = c.countModels("Section")
 			// 4/24/2024: Must close this container! See issue #10 for details.
 			model.project.closeContainer(c)
 		}

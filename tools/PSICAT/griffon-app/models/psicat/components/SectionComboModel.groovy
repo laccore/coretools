@@ -27,4 +27,5 @@ import groovy.beans.Bindable
 	String eachSectionText = "Each Section"
 	String selectSectionsText = "Select Sections..."
 	def selectedSections = []
+	def sectionFilter = null
 }

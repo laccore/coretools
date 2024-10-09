@@ -330,10 +330,10 @@ actions {
 	)
 	action(
 		id: 'exportStratColumnAction',
-		name: 'Strat Column...',
+		name: 'Stratigraphic Column...',
 		enabled: bind { model.project != null },
 		closure: controller.actions['exportStratColumn'],
-		shortDescription: 'Export strat column as PDF'
+		shortDescription: 'Export stratigraphic column as PDF'
 	)
 	action(
 		id: 'importLegacyAction',

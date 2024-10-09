@@ -515,7 +515,7 @@ class PSICATController {
 			def modelClasses = active.scene.getCreatedClasses()
 
 			ModelChooserPanel panel = ModelChooserPanel.create(modelClasses)
-			def result = JOptionPane.showConfirmDialog(null, panel, "Select Models to Create", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+			def result = JOptionPane.showConfirmDialog(null, panel, "Select Components to Create", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
 			if (result != JOptionPane.OK_OPTION) {
 				return
 			}

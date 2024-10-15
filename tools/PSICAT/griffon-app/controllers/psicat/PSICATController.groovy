@@ -752,14 +752,26 @@ Working Dir: ${System.getProperty("user.dir")}
 					def container = model.project.openContainer(containerName)
 					container.models.each { model ->
 						if (modelCountMap.containsKey(model.modelType)) {
-							modelCountMap[model.modelType] += 1
+							modelCountMap[model.modelType][0] += 1
+							if (model.constraints.containsKey('scheme') && model.scheme) {
+								modelCountMap[model.modelType][1].add(model.scheme.toString())
+							}
 						} else {
-							modelCountMap[model.modelType] = 1
+							modelCountMap[model.modelType] = [1, []] // [model count, list of scheme entries for modelType]
+							if (model.constraints.containsKey('scheme') && model.scheme) {
+								modelCountMap[model.modelType][1].add(model.scheme.toString())
+							}
 						}
 					}
 					model.project.closeContainer(container)
 				}
-				def statsString = modelCountMap.collect { type, count -> "$type: $count" }.join('\n')
+				def uniqueTypesMap = [:]
+				modelCountMap.each { type, data ->
+					if (data[1].size() > 0) {
+						uniqueTypesMap[type] = (data[1] as Set).size()
+					}
+				}
+				def statsString = modelCountMap.collect { type, data -> "${StringUtils.humanizeModelName(type)}: ${data[0]} ${uniqueTypesMap.containsKey(type) ? '(' + uniqueTypesMap[type] + ' unique)' : ''}" }.sort().join('\n')
 				pb.setVisible(false)
 				Dialogs.showMessageDialog("Project Stats", "$statsString", app.appFrames[0])
 			}

@@ -132,35 +132,47 @@ class GeoUtils {
 	// resulting from trimming, if any.
 	// min and max are section-relative depths i.e. section top is 0.
 	// min and/or max can be null.
-	static void trimModels(DefaultProject project, List<GeologyModel> models, Length min, Length max) {
+	static List<GeologyModel> trimModels(DefaultProject project, List<GeologyModel> models, Length min, Length max) {
+		List<GeologyModel> trimmedModels = []
 		zeroBase(models) // ensure models' top/base are section-relative
+		logger.info("   Trimming components to range $min - $max...")
 		for (GeologyModel mod : models) {
 			if (min) {
 				def cmp = mod.base.compareTo(min)
-				if (cmp == -1 || cmp == 0) {
-					logger.info("   $mod out of range or base == $min, culling")
-					continue;
+				if (cmp == -1) {
+					logger.info("   $mod is out of range, culling")
+					continue
+				}
+				if (cmp == 0) {
+					logger.info.("  base of $mod is at min range $min, culling")
+					continue
 				}
 				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {
-					logger.info("   $mod top above $min, trimming")
+					logger.info("   top of $mod is above min range $min, trimming")
 					mod.top = min.to(project.units)
-					logger.info("$mod")
+					logger.info("   trimmed component = $mod")
 				}
 			}
 			if (max) {
 				def cmp = mod.top.compareTo(max)
-				if (cmp == 1 || cmp == 0) {
-					logger.info("   $mod out of range or top == $max, culling")
+				if (cmp == 1) {
+					logger.info("   $mod is out of range, culling")
 					continue;
 				}
+				if (cmp == 0) {
+					logger.info("   top of $mod is at max range $max, culling")
+					continue
+				}
 				if (mod.top.compareTo(max) == -1 && mod.base.compareTo(max) == 1) {
-					logger.info("   $mod bot below $max, trimming...")
+					logger.info("   base of $mod is below max range $max, trimming...")
 					mod.base = max.to(project.units)
-					logger.info("$mod")
+					logger.info("   trimmed component = $mod")
 				}
 			}
+			trimmedModels.add(mod)
 		}
-		zeroBase(models)
+		zeroBase(trimmedModels)
+		return trimmedModels
 	}
 	
 	static void offsetModels(List<GeologyModel> models, Length offset) {
@@ -185,13 +197,13 @@ class GeoUtils {
 			if (maxBase.value > 0.0) { // avoid divide by zero
 				scalingFactor = intervalLength / maxBase.to('m').value
 			}
-			logger.info( "Interval length = $intervalLength, modelBase = $maxBase, scalingFactor = $scalingFactor")
+			logger.info("Length of all included components = ${maxBase.to('m').value} m")
 			if (scalingFactor < 1.0) {
-				logger.info("   Downscaling models...")
+				logger.info("   Components are too long for metadata interval of length $intervalLength m. Downscaling by $intervalLength m / ${maxBase.to('m').value} m = $scalingFactor to fit.")
 				scaleModels(models, scalingFactor)
-				logger.info("   Downscaled: $models")
+				logger.info("   Downscaled components: $models")
 			} else {
-				logger.info("   Scaling factor >= 1.0, leaving models as-is")
+				logger.info("   Included components fit in metadata interval $intervalLength m, no scaling needed.")
 			}
 		}
 	}

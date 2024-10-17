@@ -106,6 +106,11 @@ class SectionMetadata implements StratColumnMetadata {
 				BigDecimal top = it['top']
 				BigDecimal base = it['base']
 
+				logger.info("### Metadata section: $section ###")
+				logger.info("Interval top: $top m")
+				logger.info("Interval base: $base m")
+				logger.info("Total interval length: ${base-top} m")
+
 				// gather all requested models from the container
 				def models = GeoUtils.getModels(project, section).findAll { includeModels.contains(it.modelType) }
 

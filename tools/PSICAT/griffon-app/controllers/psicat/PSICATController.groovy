@@ -27,6 +27,8 @@ import javax.swing.*
 import org.json.JSONObject
 
 import org.apache.log4j.Logger
+import org.apache.log4j.FileAppender
+import org.apache.log4j.SimpleLayout
 
 import org.andrill.coretools.Platform
 import org.andrill.coretools.ResourceLoader
@@ -424,15 +426,6 @@ class PSICATController {
 					pb.setVisible(true)
 					pb.setLocationRelativeTo(app.appFrames[0])
 
-					def stratMetadata = oscdMVC.model.stratColumnMetadata
-					stratMetadata.logger = logger
-					def containers = stratMetadata.getContainers(model.project, stratColumnOptionsPanel.getSelectedModels())
-					def acceptedModels = ["Section"] + stratColumnOptionsPanel.getSelectedModels()
-					containers.each { sectionNameKey, c ->
-						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
-						modelsToRemove.each { c.remove(it) }
-					}
-
 					// merge contents into a single container representing the strat column
 					String sectionName = stratColumnOptionsPanel.getStratColumnName()
 					while (model.project.containers.contains(sectionName)) {
@@ -440,6 +433,25 @@ class PSICATController {
 						sectionName = JOptionPane.showInputDialog(app.appFrames[0], "A section named $sectionName already exists, enter a unique section name.", "Duplicate Section Name", JOptionPane.QUESTION_MESSAGE)
 						if (sectionName == null) { return }
 					}
+
+					def stratMetadata = oscdMVC.model.stratColumnMetadata
+
+					final boolean exportLogFile = stratColumnOptionsPanel.exportLogFile()
+					if (exportLogFile) {
+						def appender = new FileAppender(new SimpleLayout(), stratColumnOptionsPanel.getExportFile().getAbsolutePath(), false)
+						logger.addAppender(appender)
+						logger.setAdditivity(false)
+						stratMetadata.setLogger(logger)
+						GeoUtils.setLogger(logger)
+					}
+
+					def containers = stratMetadata.getContainers(model.project, stratColumnOptionsPanel.getSelectedModels())
+					def acceptedModels = ["Section"] + stratColumnOptionsPanel.getSelectedModels()
+					containers.each { sectionNameKey, c ->
+						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
+						modelsToRemove.each { c.remove(it) }
+					}
+
 					pb.setVisible(true)
 					def stratColumnContainer = null
 					edt {
@@ -450,6 +462,12 @@ class PSICATController {
 						stratColumnContainer.addAll(c.models)
 					}
 					pb.setVisible(false)
+
+					if (exportLogFile) {
+						logger.removeAllAppenders()
+						stratMetadata.setLogger(null)
+						GeoUtils.setLogger(null)
+					}
 
 					edt {
 						if (stratColumnContainer.models.size() > 0) {

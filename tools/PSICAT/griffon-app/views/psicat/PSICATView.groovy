@@ -20,7 +20,7 @@ import static griffon.util.GriffonApplicationUtils.*
 
 import java.awt.Color
 import java.awt.Font
-import java.awt.event.KeyEvent
+import java.awt.event.*
 
 import javax.swing.*
 import javax.swing.event.ChangeListener
@@ -37,6 +37,7 @@ import org.andrill.coretools.ui.PropertiesPanel
 import org.andrill.coretools.misc.util.StringUtils
 
 import psicat.ui.*
+import psicat.util.Dialogs
 
 // build actions
 build(PSICATActions)
@@ -149,6 +150,10 @@ class ModelChooserPanel extends JPanel {
 class StratColumnOptionsPanel extends JPanel {
 	private JTextField stratColumnName = null
 	private ModelListPanel modelListPanel = null
+	private JCheckBox exportLogCheckbox = null
+	private JLabel exportFileLabel = null
+	private JButton chooseExportButton = null
+	private File exportFile = null
 	
 	static StratColumnOptionsPanel create(List<String> modelTypes, String defaultName) {
 		StratColumnOptionsPanel panel = new StratColumnOptionsPanel(modelTypes, defaultName)
@@ -156,7 +161,7 @@ class StratColumnOptionsPanel extends JPanel {
 	}
 
 	private StratColumnOptionsPanel(List<String> modelTypes, String defaultName) {
-		super(new MigLayout("fill, wrap, insets 5", "", "[][grow]15[]"))
+		super(new MigLayout("fill, wrap, insets 5", "", "[][grow]10[][]15[]"))
 		
 		stratColumnName = new JTextField(defaultName)
 		this.add(new JLabel("Strat column name:"), "split 2")
@@ -164,6 +169,18 @@ class StratColumnOptionsPanel extends JPanel {
 		modelListPanel = ModelListPanel.create(modelTypes, false) // boxes initially unchecked
 		modelListPanel.setBorder(BorderFactory.createTitledBorder("Components to include"))
 		this.add(modelListPanel, "grow")
+
+		exportLogCheckbox = new JCheckBox("Export strat column creation log to a file", false)
+		exportLogCheckbox.addActionListener( { this.exportLogChecked() } as ActionListener)
+		this.add(exportLogCheckbox, "wrap")
+
+		exportFileLabel = new JLabel("[no export file selected]")
+		chooseExportButton = new JButton("Select export file...")
+		chooseExportButton.addActionListener( { this.chooseExportFile() } as ActionListener)
+		exportFileLabel.setEnabled(false)
+		chooseExportButton.setEnabled(false)
+		this.add(chooseExportButton, "split 2")
+		this.add(exportFileLabel)
 
 		String msg1 = "<html>Note: The created strat column is a snapshot of the included sections and their components.<br>"
 		String msg2 = "It will not update to reflect future changes to included components.</html>"
@@ -177,4 +194,20 @@ class StratColumnOptionsPanel extends JPanel {
 
 	public String getStratColumnName() { return stratColumnName.getText() }
 	public List<String> getSelectedModels() { return modelListPanel.getSelectedModels() }
+	public boolean exportLogFile() { return exportLogCheckbox.isSelected() && exportFile != null }
+	public File getExportFile() { return exportFile	}
+
+	private void exportLogChecked() {
+		final boolean enable = exportLogCheckbox.isSelected()
+		exportFileLabel.setEnabled(enable)
+		chooseExportButton.setEnabled(enable)
+	}
+
+	private void chooseExportFile() {
+		File selectedExportFile = Dialogs.showSaveDialog("Select Log Export File", null, null, this)
+		if (selectedExportFile) {
+			this.exportFile = selectedExportFile
+			exportFileLabel.setText(this.exportFile.getAbsolutePath())
+		}
+	}
 }

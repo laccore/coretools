@@ -145,7 +145,12 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 
 	def getContainers(project, includeModels=[]) {
 		def containers = [:]
-		this.metadata.each { secMap ->
+		this.metadata.eachWithIndex { secMap, idx ->
+			logger.info("### Metadata Interval ${idx+1}: project sections ${secMap['sections'].collect{ it['projSec'] }} ###")
+			logger.info("Start depth: ${secMap['startMcd']} m")
+			logger.info("End depth: ${secMap['endMcd']} m")
+			logger.info("Start section: ${secMap['startSec']} at section depth ${secMap['startSecDepth']} cm")
+			logger.info("End section: ${secMap['endSec']} at section depth ${secMap['endSecDepth']} cm")
 			def sectionModels = gatherModels(project, secMap, includeModels)
 
 			// offset all models by secMap.startMcd and throw them in a container
@@ -176,23 +181,29 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			Length trimMin = (sectionNum.equals(secMap.startSec)) ? secTop : null
 			Length trimMax = (sectionNum.equals(secMap.endSec)) ? secBase : null
 
-			def models = GeoUtils.getModels(project, sectionName).findAll { includeModels.contains(it.modelType) }
-			GeoUtils.trimModels(project, models, trimMin, trimMax)
+			logger.info("   Gathering components in section ${section['projSec']} range ${secTop} - ${secBase}...")
 
-			if (models.size() > 0) {
-				totalModelLength += GeoUtils.getLength(models)
-				models.add(new Section(name:sectionName, top:GeoUtils.getMinTop(models), base:GeoUtils.getMaxBase(models)))
-				sectionModels[sectionName] = models
+			def models = GeoUtils.getModels(project, sectionName).findAll { includeModels.contains(it.modelType) }
+			def trimmedModels = GeoUtils.trimModels(project, models, trimMin, trimMax)
+
+			if (trimmedModels.size() > 0) {
+				totalModelLength += GeoUtils.getLength(trimmedModels)
+				trimmedModels.add(new Section(name:sectionName, top:GeoUtils.getMinTop(trimmedModels), base:GeoUtils.getMaxBase(trimmedModels)))
+				sectionModels[sectionName] = trimmedModels
 			} else {
-				logger.info("No trimmed models found in $section, skipping.")
+				logger.info("   Post-trimming, no components remained in $section.")
 			}
 		}
 		BigDecimal intervalLength = secMap.endMcd - secMap.startMcd
-		logger.info("totalLength = $totalModelLength vs. interval length of ${secMap.endMcd} - ${secMap.startMcd} = $intervalLength")
+		logger.info("Length of all included components = $totalModelLength m")
 		
 		if (totalModelLength > intervalLength) {
 			BigDecimal scalingFactor = intervalLength / totalModelLength
+			logger.info("Components are too long for metadata interval of length $intervalLength m. Downscaling by $intervalLength m / $totalModelLength m = $scalingFactor to fit.")
 			sectionModels.each { key, modelList -> GeoUtils.scaleModels(modelList, scalingFactor) }
+			logger.info("Downscaled components: $sectionModels")
+		} else {
+			logger.info("   Included components fit in metadata interval $intervalLength m, no scaling needed.")
 		}
 		return sectionModels
 	}

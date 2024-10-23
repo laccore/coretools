@@ -23,7 +23,6 @@ import org.andrill.coretools.geology.models.Section
 
 import org.apache.log4j.Logger
 
-import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
 import psicat.stratcol.StratColumnMetadataUtils as utils
@@ -43,12 +42,7 @@ class SectionMetadata implements StratColumnMetadata {
 	}
 	public int getType() { return types.SectionMetadataFile }
 	public String getTypeName() { return "Section Metadata" }
-	public getDrawData(project) {
-		GeoUtils.setLogger(this.logger) 
-		def drawData = createDrawData(project)
-		GeoUtils.setLogger(null)
-		return drawData
-	}
+
 	public mapSections(project) {
 		parse(project.containers)
 		return this.metadata
@@ -82,22 +76,6 @@ class SectionMetadata implements StratColumnMetadata {
 		}
 		
 		this.metadata = metadata.sort { it.top }
-	}
-	
-	// return list of top/base ranges and models to be drawn,
-	// *only* for project sections mapped from metadata sections
-	def createDrawData(project) {
-		def intervalsToDraw = []
-		this.metadata.findAll { it.section != null }.each {
-			// gather and zero base models for each section
-			def models = GeoUtils.getModels(project, it.section)
-			compressToInterval(models, it.top, it.base)
-			
-			def intervalModels = [new SectionDrawData(it.section, it.top, it.base, models)]
-			intervalsToDraw.add(['top':it.top, 'base':it.base, 'drawData':intervalModels])
-		}
-		
-		return intervalsToDraw.sort { it.top }
 	}
 
 	def getContainers(project, includeModels=[]) {

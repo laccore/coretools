@@ -22,7 +22,6 @@ import org.andrill.coretools.geology.models.Section
 
 import org.apache.log4j.Logger
 
-import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
 import psicat.stratcol.StratColumnMetadataUtils as utils
@@ -64,12 +63,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	}
 	public int getType() { return types.SpliceIntervalFile }
 	public String getTypeName() { return "Splice Interval" }
-	public getDrawData(project) { 
-		GeoUtils.setLogger(logger)
-		def drawData = createDrawData(project)
-		GeoUtils.setLogger(null)
-		return drawData
-	}
+
 	public getTop() {
 		return this.metadata?.collect { it.startMcd }.min()
 	}
@@ -120,29 +114,6 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		
 		this.metadata = metadata.sort { it.startMcd }
 		this.sectionMapping = sectionMapping
-	}
-	
-	// TODO: Old strat column logic, purge throughout this file!
-	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
-	// 'drawData':list of SectionDrawData to be drawn in that range]
-	def createDrawData(project) {
-		def drawData = []
-		this.metadata.each { secMap ->
-			def sectionModels = gatherModels(project, secMap, [])
-			
-			def intervalModels = []
-			def top = secMap.startMcd
-			sectionModels.each { section, models ->
-				def base = top + GeoUtils.getLength(models)
-				def sdd = new SectionDrawData(section, top, base, models)
-				logger.info("Created $sdd")
-				intervalModels << sdd
-				top = base
-			}
-			
-			drawData << ['top':secMap.startMcd, 'base':secMap.endMcd, 'drawData':intervalModels]
-		}
-		return drawData.sort { it.top }
 	}
 
 	def getContainers(project, includeModels=[]) {

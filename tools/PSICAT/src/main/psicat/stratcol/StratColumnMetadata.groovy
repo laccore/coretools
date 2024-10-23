@@ -24,10 +24,6 @@ interface StratColumnMetadata {
 	// form metadata section:project section
 	public mapSections(project)
 
-	// return list of draw data maps, each of form ['top':top MCD depth, 'base':bottom MCD depth, 
-	// 'drawData':list of SectionDrawData to draw in that range]
-	public getDrawData(project)
-
 	// Return list of ModelContainers with models' depths adjusted to reflect top MCD depth of interval.
 	public getContainers(project, includeModels)
 

@@ -21,6 +21,8 @@ import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.Section
 
+import org.apache.log4j.Logger
+
 import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
@@ -31,13 +33,13 @@ import psicat.util.GeoUtils
 class SectionMetadata implements StratColumnMetadata {
 	private metadataPath = null
 	private metadata = null
-	private logger = null
+	private static logger = Logger.getLogger(SectionMetadata.class)
 
 	public SectionMetadata(metadataPath) {
 		this.metadataPath = metadataPath
 	}
-	public setLogger(logger) {
-		this.logger = logger
+	public setLogger(_logger) {
+		this.logger = _logger ?: Logger.getLogger(SectionMetadata.class)
 	}
 	public int getType() { return types.SectionMetadataFile }
 	public String getTypeName() { return "Section Metadata" }

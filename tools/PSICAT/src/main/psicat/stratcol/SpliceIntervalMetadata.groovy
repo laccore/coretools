@@ -20,6 +20,8 @@ import org.andrill.coretools.model.DefaultContainer
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.Section
 
+import org.apache.log4j.Logger
+
 import psicat.stratcol.SectionDrawData
 import psicat.stratcol.StratColumnMetadata
 import psicat.stratcol.StratColumnMetadataTypes as types
@@ -28,8 +30,6 @@ import psicat.stratcol.SpliceIntervalMetadataParser
 
 import psicat.util.GeoUtils
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class SpliceIntervalMetadata implements StratColumnMetadata {
 	public static final String Site = "Site"
@@ -54,12 +54,14 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	private metadata = null
 	private sectionMapping = null
 	private toolHeaderName = null
-	private logger = LoggerFactory.getLogger(SpliceIntervalMetadata.class)
+	private static Logger logger = Logger.getLogger(SpliceIntervalMetadata.class)
 
 	public SpliceIntervalMetadata(metadataPath) {
 		this.metadataPath = metadataPath
 	}
-	public setLogger(logger) { this.logger = logger }
+	public setLogger(_logger) {
+		logger = _logger ?: Logger.getLogger(SpliceIntervalMetadata.class)
+	}
 	public int getType() { return types.SpliceIntervalFile }
 	public String getTypeName() { return "Splice Interval" }
 	public getDrawData(project) { 

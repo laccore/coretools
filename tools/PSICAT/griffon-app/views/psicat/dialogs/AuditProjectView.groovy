@@ -16,13 +16,14 @@
 package psicat.dialogs
 
 import java.awt.Component
+import java.awt.LayoutManager
 import javax.swing.*
 
 import groovy.swing.SwingBuilder
 import net.miginfocom.swing.MigLayout
 import org.andrill.coretools.misc.util.StringUtils
 
-import psicat.ui.ModelListPanel
+import psicat.ui.DefaultModelListPanel
 
 
 class AuditElementRenderer implements ListCellRenderer {
@@ -41,6 +42,23 @@ class AuditElementRenderer implements ListCellRenderer {
 			auditResult.issues.each {
 				label("$it", constraints:'gapleft 10, gaptop 0')
 			}
+		}
+	}
+}
+
+class AuditModelListPanel extends DefaultModelListPanel {
+	static AuditModelListPanel create(List<String> models, boolean check, LayoutManager layout=null) {
+		if (!layout) { layout = new MigLayout("fillx, insets 5")}
+		AuditModelListPanel panel = new AuditModelListPanel(models.sort(), check, layout)
+		return panel
+	}
+
+	private AuditModelListPanel(List<String> models, boolean check, LayoutManager layout) {
+		super(layout)
+		models.each { modelType ->
+			def cb = new JCheckBox(StringUtils.humanizeModelName(modelType), check)
+			this.add(cb)
+			this.modelMap.put(modelType, cb)
 		}
 	}
 }
@@ -76,29 +94,29 @@ dialog(id:'auditProjectDialog', title:'Audit Project', owner:app.appFrames[0], p
 		label("Check Project for the Selected Problems:")
 		panel(layout:new MigLayout('fillx, wrap 1, insets 0')) {
 			panel(border: titledBorder("Sections without defined"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(ModelListPanel.create(model.modelTypes, true), id:'undefinedModels')
-				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> undefinedModels.checkAll(true) })
-				button('Check None', constraints:'align right', actionPerformed: { evt -> undefinedModels.checkAll(false) })
+				widget(AuditModelListPanel.create(model.modelTypes, true), id:'undefinedModels')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> undefinedModels.selectAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> undefinedModels.selectAll(false) })
 			}
 			panel(border: titledBorder("Sections with undescribed"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(ModelListPanel.create(model.modelTypes, true), id:'undescribedModels')
-				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> undescribedModels.checkAll(true) })
-				button('Check None', constraints:'align right', actionPerformed: { evt -> undescribedModels.checkAll(false) })
+				widget(AuditModelListPanel.create(model.modelTypes, true), id:'undescribedModels')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> undescribedModels.selectAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> undescribedModels.selectAll(false) })
 			}
 			panel(border: titledBorder("Inverted or zero-length intervals"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(ModelListPanel.create(model.modelTypes, true), id:'bogusIntervals')
-				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> bogusIntervals.checkAll(true) })
-				button('Check None', constraints:'align right', actionPerformed: { evt -> bogusIntervals.checkAll(false) })
+				widget(AuditModelListPanel.create(model.modelTypes, true), id:'bogusIntervals')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> bogusIntervals.selectAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> bogusIntervals.selectAll(false) })
 			}
 			panel(border: titledBorder("No selected scheme entry ('None')"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(ModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'noSchemeEntry')
-				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> noSchemeEntry.checkAll(true) })
-				button('Check None', constraints:'align right', actionPerformed: { evt -> noSchemeEntry.checkAll(false) })
+				widget(AuditModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'noSchemeEntry')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> noSchemeEntry.selectAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> noSchemeEntry.selectAll(false) })
 			}
 			panel(border: titledBorder("Unknown scheme entry"), layout:new MigLayout('fillx, wrap 1, insets 5'), constraints:'grow') {
-				widget(ModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'missingSchemeEntry')
-				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> missingSchemeEntry.checkAll(true) })
-				button('Check None', constraints:'align right', actionPerformed: { evt -> missingSchemeEntry.checkAll(false) })
+				widget(AuditModelListPanel.create(model.modelTypes - ["UnitInterval"], true), id:'missingSchemeEntry')
+				button('Check All', constraints:'align right, split 2', actionPerformed: { evt -> missingSchemeEntry.selectAll(true) })
+				button('Check None', constraints:'align right', actionPerformed: { evt -> missingSchemeEntry.selectAll(false) })
 			}		
 		}
 		

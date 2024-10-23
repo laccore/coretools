@@ -124,4 +124,9 @@ mvcGroups {
 		controller="psicat.dialogs.DiagramOptionsController"
 		view="psicat.dialogs.DiagramOptionsView"
 	}
+    CreateStratColumn {
+        model = 'psicat.dialogs.CreateStratColumnModel'
+        controller = 'psicat.dialogs.CreateStratColumnController'
+        view = 'psicat.dialogs.CreateStratColumnView'
+    }	
 }

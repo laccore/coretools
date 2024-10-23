@@ -400,7 +400,7 @@ class PSICATController {
 			}
 		},
 		'createStratColumn': { evt = null ->
-			app.controllers['PSICAT'].withMVC('OpenStratColumnDepths', project:model.project, metadataPath:null) { oscdMVC ->			
+			withMVC('OpenStratColumnDepths', project:model.project, metadataPath:null) { oscdMVC ->			
 				oscdMVC = buildMVCGroup('OpenStratColumnDepths', project:model.project, metadataPath:null)
 				oscdMVC.view.openSCMD.setLocationRelativeTo(app.appFrames[0])
 				oscdMVC.view.openSCMD.setVisible(true)
@@ -416,67 +416,20 @@ class PSICATController {
 
 					pb.setVisible(false)
 
-					StratColumnOptionsPanel stratColumnOptionsPanel = StratColumnOptionsPanel.create(modelTypes, FileUtils.removeExtension(new File(oscdMVC.model.metadataPath)))
-					def result = JOptionPane.showConfirmDialog(app.appFrames[0], stratColumnOptionsPanel, "Create Strat Column Options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-					if (result != JOptionPane.OK_OPTION) {
-						return
+					HashMap<String,String> modelsAndHelpText = new HashMap<String,String>()
+					modelTypes.each { modelsAndHelpText[it] = null }
+					if (modelsAndHelpText.containsKey('Image')) {
+						modelsAndHelpText['Image'] = '<html>Untrimmed images with features above or below the core (labels, color cards, etc.) will<br>yield inaccurate columns with differential compression.</html>'
+					}
+					if (modelsAndHelpText.containsKey('GrainSizeInterval')) {
+						modelsAndHelpText['GrainSizeInterval'] = 'Include Grain Size to display scaled Lithology column.'
 					}
 
-					pb = ProgressBarFactory.create("Creating strat column...")
-					pb.setVisible(true)
-					pb.setLocationRelativeTo(app.appFrames[0])
-
-					// merge contents into a single container representing the strat column
-					String sectionName = stratColumnOptionsPanel.getStratColumnName()
-					while (model.project.containers.contains(sectionName)) {
-						pb.setVisible(false)
-						sectionName = JOptionPane.showInputDialog(app.appFrames[0], "A section named $sectionName already exists, enter a unique section name.", "Duplicate Section Name", JOptionPane.QUESTION_MESSAGE)
-						if (sectionName == null) { return }
-					}
-
-					def stratMetadata = oscdMVC.model.stratColumnMetadata
-
-					final boolean exportLogFile = stratColumnOptionsPanel.exportLogFile()
-					if (exportLogFile) {
-						def appender = new FileAppender(new SimpleLayout(), stratColumnOptionsPanel.getExportFile().getAbsolutePath(), false)
-						logger.addAppender(appender)
-						logger.setAdditivity(false)
-						stratMetadata.setLogger(logger)
-						GeoUtils.setLogger(logger)
-					}
-
-					def containers = stratMetadata.getContainers(model.project, stratColumnOptionsPanel.getSelectedModels())
-					def acceptedModels = ["Section"] + stratColumnOptionsPanel.getSelectedModels()
-					containers.each { sectionNameKey, c ->
-						def modelsToRemove = c.models.findAll { !(it.modelType in acceptedModels) }
-						modelsToRemove.each { c.remove(it) }
-					}
-
-					pb.setVisible(true)
-					def stratColumnContainer = null
-					edt {
-						stratColumnContainer = model.project.createContainer(sectionName)
-					}
-
-					containers.each { sectionNameKey, c ->
-						stratColumnContainer.addAll(c.models)
-					}
-					pb.setVisible(false)
-
-					if (exportLogFile) {
-						logger.removeAllAppenders()
-						stratMetadata.setLogger(null)
-						GeoUtils.setLogger(null)
-					}
-
-					edt {
-						if (stratColumnContainer.models.size() > 0) {
-							model.project.saveContainer(stratColumnContainer)
-							model.status = "Created new section $sectionName with strat depths from ${oscdMVC.model.metadataPath}"
-						} else {
-							Dialogs.showMessageDialog("No Data", "No data was found in the specified metadata depth intervals.", app.appFrames[0])
-						}
-					}
+					withMVC('CreateStratColumn',
+							project:model.project,
+							stratMetadata:oscdMVC.model.stratColumnMetadata,
+							stratColumnName:FileUtils.removeExtension(new File(oscdMVC.model.metadataPath)),
+							modelsAndHelpText:modelsAndHelpText) { cscMVC -> cscMVC.controller.show() }
 				}
 			}
 		},		

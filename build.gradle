@@ -175,6 +175,16 @@ task packagePSICATWin() {
 			from "schemes"
 			exclude "legacy"
 		}
+
+		exec { // zip up the package
+			workingDir "dist/win/PSICAT-${version}"
+			commandLine "zip", "-r", "PSICAT-Win-${version}.zip", "."
+		}
+
+		ant.move(
+			file:"dist/win/PSICAT-${version}/PSICAT-Win-${version}.zip",
+			toFile:"dist/win/PSICAT-Win-${version}.zip"
+		)
 	}
 }
 

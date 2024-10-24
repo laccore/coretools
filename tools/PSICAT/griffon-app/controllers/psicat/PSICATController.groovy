@@ -482,58 +482,11 @@ class PSICATController {
 			}
 		},
 		'createIntervals': { evt = null ->
-			def active = model.activeDiagram.model
-			def modelClasses = active.scene.getCreatedClasses()
-
-			ModelChooserPanel panel = ModelChooserPanel.create(modelClasses)
-			def result = JOptionPane.showConfirmDialog(null, panel, "Select Components to Create", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-			if (result != JOptionPane.OK_OPTION) {
-				return
+			def diagram = model.activeDiagram.model
+			def modelClasses = diagram.scene.getCreatedClasses()
+			withMVC('CreateParallelIntervals', diagram:diagram, modelClasses:modelClasses) { mvc ->
+				mvc.controller.show()
 			}
-
-			Length baseDepth
-			try {
-				baseDepth = new Length(panel.getDepth(), "cm")
-			} catch (Exception e) {
-				Dialogs.showMessageDialog("Cannot Create Intervals", "Invalid base depth ${panel.getRawDepth()}", app.appFrames[0])
-				return
-			}
-
-			def maxes = [:]
-			panel.selectedModels.each { Class clazz ->
-				def max = new Length("0 cm")
-				def classMax = GeoUtils.getMaxBase(active.scene.models.findAll { clazz.isInstance(it) } )
-				maxes[clazz] = classMax ?: max
-			}
-
-			boolean maxesEqual = true
-			def vals = maxes.values().toArray()
-			for (int i = 0; i < vals.length - 1; i++) {
-				if (!vals[i].equals(vals[i+1])) {
-					maxesEqual = false
-					break
-				}
-			}
-
-			if (!maxesEqual) {
-				def maxesStrList = maxes.collect { clazz, max -> "${StringUtils.humanizeModelName(clazz.simpleName)} ($max)".toString() }
-				Dialogs.showMessageDialog("Cannot Create Intervals", "Bottommost ${maxesStrList.join(', ')} must be equal to create intervals.", app.appFrames[0])
-				return
-			}
-
-			if (baseDepth.compareTo(vals[0]) == 0 || baseDepth.compareTo(vals[0]) == -1) {
-				Dialogs.showMessageDialog("Cannot Create Intervals", "Base depth $baseDepth must be greater than ${vals[0]}", app.appFrames[0])
-				return
-			}
-
-			def createCommands = []
-			panel.selectedModels.each { clazz ->
-				def m = clazz.newInstance(top:vals[0], base:baseDepth)
-				createCommands << new CreateCommand(m, active.scene.models)
-			}
-
-			def command = new CompositeCommand("Create Intervals", createCommands as Command[])
-			active.commandStack.execute(command)
 		},
 		'undo':		{ evt = null -> model.diagramState.commandStack.undo() },
 		'redo':		{ evt = null -> model.diagramState.commandStack.redo() },

@@ -123,5 +123,10 @@ mvcGroups {
         model = 'psicat.dialogs.CreateStratColumnModel'
         controller = 'psicat.dialogs.CreateStratColumnController'
         view = 'psicat.dialogs.CreateStratColumnView'
+	}
+    CreateParallelIntervals {
+        model = 'psicat.dialogs.CreateParallelIntervalsModel'
+        controller = 'psicat.dialogs.CreateParallelIntervalsController'
+        view = 'psicat.dialogs.CreateParallelIntervalsView'
     }	
 }

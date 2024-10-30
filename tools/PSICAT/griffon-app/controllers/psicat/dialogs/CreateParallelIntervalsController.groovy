@@ -82,6 +82,9 @@ class CreateParallelIntervalsController {
         view.modelListPanel.selectedClasses.eachWithIndex { c, index ->
             def modelTypeTopDepth = maxes[selectedModels[index]]
             def m = c.newInstance(top:modelTypeTopDepth, base:depth)
+            // populate intervals with random entry, useful for faking out data quickly
+            // def schemeRef = DebugUtils.randomSchemeEntry(c.constraints.scheme.widgetProperties.schemeType)
+            // def m = c.newInstance(top:modelTypeTopDepth, base:depth, scheme:schemeRef)
             createCommands << new CreateCommand(m, model.diagram.scene.models)
         }
 

@@ -15,6 +15,7 @@
  */
 package org.andrill.coretools.ui.widget.swing;
 
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -83,6 +84,12 @@ public class TextWidget extends AbstractWidget implements FocusListener, ActionL
 				widget.getDocument().addDocumentListener(this);
 				widget.setLineWrap(true);
 				widget.setWrapStyleWord(true);
+				
+				// Change focus to next/previous component on Tab/Shift+Tab
+				// https://stackoverflow.com/questions/5042429/how-can-i-modify-the-behavior-of-the-tab-key-in-a-jtextarea
+				widget.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
+				widget.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
+
 				component = widget;
 			} else {
 				JTextField widget = new JTextField(property.getValue(), 10);

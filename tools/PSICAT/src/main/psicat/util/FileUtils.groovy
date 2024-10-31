@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Brian Grivna, 2014.
+ * Copyright (c) CSD Facility, 2014.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * File-related utility methods.
  * 
- * @author Brian Grivna
+ * @author CSD Facility
  */
 public class FileUtils {
 	static String getExtension(final File f) {

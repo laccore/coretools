@@ -1,5 +1,5 @@
 /**
- * Created 10/15/2016 by Brian Grivna.
+ * Created 10/15/2016 by CSD Facility.
  * 
  * Filtered text field with search icon and reset icon + functionality. Adaptation of
  * Georgios Migdos's nice JIconTextField example, found here:

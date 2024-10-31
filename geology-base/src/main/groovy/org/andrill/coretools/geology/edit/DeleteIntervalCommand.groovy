@@ -15,7 +15,7 @@ import org.andrill.coretools.geology.models.csdf.*
  * - For Origin.TOP, "next" implies models below, "prev" above.
  * - For Origin.BASE, "next" implies models above, "prev" below.
  * 
- * @author Brian Grivna
+ * @author CSD Facility
  */
 public class DeleteIntervalCommand extends AbstractCommand {
 	protected Model model = null;

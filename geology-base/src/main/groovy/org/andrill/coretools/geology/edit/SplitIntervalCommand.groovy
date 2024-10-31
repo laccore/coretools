@@ -9,7 +9,7 @@ import org.andrill.coretools.geology.models.Interval
 /**
  * A command for splitting an interval in two
  *
- * @author Brian Grivna
+ * @author CSD Facility
  */
 public class SplitIntervalCommand extends AbstractCommand {
 	protected Model model = null;

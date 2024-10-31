@@ -18,6 +18,8 @@ package psicat.components
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 
+import org.andrill.coretools.ui.widget.swing.SchemeEntryWidget
+
 import psicat.util.GeoUtils
 import psicat.util.ProjectLocal
 
@@ -38,6 +40,7 @@ class ProjectController implements PropertyChangeListener {
     	if (model.project) {
 			model.project.removePropertyChangeListener(this)
 			ProjectLocal.unloadAllSchemes()
+			SchemeEntryWidget.clearRecentEntries()
 		}
     	model.project = project
     	model.name = project ? project.name : "< No Project >"

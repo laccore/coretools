@@ -15,7 +15,6 @@
  */
 package org.andrill.coretools.ui.widget.swing;
 
-// import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -182,8 +181,6 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 		return panel;
 	}
 
-
-
 	protected SchemeEntry getEntry(final String value) {
 		SchemeEntry e = null;
 		if (value != null) {
@@ -265,6 +262,11 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 
 		public boolean contains(SchemeEntry entry) { return entries.contains(entry); }
 		public ArrayList<SchemeEntry> getEntries() { return entries; }
+	}
+
+	public static void clearRecentEntries() {
+		recentEntries = new HashMap<String, RecentSchemeEntries>();
+		recentEntryPanels = new HashMap<String, JPanel>();
 	}
 
 	private static void addRecentEntry(SchemeEntry entry, String schemeType, final JComboBox widgetCombo) {

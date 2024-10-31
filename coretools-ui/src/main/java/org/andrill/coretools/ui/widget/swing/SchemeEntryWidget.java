@@ -15,7 +15,7 @@
  */
 package org.andrill.coretools.ui.widget.swing;
 
-import java.awt.BorderLayout;
+// import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,15 +25,9 @@ import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 
 import org.andrill.coretools.model.edit.EditableProperty;
 import org.andrill.coretools.model.scheme.Scheme;
@@ -45,6 +39,8 @@ import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.TextFilterator;
 import ca.odell.glazedlists.swing.AutoCompleteSupport;
+
+import net.miginfocom.swing.MigLayout;
 
 /**
  * A widget for selecting {@link SchemeEntry}s.
@@ -91,6 +87,9 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 	protected EventList<SchemeEntry> entries = GlazedLists.eventList(new ArrayList<SchemeEntry>());
 	protected final SchemeManager schemes;
 	protected final boolean required;
+	private static HashMap<String, RecentSchemeEntries> recentEntries = new HashMap<String, RecentSchemeEntries>();
+	private static HashMap<String, JPanel> recentEntryPanels = new HashMap<String, JPanel>();
+	private static int RECENT_ENTRIES_CAPACITY = 10;
 
 	/**
 	 * Create a new SchemeEntryWidget.
@@ -111,6 +110,7 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 		if (selected != null) {
 			icon.setIcon(selected.getIcon());
 			fireChange();
+			addRecentEntry(selected, this.getSchemeType(), combo);
 		}
 	}
 
@@ -121,7 +121,7 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 				entries.add(NONE);
 			}
 			// get our list of entries
-			String type = property.getWidgetProperties().get("schemeType");
+			String type = this.getSchemeType();
 			for (Scheme s : schemes.getSchemes()) {
 				if ((type == null) || type.equalsIgnoreCase(s.getType())) {
 					entries.addAll(s.getEntries());
@@ -172,12 +172,17 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 			combo.addActionListener(this);
 			combo.setBorder(BorderFactory.createEmptyBorder());
 
-			panel = new JPanel(new BorderLayout());
-			panel.add(icon, BorderLayout.WEST);
-			panel.add(combo, BorderLayout.CENTER);
+			panel = new JPanel();
+			panel.setLayout(new MigLayout("insets 0, fillx", "[]", "[][grow,fill]"));
+			panel.add(icon, "split 2");
+			panel.add(combo, "wrap");
+			updateRecentEntryPanel(this.getSchemeType(), combo);
+			panel.add(getRecentEntryPanel(this.getSchemeType()), "grow, wmin 400, hmin 60");
 		}
 		return panel;
 	}
+
+
 
 	protected SchemeEntry getEntry(final String value) {
 		SchemeEntry e = null;
@@ -232,4 +237,76 @@ public class SchemeEntryWidget extends AbstractWidget implements ActionListener 
 			}
 		}
 	}
+
+	protected String getSchemeType() {
+		return property.getWidgetProperties().get("schemeType");
+	}
+
+	// recent scheme entries logic and UI handling
+	public static class RecentSchemeEntries {
+		private ArrayList<SchemeEntry> entries = null;
+		private int capacity;
+
+		public RecentSchemeEntries(int capacity) {
+			this.capacity = capacity;
+			entries = new ArrayList<SchemeEntry>(capacity);
+		}
+
+		// if unique, add entry at index 0, popping last entry if already at capacity
+		public void add(SchemeEntry entry) {
+			if (this.contains(entry)) {
+				return;
+			}
+			if (entries.size() == capacity) {
+				entries.remove(capacity - 1);
+			}
+			entries.add(0, entry);
+		}
+
+		public boolean contains(SchemeEntry entry) { return entries.contains(entry); }
+		public ArrayList<SchemeEntry> getEntries() { return entries; }
+	}
+
+	private static void addRecentEntry(SchemeEntry entry, String schemeType, final JComboBox widgetCombo) {
+		if (recentEntries.containsKey(schemeType)) {
+			recentEntries.get(schemeType).add(entry);
+		} else {
+			RecentSchemeEntries recentEntriesForType = new RecentSchemeEntries(RECENT_ENTRIES_CAPACITY);
+			recentEntriesForType.add(entry);
+			recentEntries.put(schemeType, recentEntriesForType);
+		}
+		updateRecentEntryPanel(schemeType, widgetCombo);
+	}
+
+	private static JPanel getRecentEntryPanel(String schemeType) {
+		JPanel rePanel = recentEntryPanels.get(schemeType);
+		if (rePanel == null) {
+			rePanel = new JPanel();
+			rePanel.setLayout(new MigLayout("insets 0 5 0 5, fill, wrap 5"));
+			rePanel.setBorder(BorderFactory.createTitledBorder(null, "Recent Selections"));
+			rePanel.setMinimumSize(new java.awt.Dimension(200, 50));
+			recentEntryPanels.put(schemeType, rePanel);
+		}
+		return rePanel;
+	}
+
+	private static void updateRecentEntryPanel(String schemeType, final JComboBox widgetCombo) {
+		JPanel rePanel = getRecentEntryPanel(schemeType);
+		rePanel.removeAll();
+		if (recentEntries.get(schemeType) != null) {
+			for (final SchemeEntry e : recentEntries.get(schemeType).getEntries()) {
+				JButton iconButton = new JButton(e.getName(), e.getIcon());
+				iconButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent event) {
+						widgetCombo.setSelectedItem(e);
+					}
+				});
+				rePanel.add(iconButton);
+			}
+			rePanel.repaint();
+			rePanel.revalidate();
+		} else {
+			rePanel.add(new JLabel("[Recently selected entries will appear here]"));
+		}
+	}	
 }

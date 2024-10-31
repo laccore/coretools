@@ -15,12 +15,12 @@
  */
 package org.andrill.coretools.ui;
 
+import java.awt.Color;
 import java.awt.Font;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -75,7 +75,8 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 		label = new JLabel("No properties");
 		label.setFont(normal);
 		widgets = Platform.getService(WidgetSet.class);
-		setLayout(new MigLayout());
+		setLayout(new MigLayout("fillx", "[right]rel[grow]", ""));
+		setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		add(label);
 		setScene(scene);
 	}
@@ -94,7 +95,7 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 				} else {
 					label.setFont(title);
 					label.setText(selection.getFirstObject().toString());
-					add(label, "span, wrap");
+					add(label, "span, align left, wrap");
 					boolean readOnly = isReadOnly();
 					for (int i = 0; i < properties.length; i++) {
 						EditableProperty p = properties[i];
@@ -107,14 +108,14 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 						
 						// build a label for the widget 
 						JLabel label = new JLabel(w.getLabel() + ":");
-						add(label, "label");
+						add(label, "label, aligny top");
 						
 						String group = p.getConstraints().get("group");
 						if (group == null) {
 							// add our widget component
 							JComponent component = (JComponent) w.getUI();
 							components.put(w, component);
-							add(component, "wrap");	
+							add(component, "aligny top, wrap");
 						} else {
 							Widget current = w;
 							boolean lastInGroup = (i + 1 >= properties.length || !group.equals(properties[i+1].getConstraints().get("group")));

@@ -105,13 +105,13 @@ task packagePSICATMac() {
 	dependsOn ':tools:SchemeEditor:packageMac'
 
 	doLast {
-		def app = file("dist/mac/PSICAT-${version}")
+		def app = file("dist/mac/PSICAT-Mac-${version}")
 		if (!app.exists()) {
 			println "${app.absolutePath} not found, creating."
 		}
 
 		// clear existing bundle to avoid failed copy of JRE contents
-		delete "dist/mac/PSICAT-${version}/PSICAT.app"
+		delete "dist/mac/PSICAT-Mac-${version}/PSICAT.app"
 		copy {
 			into app
 			from "tools/PSICAT/dist/mac"  // PSICAT app bundle
@@ -138,7 +138,7 @@ task packagePSICATMac() {
 		// tar and zip up the entire package
 		exec {
 			workingDir "dist/mac"
-			commandLine "tar", "cfvz", "PSICAT-${version}.tar.gz", "PSICAT-${version}"
+			commandLine "tar", "cfvz", "PSICAT-Mac-${version}.tar.gz", "PSICAT-Mac-${version}"
 		}
 	}
 }

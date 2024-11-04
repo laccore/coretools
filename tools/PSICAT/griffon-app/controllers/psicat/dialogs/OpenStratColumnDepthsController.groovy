@@ -2,6 +2,7 @@ package psicat.dialogs
 
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableModel
+import javax.swing.JOptionPane
 
 import psicat.util.CustomFileFilter
 import psicat.util.Dialogs
@@ -48,6 +49,18 @@ class OpenStratColumnDepthsController {
 		if (scMetadata) {
 			def sectionMap = null
 			try {
+				if (scMetadata instanceof SpliceIntervalMetadata) {
+					final msg = "<html>Enter the character used to separate section name components.<br><br> \
+					Examples:<br> \
+					IODP and CSD Facility section names (e.g. GLAD4-HST03-1C-2H-1) use a hyphen, which is the default.<br> \
+					ICDP section names (e.g. 5066_1_A_017Q_1) use an underscore.<br><br></html>"
+					final delimiter = JOptionPane.showInputDialog(view.root, msg, "-")
+					if (delimiter == null) {
+						return
+					} else {
+						scMetadata.setSectionNameDelimiter(delimiter)
+					}
+				}
 				sectionMap = scMetadata.mapSections(model.project)
 			} catch (Exception e) {
 				errbox("${e.message}")

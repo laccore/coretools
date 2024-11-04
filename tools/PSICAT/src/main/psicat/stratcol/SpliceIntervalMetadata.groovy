@@ -53,6 +53,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	private metadata = null
 	private sectionMapping = null
 	private toolHeaderName = null
+	private sectionNameDelimiter = "-"
 	private static Logger logger = Logger.getLogger(SpliceIntervalMetadata.class)
 
 	public SpliceIntervalMetadata(metadataPath) {
@@ -63,6 +64,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 	}
 	public int getType() { return types.SpliceIntervalFile }
 	public String getTypeName() { return "Splice Interval" }
+	public void setSectionNameDelimiter(String delimiter) { this.sectionNameDelimiter = delimiter }
 
 	public getTop() {
 		return this.metadata?.collect { it.startMcd }.min()
@@ -187,11 +189,13 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		def core = siRow[Core]
 		def tool = siRow[this.toolHeaderName]
 		def sec = siRow[secCol]
-		return (expName ? "$expName-" : "") + "$site$hole-$core$tool-$sec"
+		def expPortion = (expName ? "${expName}${this.sectionNameDelimiter}" : "")
+		def secPortion = "$site$hole${this.sectionNameDelimiter}$core$tool${this.sectionNameDelimiter}$sec"
+		return expPortion + secPortion
 	}
 	
 	private String parseSection(String fullSectionName) {
-		return fullSectionName.substring(fullSectionName.lastIndexOf('-') + 1)
+		return fullSectionName.substring(fullSectionName.lastIndexOf(this.sectionNameDelimiter) + 1)
 	}
 	
 	// return list of section names, starting with startSec, ending with endSec,
@@ -210,7 +214,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		}
 		
 		def sections = []
-		def baseName = startSec.substring(0, startSec.lastIndexOf('-') + 1)
+		def baseName = startSec.substring(0, startSec.lastIndexOf(this.sectionNameDelimiter) + 1)
 		(startnum..endnum).each { sections <<  baseName + it }
 		
 		return sections

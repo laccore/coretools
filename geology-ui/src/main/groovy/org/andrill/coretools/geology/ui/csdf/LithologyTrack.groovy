@@ -63,7 +63,8 @@ class LithologyTrack extends AbstractIntervalTrack {
 				if (index > 0) {
 					def gsstr = grainSize.labels[index-1]
 					def gs_x = bounds.x + bounds.width * grainSize.toScreen(grainSize.values[index-1])
-					graphics.drawStringRotated(new Point(gs_x.intValue(), (bounds.y + bounds.height).intValue()), font, gsstr, -(java.lang.Math.PI / 2.0))
+					final Y_BOTTOM_MARGIN = 2 // bit of space between bottom of header and start of grain size name
+					graphics.drawStringRotated(new Point(gs_x.intValue(), (bounds.y + bounds.height).intValue() - Y_BOTTOM_MARGIN), font, gsstr, -(java.lang.Math.PI / 2.0))
 				}
 			}
 		} else {

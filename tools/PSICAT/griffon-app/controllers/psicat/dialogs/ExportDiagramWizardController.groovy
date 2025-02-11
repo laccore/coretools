@@ -111,7 +111,7 @@ class ExportDiagramWizardController {
 			}
 
 			// Override the scene columns' draw-outline settings for now...
-			scene.tracks.findAll { it.PARAMETERS.containsKey("draw-outline") }.each {
+			scene.tracks.findAll { it.hasProperty("PARAMETERS") && it.PARAMETERS.containsKey("draw-outline") }.each {
 				it.setParameter("draw-outline", Boolean.toString(model.renderIntervalOutlines))
 			}
 

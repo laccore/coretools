@@ -26,6 +26,10 @@ import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.ScenePanel.SelectionProvider
 import org.andrill.coretools.ui.ScenePanel.KeySelectionProvider
 
+import org.andrill.coretools.model.edit.CreateCommand
+import org.andrill.coretools.geology.models.GeologyModel
+import org.andrill.coretools.geology.models.csdf.Feature
+
 scrollPane(id:'viewer', columnHeaderView: widget(new ScenePanel(null, ScenePart.HEADER, Orientation.VERTICAL), id:'header'), constraints: 'grow', border: emptyBorder(0)) {
 	widget(new ScenePanel(null, ScenePart.CONTENTS, Orientation.VERTICAL), id: 'contents')
 }
@@ -38,18 +42,17 @@ viewer.horizontalScrollBar.addAdjustmentListener(contents)
 // customize our selection handling
 contents.selectionProvider = { scene, e ->
 	def o = scene.findAt(new Point2D.Double(e.x, e.y), e.target);
-	if (o && e.isAltDown() && !scene.selection.isEmpty()) {
+
+	// clone selected Feature if Alt key is down
+	if (o && o instanceof Feature && e.isAltDown() && !scene.selection.isEmpty()) {
 		def existing = scene.selection.firstObject
 		def props = [:]
-		o.properties.each { k,v ->
-			if (existing.hasProperty(k) && !existing.getProperty(k)) {
-				props[k] = v
-			}
-		}
-		println "Clone mode"
-		scene.commandStack.execute(new org.andrill.coretools.geology.GMultiCommand(source:existing, props:props))
+		println "Cloning Feature $o"
+		def m = o.class.newInstance(top:o.top, base:o.base, scheme:o.scheme)
+		scene.commandStack.execute(new CreateCommand(m, existing.container))
 		return null
 	} else {
+		println "Selected object $o"
 		return (o == null) ? Selection.EMPTY : new Selection(o)
 	}
 } as SelectionProvider

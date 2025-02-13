@@ -22,11 +22,14 @@ class LithologyTrack extends AbstractIntervalTrack {
 	private static final PARAMETERS = [
 		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "Draw a border around intervals.", TrackParameter.Type.BOOLEAN, "true"),
 		"grain-size-header": new TrackParameter("grain-size-header", "Grain Size Header", "Draw the grain size scale in the column header.", TrackParameter.Type.BOOLEAN, "false"),
+		"texture-scaling" : new TrackParameter("texture-scaling", "Texture scaling", "Scaling of legend entry patterns. Lower values zoom in, higher values zoom out.", TrackParameter.Type.FLOAT, "1.0"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]
 
 	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
+
+	private double TEXTURE_SCALING = 1.0
 
 	def getFilter() { return { it instanceof LithologyInterval } }
 	List<Class> getCreatedClasses() { return [LithologyInterval] }
@@ -75,14 +78,16 @@ class LithologyTrack extends AbstractIntervalTrack {
 	@Override
 	void renderContents(GraphicsContext graphics, Rectangle2D bounds) {
 		validate()
+
+		this.TEXTURE_SCALING = Double.parseDouble(getParameter("texture-scaling", "1.0"))
 		
 		this.bounds = bounds
 		def clip = clip(bounds, graphics.clip)
 		def selected = selection
-		def sel
 
 		final grainSizeIntervals = index.get(new Length(clip.minY, units).to('m').value, new Length(clip.maxY, units).to('m').value).findAll({it instanceof GrainSizeInterval})
 		
+		def sel = null
 		index.get(new Length(clip.minY, units).to('m').value, new Length(clip.maxY, units).to('m').value).findAll(filter).each { m ->
 			renderModel(m, graphics, clip, grainSizeIntervals)
 			if (m == selected) { sel = m }
@@ -177,9 +182,9 @@ class LithologyTrack extends AbstractIntervalTrack {
 			Color color = entry.color
 			URL image = entry.imageURL
 			if (image && color) {
-				return new MultiFill(new ColorFill(color), new TextureFill(image))
+				return new MultiFill(new ColorFill(color), new TextureFill(image, TEXTURE_SCALING))
 			} else if (image) {
-				return new TextureFill(image)
+				return new TextureFill(image, TEXTURE_SCALING)
 			} else if (color) {
 				return new ColorFill(color)
 			}

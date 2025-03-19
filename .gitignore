@@ -10,6 +10,7 @@ breadcrumb.txt
 build/
 **/build/
 dist/
+dist_*/
 
 # ignore subdirs but not files
 package/java_runtime/mac/*/ 

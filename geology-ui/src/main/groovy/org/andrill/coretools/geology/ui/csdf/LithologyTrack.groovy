@@ -128,20 +128,23 @@ class LithologyTrack extends AbstractIntervalTrack {
 		graphics.popState()
 	}
 
+	// Vary lithology interval's widths according to parallel grain size intervals.
+	// Returns list of points for resulting polygon.
 	def getOutline(Model m, ArrayList<GrainSizeInterval> grainSizeIntervals) {
 		def outline = []
 
 		outline << pt(bounds.minX, pts(m.top.to(units).value, bounds))
-		outline << gs(0, m.top.to(units).value)
+		outline << gs(0, m.top.to(units).value) // horz from edge to minimum default width
 
 		// draw subintervals of this LithologyInterval at widths corresponding to
 		// GrainSizeIntervals in those subintervals
-		final modelRect = mrect(m)
+		final modelRect = mrect2d(m)
 		for (int i = 0; i < grainSizeIntervals.size(); i++) {
 			def gsi = grainSizeIntervals[i]
-			final gsiRect = mrect(gsi)
+			final gsiRect = mrect2d(gsi)
 			if (modelRect.intersects(gsiRect)) {
-				def intersection = modelRect.intersection(gsiRect)
+				def intersection = new Rectangle2D.Double(0, 0, 100, 100); // dummy rect for intersect result
+				Rectangle2D.intersect(modelRect, gsiRect, intersection)
 				def width = 0
 				if (gsi.scheme) {
 					def entry = getSchemeEntry(gsi.scheme.scheme, gsi.scheme.code)
@@ -149,6 +152,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 						width = Integer.parseInt(entry.getProperty('width', '0'))
 					}
 				}
+
 				outline << pt(gswidth(width), intersection.y)
 				outline << pt(gswidth(width), intersection.y + intersection.height)
 
@@ -163,6 +167,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 
 		outline << gs(0, m.base.to(units).value)
 		outline << pt(bounds.minX, pts(m.base.to(units).value, bounds))
+
         return outline
 	}
 

@@ -157,8 +157,8 @@ public class PageableScene implements Scene {
 	
 	public Rectangle2D getContentSize(final int page) {
 		Rectangle2D content = scene.getContentSize();
-		final double y = (page - 1) * perPage * scene.getScalingFactor();// - sectionNameHeight;
-		final double height = perPage * scene.getScalingFactor();// - sectionNameHeight;
+		final double y = (start * scene.getScalingFactor()) + (page - 1) * perPage * scene.getScalingFactor();
+		final double height = perPage * scene.getScalingFactor();
 		return new Rectangle2D.Double(content.getX(), y, content.getWidth(), height);
 	}
 

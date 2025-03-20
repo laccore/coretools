@@ -143,7 +143,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 			def gsi = grainSizeIntervals[i]
 			final gsiRect = mrect2d(gsi)
 			if (modelRect.intersects(gsiRect)) {
-				def intersection = new Rectangle2D.Double(0, 0, 100, 100); // dummy rect for intersect result
+				def intersection = new Rectangle2D.Double() // for intersect result
 				Rectangle2D.intersect(modelRect, gsiRect, intersection)
 				def width = 0
 				if (gsi.scheme) {

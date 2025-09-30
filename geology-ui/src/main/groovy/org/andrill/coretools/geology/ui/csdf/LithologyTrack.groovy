@@ -26,6 +26,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 		"grain-size-header": new TrackParameter("grain-size-header", "Grain Size Header", "Draw the grain size scale in the column header.", TrackParameter.Type.BOOLEAN, "false"),
 		"grain-size-header-height": new TrackParameter("grain-size-header-height", "Grain Size Header Height", "Pixel height of grain size scale in the column header.", TrackParameter.Type.INTEGER, "96"),
 		"grain-size-label-font-size": new TrackParameter("grain-size-label-font-size", "Grain Size Label Font Size", "Font size of grain size scale labels in the column header.", TrackParameter.Type.INTEGER, "12"),
+		"draw-grain-size-widths": new TrackParameter("draw-grain-size-widths", "Show grain size widths", "Vary each lithology interval's width by grain size(s) in its depth range.", TrackParameter.Type.BOOLEAN, "true"),
 		"texture-scaling" : new TrackParameter("texture-scaling", "Texture scaling", "Scaling of patterns. Lower values zoom in, higher values zoom out.", TrackParameter.Type.FLOAT, "1.0"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),
@@ -96,7 +97,12 @@ class LithologyTrack extends AbstractIntervalTrack {
 	}
 
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds, ArrayList<GrainSizeInterval> grainSizeIntervals) {
-		def outline = getOutline(m, grainSizeIntervals)
+		def outline = []
+		if (Boolean.parseBoolean(getParameter("draw-grain-size-widths", "true"))) {
+			outline = getOutline(m, grainSizeIntervals)
+		} else {
+			outline = getOutline(m)
+		}
 		if (m?.scheme) {
 			graphics.setFill(getFill(m, graphics.fill))
 			graphics.fillPolygon(outline)
@@ -132,7 +138,6 @@ class LithologyTrack extends AbstractIntervalTrack {
 	// Returns list of points for resulting polygon.
 	def getOutline(Model m, ArrayList<GrainSizeInterval> grainSizeIntervals) {
 		def outline = []
-
 		outline << pt(bounds.minX, pts(m.top.to(units).value, bounds))
 		outline << gs(0, m.top.to(units).value) // horz from edge to minimum default width
 

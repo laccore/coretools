@@ -36,7 +36,7 @@ class LegendTrack extends GeologyTrack {
 
 	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
-	def getWidth()  { return 32 }
+	def getWidth()  { return 128 }
 	def getFilter() { return { true } }
 
 	private Font labelFont = null
@@ -46,8 +46,6 @@ class LegendTrack extends GeologyTrack {
 	final private int INTER_ENTRYTYPE_SPACING = 10 // space after each subheading group
 	final private int MARGIN = 2 // space between edge of bounds and start/end of entry
 	final private int PADDING = 4 // space between entry symbol and label
-	private double TEXTURE_SCALING = 1.0
-	private int COLS = 1 // number of columns in which to draw legend entries
 
     @Override
 	void renderContents(GraphicsContext graphics, Rectangle2D bounds) {
@@ -59,11 +57,7 @@ class LegendTrack extends GeologyTrack {
 		} else {
 			this.labelFont = font
 		}
-
 		this.headingFont = font.deriveFont(Font.BOLD, (float)Integer.parseInt(getParameter("heading-font-size", "13")))
-
-		this.TEXTURE_SCALING = Double.parseDouble(getParameter("texture-scaling", "1.0"))
-		this.COLS = Integer.parseInt(getParameter("columns", "1"))
 
 		this.bounds = bounds
 		def clip = clip(bounds, graphics.clip)
@@ -115,7 +109,7 @@ class LegendTrack extends GeologyTrack {
 		this.scene.tracks.each { t ->
 			if (t.getCreatedClasses().size() > 0) {
 				def typeName = StringUtils.humanizeModelName(t.getCreatedClasses().get(0).getSimpleName())
-				
+
 				// fixup model names that differ from their user-facing names
 				if (typeName == "Feature") {
 					typeName = "Features"
@@ -131,6 +125,7 @@ class LegendTrack extends GeologyTrack {
 	}
 
 	private void renderEntries(GraphicsContext graphics, LinkedHashMap<String, List<SchemeEntry>> entries) {
+		final int COLS = 1 // number of columns in which to draw legend entries
 		final int availableWidth = ((this.bounds.width - (MARGIN*2)) / COLS).intValue()
 		int col = 0
 		int x = bounds.x + MARGIN
@@ -201,12 +196,13 @@ class LegendTrack extends GeologyTrack {
 	}
 
 	private Fill getFill(SchemeEntry entry) {
+		final float textureScaling = Double.parseDouble(getParameter("texture-scaling", "1.0"))
 		Color color = entry.color
 		URL image = entry.imageURL
 		if (image && color) {
-			return new MultiFill(new ColorFill(color), new TextureFill(image, TEXTURE_SCALING))
+			return new MultiFill(new ColorFill(color), new TextureFill(image, textureScaling))
 		} else if (image) {
-			return new TextureFill(image, TEXTURE_SCALING)
+			return new TextureFill(image, textureScaling)
 		} else if (color) {
 			return new ColorFill(color)
 		}

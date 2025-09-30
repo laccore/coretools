@@ -1,8 +1,10 @@
 package org.andrill.coretools.geology.ui.csdf
 
 import java.awt.Color
+import java.awt.Font
 import java.awt.Point
 import java.awt.geom.Rectangle2D
+
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.csdf.*
 import org.andrill.coretools.geology.ui.Scale
@@ -22,6 +24,8 @@ class LithologyTrack extends AbstractIntervalTrack {
 	private static final PARAMETERS = [
 		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "Draw a border around intervals.", TrackParameter.Type.BOOLEAN, "true"),
 		"grain-size-header": new TrackParameter("grain-size-header", "Grain Size Header", "Draw the grain size scale in the column header.", TrackParameter.Type.BOOLEAN, "false"),
+		"grain-size-header-height": new TrackParameter("grain-size-header-height", "Grain Size Header Height", "Pixel height of grain size scale in the column header.", TrackParameter.Type.INTEGER, "96"),
+		"grain-size-label-font-size": new TrackParameter("grain-size-label-font-size", "Grain Size Label Font Size", "Font size of grain size scale labels in the column header.", TrackParameter.Type.INTEGER, "12"),
 		"texture-scaling" : new TrackParameter("texture-scaling", "Texture scaling", "Scaling of patterns. Lower values zoom in, higher values zoom out.", TrackParameter.Type.FLOAT, "1.0"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),
@@ -34,17 +38,17 @@ class LithologyTrack extends AbstractIntervalTrack {
 
 	@Override
 	int getHeaderHeight() {
-		def hs = Scene.DEFAULT_HEADER_HEIGHT
+		int headerHeight = Scene.DEFAULT_HEADER_HEIGHT // 36
 		if (this.hasParameter("grain-size-header")) {
 			if (Boolean.parseBoolean(getParameter("grain-size-header", "false"))) {
-				hs = 128
+				headerHeight += Integer.parseInt(getParameter("grain-size-header-height", "96"))
 			}
 		}
-		return hs
+		return headerHeight
 	}
 
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
-	def getWidth()  { return 96 }
+	def getWidth()  { return 128 }
 	protected SceneEventHandler createHandler() {
 		new DefaultTrackEventHandler(this, [new CreatePolicy(LithologyInterval.class, [:]), new ResizePolicy()])
 	}
@@ -53,9 +57,10 @@ class LithologyTrack extends AbstractIntervalTrack {
 	void renderHeader(GraphicsContext graphics, Rectangle2D bounds) {
 		if (Boolean.parseBoolean(getParameter("grain-size-header", "false"))) {
 			def newBounds = bounds.clone()
-			newBounds.height = newBounds.height - Math.abs(128 - 36);
+			newBounds.height = newBounds.height - (getHeaderHeight() - Scene.DEFAULT_HEADER_HEIGHT)
 			renderTextOrImage(graphics, newBounds, getParameter("track-header", header))
 
+			Font gsLabelFont = new Font("SanSerif", Font.PLAIN, Integer.parseInt(getParameter("grain-size-label-font-size", "12")))
 			grainSize.values.eachWithIndex { gsval, index ->
 				// println "GS value ${gsval} toScreen = ${grainSize.toScreen(gsval)}"
 				def x = bounds.x + bounds.width * grainSize.toScreen(gsval)
@@ -64,7 +69,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 					def gsstr = grainSize.labels[index-1]
 					def gs_x = bounds.x + bounds.width * grainSize.toScreen(grainSize.values[index-1])
 					final Y_BOTTOM_MARGIN = 2 // bit of space between bottom of header and start of grain size name
-					graphics.drawStringRotated(new Point(gs_x.intValue(), (bounds.y + bounds.height).intValue() - Y_BOTTOM_MARGIN), font, gsstr, -(java.lang.Math.PI / 2.0))
+					graphics.drawStringRotated(new Point(gs_x.intValue(), (bounds.y + bounds.height).intValue() - Y_BOTTOM_MARGIN), gsLabelFont, gsstr, -(java.lang.Math.PI / 2.0))
 				}
 			}
 		} else {

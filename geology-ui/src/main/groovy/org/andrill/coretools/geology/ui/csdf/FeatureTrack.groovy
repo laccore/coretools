@@ -24,7 +24,7 @@ class FeatureTrack extends AbstractFeatureTrack implements FeedbackProvider {
 	private static final String DEFAULT_TITLE = "Features"
 	private static final PARAMETERS = [
 		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "false"),
-		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "<html>Size, in pixels, of feature symbols. Applies only when Tile symbols is <b>disabled</b>.</html>", TrackParameter.Type.INTEGER, "32"),
+		"symbol-size" : new TrackParameter("symbol-size", "Symbol size", "Size, in pixels, of feature symbols.", TrackParameter.Type.INTEGER, "32"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]

@@ -22,15 +22,12 @@ class LithologyTrack extends AbstractIntervalTrack {
 	private static final PARAMETERS = [
 		"draw-outline" : new TrackParameter("draw-outline", "Outline intervals", "Draw a border around intervals.", TrackParameter.Type.BOOLEAN, "true"),
 		"grain-size-header": new TrackParameter("grain-size-header", "Grain Size Header", "Draw the grain size scale in the column header.", TrackParameter.Type.BOOLEAN, "false"),
-		"texture-scaling" : new TrackParameter("texture-scaling", "Texture scaling", "Scaling of legend entry patterns. Lower values zoom in, higher values zoom out.", TrackParameter.Type.FLOAT, "1.0"),
+		"texture-scaling" : new TrackParameter("texture-scaling", "Texture scaling", "Scaling of patterns. Lower values zoom in, higher values zoom out.", TrackParameter.Type.FLOAT, "1.0"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]
 
 	List<TrackParameter> getTrackParameters() { return PARAMETERS.values() as List<TrackParameter> }
-
-	private double TEXTURE_SCALING = 1.0
-
 	def getFilter() { return { it instanceof LithologyInterval } }
 	List<Class> getCreatedClasses() { return [LithologyInterval] }
 	def getHeader() { getParameter("track-header", DEFAULT_TITLE) }
@@ -79,8 +76,6 @@ class LithologyTrack extends AbstractIntervalTrack {
 	void renderContents(GraphicsContext graphics, Rectangle2D bounds) {
 		validate()
 
-		this.TEXTURE_SCALING = Double.parseDouble(getParameter("texture-scaling", "1.0"))
-		
 		this.bounds = bounds
 		def clip = clip(bounds, graphics.clip)
 		def selected = selection
@@ -184,12 +179,13 @@ class LithologyTrack extends AbstractIntervalTrack {
 			def entry = getSchemeEntry(m.scheme?.scheme, m.scheme?.code)
 			if (!entry) { return null }
 			
+			final float textureScaling = Double.parseDouble(getParameter("texture-scaling", "1.0"))
 			Color color = entry.color
 			URL image = entry.imageURL
 			if (image && color) {
-				return new MultiFill(new ColorFill(color), new TextureFill(image, TEXTURE_SCALING))
+				return new MultiFill(new ColorFill(color), new TextureFill(image, textureScaling))
 			} else if (image) {
-				return new TextureFill(image, TEXTURE_SCALING)
+				return new TextureFill(image, textureScaling)
 			} else if (color) {
 				return new ColorFill(color)
 			}

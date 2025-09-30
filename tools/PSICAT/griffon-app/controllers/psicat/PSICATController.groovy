@@ -19,6 +19,7 @@ import java.awt.Desktop
 
 import java.beans.PropertyChangeEvent
 import java.io.FileWriter
+import java.io.FileReader
 import java.io.BufferedReader
 import java.util.prefs.Preferences
 import java.util.regex.Pattern
@@ -27,7 +28,6 @@ import javax.swing.*
 
 import org.json.JSONObject
 
-import org.apache.log4j.Logger
 import org.apache.log4j.FileAppender
 import org.apache.log4j.SimpleLayout
 
@@ -59,6 +59,8 @@ import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
 import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
 
+import org.andrill.coretools.graphics.driver.ImageCache
+
 import org.andrill.coretools.Platform
 
 import psicat.stratcol.StratColumnMetadataUtils
@@ -69,7 +71,6 @@ class PSICATController {
 	def view
 
 	private def prefs = Preferences.userNodeForPackage(PSICATController)
-	private static Logger logger = Logger.getLogger(PSICATController.class)
 
 	public final String DIAGRAM_SCENE_FILE = "main.diagram"
 	public final String STRATCOL_SCENE_FILE = "stratcolumn.diagram"
@@ -383,7 +384,7 @@ class PSICATController {
 							// are created with a sceneDir and the default diagram template (main.diagram).
 							// So this project must be an old legacy project. Create a sceneDir and add the old
 							// default diagram template (template_pre120.diagram).
-							println "Legacy project, adding old template!"
+							Platform.log("$file contains a legacy PSICAT project, adding old template!")
 							def scene = SceneUtils.fromXML(Platform.getService(ResourceLoader.class).getResource("rsrc:/templates/template_pre120.diagram"))
 							addSceneToProject(model.project, scene, DIAGRAM_SCENE_FILE)
 						}
@@ -400,6 +401,10 @@ class PSICATController {
 			// figure out our name and id
 			def sections = sectionToOpen ? [sectionToOpen] : getSelectedSections()
 			def id = sections.join('|')
+
+			Platform.log("openSection $sections: Clearing Image Cache to force reload of images...")
+			ImageCache cache = Platform.getService(ImageCache.class);
+			cache.clear()
 			
 			// check to make sure the diagram isn't open already
 			def open = model.openDiagrams.find { it.model.id == id }

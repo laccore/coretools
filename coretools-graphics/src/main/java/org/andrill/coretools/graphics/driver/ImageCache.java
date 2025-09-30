@@ -96,6 +96,12 @@ public class ImageCache {
 		        });
 	}
 
+	// 5/15/2025 brg: Clear cache to force reload of images
+	public void clear() {
+		levelCache.clear();
+		scaleCache.clear();
+	}
+
 	/**
 	 * Gets the specified image with the specified dimensions.
 	 * 

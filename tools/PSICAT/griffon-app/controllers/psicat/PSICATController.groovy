@@ -19,6 +19,7 @@ import java.awt.Desktop
 
 import java.beans.PropertyChangeEvent
 import java.io.FileWriter
+import java.io.BufferedReader
 import java.util.prefs.Preferences
 import java.util.regex.Pattern
 
@@ -58,6 +59,8 @@ import org.andrill.coretools.ui.ScenePanel.Orientation
 import org.andrill.coretools.ui.widget.Widget
 import org.andrill.coretools.ui.widget.swing.SwingWidgetSet
 
+import org.andrill.coretools.Platform
+
 import psicat.stratcol.StratColumnMetadataUtils
 import psicat.util.*
 
@@ -96,8 +99,32 @@ class PSICATController {
 	
 	// Is the selected directory a PSICAT project directory?
 	boolean isProject(projFile) {
+		// Platform.log("isProject(), looking in directory $projFile\npath=${projFile.absolutePath}")
+		// Platform.log("is it a directory? ${projFile.isDirectory()}")
+		// File[] files = projFile.listFiles()
+		// Platform.log("directory contents:")
+		// files.each {
+			// Platform.log("  $it ${it.isDirectory() ? '(dir)' : '(file)'}")
+		// }
+
 		def propsFile = new File(projFile, "project.properties") // simple, reliable-ish check
-		propsFile.exists()	
+		// Platform.log("Created project.properties File instance: $propsFile\npath=${propsFile.absolutePath}")
+		def exists = propsFile.exists()
+		// Platform.log("project.properties file exists? $exists")
+
+		// Platform.log("Reading contents of project.properties file...")
+
+        // try {
+		// 	BufferedReader reader = new BufferedReader(new FileReader(propsFile))
+        //     String line;
+        //     while ((line = reader.readLine()) != null) {
+        //         Platform.log("  $line");
+        //     }
+        // } catch (IOException e) {
+        //     Platform.log("Error reading the file: " + e.getMessage());
+        // }
+
+		return exists
 	}
 	
 	Scale getGrainSize() {

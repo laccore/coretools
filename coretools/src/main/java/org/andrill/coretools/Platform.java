@@ -76,6 +76,10 @@ public class Platform {
 		}
 	}
 
+	public static void log(String msg) {
+		LOGGER.debug(msg);
+	}
+
 	Platform() {
 		// not to be instantiated
 	}

@@ -68,10 +68,11 @@ class ExportTabularWizardController {
 	private def exportTabular(containers, format) {
 		try {
 			containers.each { k, v ->
-				// assume single section per container - adjust model depths to section depth
-				def section = v.find { it.modelType == "Section" }
-				if (section) {
-					GeoUtils.adjustUp(v, section.top)
+				// If container has 1 Section, adjust model depths to start from 0cm i.e. section depth.
+				// If 2+ Sections, container is a strat column, do not adjust model depths.
+				def sections = v.findAll { it.modelType == "Section" }
+				if (sections.size() == 1) {
+					GeoUtils.adjustUp(v, sections[0].top)
 				}
 			}
 			

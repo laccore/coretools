@@ -75,7 +75,7 @@ application(title:"PSICAT ${app.applicationProperties['app.version']} $subversio
 				panel(layout: new MigLayout("fill, wrap, insets 0", "", "[][grow]")) {
 					button(id: 'createIntervals', text: 'Create Parallel Intervals...',
 						actionPerformed: { evt -> app.controllers['PSICAT'].actions.createIntervals(evt) },
-						enabled: bind { model.activeDiagram != null })
+						enabled: bind { model.activeDiagram != null && model.diagramState?.commandStack?.isEditable() })
 					widget(id:'propertiesPanel', propertiesPanel, constraints:'grow')
 				}
 			}

@@ -93,6 +93,7 @@ class SectionMetadata implements StratColumnMetadata {
 
 				// gather all requested models from the container
 				def models = GeoUtils.getModels(project, section).findAll { includeModels.contains(it.modelType) }
+				models.each { it.setSourceSection(section) }
 
 				GeoUtils.zeroBase(models)
 				compressToInterval(models, top, base)

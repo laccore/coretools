@@ -55,6 +55,9 @@ class GeologyExcelWriter {
 	private sheetCount = 0
 	private schemeManager = null
 	private units = 'm'
+
+	private final String SECTION_ID_HEADER = "Section ID"
+	private final String SOURCE_SECTION_ID_HEADER = "Source Section ID"
 	
 	// Cache modelSchemeMetadata so we don't need to look it up 10k times.
 	// k: Model.modelType (String), v: ModelSchemeMetadata
@@ -95,7 +98,11 @@ class GeologyExcelWriter {
 				// convert to project units, then strip units from Lengths
 				value = new Length(v).to(units).value
 			}
-			sheet.addCell(cell(head.indexOf(k), row, value))
+
+			// map sourceSection property name to user-facing header
+			final headerName = k.equals('sourceSection') ? SOURCE_SECTION_ID_HEADER : k
+			
+			sheet.addCell(cell(head.indexOf(headerName), row, value))
 		}
 		
 		def schemeMD = getModelSchemeMetadata(model)
@@ -107,7 +114,10 @@ class GeologyExcelWriter {
 			}
 		}
 
-		sheet.addCell(cell(head.indexOf("Section ID"), row, sectionID))
+		sheet.addCell(cell(head.indexOf(SECTION_ID_HEADER), row, sectionID))
+		if (model.sourceSection) {
+			sheet.addCell(cell(head.indexOf(SOURCE_SECTION_ID_HEADER), row, model.sourceSection))
+		}
 		rowCounts[model.modelType]++
 	}
 	
@@ -168,7 +178,8 @@ class GeologyExcelWriter {
 				}
 			}
 			
-			newHeaders << "Section ID"
+			newHeaders << SECTION_ID_HEADER
+			newHeaders << SOURCE_SECTION_ID_HEADER
 	
 			// add header row with units to sheet
 			newHeaders.eachWithIndex { name, col ->

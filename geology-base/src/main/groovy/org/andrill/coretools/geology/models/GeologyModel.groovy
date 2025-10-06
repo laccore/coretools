@@ -38,6 +38,7 @@ abstract class GeologyModel implements Model {
 	}
 	protected static final List SKIP = ['class', 'metaClass', 'modelType', 'modelData', 'container', 'constraints', 'indexMin', 'indexMax']
 	protected List propertyList
+	protected String sourceSection = null
 	ModelContainer container
 	
 	public GeologyModel() {}
@@ -48,6 +49,9 @@ abstract class GeologyModel implements Model {
 		 	}
 		}
 	}
+
+	public String getSourceSection() { return sourceSection }
+	public void setSourceSection(String ss) { sourceSection = ss }
 
 	// confirm obj.top <= obj.base
 	static boolean validInterval(propname, value, obj) {

@@ -164,6 +164,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			if (trimmedModels.size() > 0) {
 				totalModelLength += GeoUtils.getLength(trimmedModels)
 				trimmedModels.add(new Section(name:sectionName, top:GeoUtils.getMinTop(trimmedModels), base:GeoUtils.getMaxBase(trimmedModels)))
+				trimmedModels.each { it.setSourceSection(sectionName) }
 				sectionModels[sectionName] = trimmedModels
 			} else {
 				logger.info("   Post-trimming, no components remained in $section.")

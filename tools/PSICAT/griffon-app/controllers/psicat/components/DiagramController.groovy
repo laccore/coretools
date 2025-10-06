@@ -58,9 +58,8 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
     		default: model.name = "${model.project.name} [${sections.join(', ')}]"
     	}
 
-
     	// create our edit support object; set to read-only for multi-container
-		// sections or single containers with multiple Section models.
+		// sections or single containers with multiple Section models (strat columns).
 		int sectionModelCount = 0;
 		if (sections.size() == 1) {
 			def c = model.project.openContainer(sections[0])
@@ -68,7 +67,8 @@ class DiagramController implements ModelContainer.Listener, Scene.SelectionListe
 			// 4/24/2024: Must close this container! See issue #10 for details.
 			model.project.closeContainer(c)
 		}
-    	model.commandStack = new CommandStack(sections.size() == 1 && sectionModelCount <= 1)
+		final boolean isEditable = sections.size() == 1 && sectionModelCount <= 1
+    	model.commandStack = new CommandStack(isEditable)
     	model.commandStack.addPropertyChangeListener(this)
 		
 		model.units = model.project.configuration.units ?: prefs.get('diagram.units', 'm')

@@ -28,7 +28,8 @@ import org.andrill.coretools.ui.ScenePanel.KeySelectionProvider
 
 import org.andrill.coretools.model.edit.CreateCommand
 import org.andrill.coretools.geology.models.GeologyModel
-import org.andrill.coretools.geology.models.csdf.Feature
+import org.andrill.coretools.geology.models.Occurrence
+import org.andrill.coretools.geology.models.csdf.*
 
 scrollPane(id:'viewer', columnHeaderView: widget(new ScenePanel(null, ScenePart.HEADER, Orientation.VERTICAL), id:'header'), constraints: 'grow', border: emptyBorder(0)) {
 	widget(new ScenePanel(null, ScenePart.CONTENTS, Orientation.VERTICAL), id: 'contents')
@@ -44,7 +45,8 @@ contents.selectionProvider = { scene, e ->
 	def o = scene.findAt(new Point2D.Double(e.x, e.y), e.target);
 
 	// clone selected Feature if Alt key is down
-	if (o && o instanceof Feature && e.isAltDown() && !scene.selection.isEmpty()) {
+	final cloneables = [Feature, Occurrence, Caementa, Mortar, Matrix, Pores, Fractures]
+	if (o && o.class in cloneables && e.isAltDown() && !scene.selection.isEmpty()) {
 		def existing = scene.selection.firstObject
 		def props = [:]
 		println "Cloning Feature $o"

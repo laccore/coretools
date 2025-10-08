@@ -29,7 +29,7 @@ class Image extends GeologyModel {
 	static constraints = [
 		top: 	[editable: false],
 		base:	[editable: false],
-		path:	[editable: false],
+		path:	[editable: true],
 		group:	[nullable: true]
 	]
 }

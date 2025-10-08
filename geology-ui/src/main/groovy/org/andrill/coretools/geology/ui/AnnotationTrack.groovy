@@ -93,7 +93,7 @@ class AnnotationTrack extends GeologyTrack {
 				r.setSize((int) r.width, (int) ((text[m].size()) * letterHeight))
 				rects[m] = r
 			}
-			// Occurrence annotations are placed at the vertical center of the Occurence's
+			// Occurrence annotations are placed at the vertical center of the Occurrence's
 			// range, meaning we can no longer assume elements of onpage are in depth order.
 			// Now that we've gathered all annotation rects, sort list from top to bottom,
 			// then adjust for overlaps as needed.

@@ -171,15 +171,17 @@ class GeologyExcelWriter {
 			def newHeaders = []
 			model.constraints.each { k, v ->
 				newHeaders << k
-			}
-			
-			// Header for human-readable scheme entry names. This column exists
-			// for convenience, and will not be consumed on tabular import.
-			def schemeMD = getModelSchemeMetadata(model)
-			if (schemeMD) {
-				def schemeHeaderName = schemeMD.headerName
-				if (schemeHeaderName) {
-					newHeaders << schemeHeaderName
+
+				// Add human-readable scheme type header/column immediately after scheme code header/column.
+				// This column exists for convenience, and will not be consumed on tabular import.
+				if (['scheme', 'lithology'].contains(k)) { // Interval is oddball Model with 'lithology' member/constraint instead of 'scheme'
+					def schemeMD = getModelSchemeMetadata(model)
+					if (schemeMD) {
+						def schemeHeaderName = schemeMD.headerName
+						if (schemeHeaderName) {
+							newHeaders << schemeHeaderName
+						}
+					}
 				}
 			}
 			

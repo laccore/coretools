@@ -37,7 +37,12 @@ private class ModelSchemeMetadata {
 		'grainsize': 'Grain Size',
 		'lithology': 'Lithology',
 		'symbol': 'Symbol',
-		'texture': 'Texture'
+		'texture': 'Texture',
+ 		'caementa': 'Caementa',
+		'mortar': 'Mortar',
+		'matrix': 'Matrix',
+		'pores': 'Pores',
+		'fractures': 'Fractures'		
 	]
 
 	ModelSchemeMetadata(String prop, String type) {

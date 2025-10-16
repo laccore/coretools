@@ -91,7 +91,13 @@ class LegendTrack extends GeologyTrack {
 			"texture" : "Texture",
 			"bedding" : "Bedding",
 			"features" : "Features",
-			"symbol" : "Symbol"
+			"symbol" : "Symbol",
+			'caementa': 'Caementa',
+			'mortar': 'Mortar',
+			'matrix': 'Matrix',
+			'pores': 'Pores',
+			'fractures': 'Fractures',
+			'discontinuity': 'Discontinuity'
 		]
 
 		LinkedHashMap<String, List<SchemeEntry>> entries = [:]
@@ -170,7 +176,7 @@ class LegendTrack extends GeologyTrack {
 
 		def rect = new Rectangle2D.Double(0, 0, SYMBOL_SIZE, SYMBOL_SIZE)
 		if (entry.image) {
-			if (['bedding', 'features', 'symbol', 'texture'].contains(entry.scheme.type)) { // untiled image
+			if (['bedding', 'features', 'symbol', 'texture', 'caementa', 'mortar', 'matrix', 'pores', 'fractures', 'discontinuity'].contains(entry.scheme.type)) { // untiled image
 				graphics.drawImage(rect, entry.imageURL)
 			} else { // tile image
 				graphics.setFill(getFill(entry))

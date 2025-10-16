@@ -20,11 +20,12 @@ class TrackElementRenderer implements ListCellRenderer {
 	// Because we're stuck with ancient Groovy 1.6.4 (Griffon 0.2), we can't just reverse
 	// TRACK_TO_CLASS with collectEntries() here.
 	static public final HashMap<String, String> CLASS_TO_TRACK = [
-		"org.andrill.coretools.geology.ui.csdf.CaementaTrack" : "Caementa",
-		"org.andrill.coretools.geology.ui.csdf.MortarTrack" : "Mortar",
-		"org.andrill.coretools.geology.ui.csdf.MatrixTrack" : "Matrix",
-		"org.andrill.coretools.geology.ui.csdf.PoresTrack" : "Pores",
-		"org.andrill.coretools.geology.ui.csdf.FracturesTrack" : "Fractures",
+		"org.andrill.coretools.geology.ui.csdf.CaementaTrack" : "Caementa (Romacons)",
+		"org.andrill.coretools.geology.ui.csdf.MortarTrack" : "Mortar (Romacons)",
+		"org.andrill.coretools.geology.ui.csdf.MatrixTrack" : "Matrix (Romacons)",
+		"org.andrill.coretools.geology.ui.csdf.PoresTrack" : "Pores (Romacons)",
+		"org.andrill.coretools.geology.ui.csdf.FracturesTrack" : "Fractures (Romacons)",
+		"org.andrill.coretools.geology.ui.csdf.DiscontinuityTrack" : "Discontinuity (Romacons)",
 		"org.andrill.coretools.geology.ui.AnnotationTrack" : "Annotation",
 		"org.andrill.coretools.geology.ui.csdf.BeddingTrack" : "Bedding",
 		"org.andrill.coretools.geology.ui.csdf.FeatureTrack" : "Feature",

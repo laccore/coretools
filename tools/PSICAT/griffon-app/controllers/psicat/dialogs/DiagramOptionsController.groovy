@@ -56,11 +56,12 @@ class DiagramOptionsController {
 	}
 
 	static public final HashMap<String, String> TRACK_TO_CLASS = [
-		"Caementa" : "org.andrill.coretools.geology.ui.csdf.CaementaTrack",
-		"Mortar": "org.andrill.coretools.geology.ui.csdf.MortarTrack",
-		"Matrix": "org.andrill.coretools.geology.ui.csdf.MatrixTrack",
-		"Pores": "org.andrill.coretools.geology.ui.csdf.PoresTrack",
-		"Fractures": "org.andrill.coretools.geology.ui.csdf.FracturesTrack",
+		"Caementa (Romacons)" : "org.andrill.coretools.geology.ui.csdf.CaementaTrack",
+		"Mortar (Romacons)": "org.andrill.coretools.geology.ui.csdf.MortarTrack",
+		"Matrix (Romacons)": "org.andrill.coretools.geology.ui.csdf.MatrixTrack",
+		"Pores (Romacons)": "org.andrill.coretools.geology.ui.csdf.PoresTrack",
+		"Fractures (Romacons)": "org.andrill.coretools.geology.ui.csdf.FracturesTrack",
+		"Discontinuity (Romacons)": "org.andrill.coretools.geology.ui.csdf.DiscontinuityTrack",
 		"Annotation" : "org.andrill.coretools.geology.ui.AnnotationTrack",
 		"Bedding" : "org.andrill.coretools.geology.ui.csdf.BeddingTrack",
 		"Feature" : "org.andrill.coretools.geology.ui.csdf.FeatureTrack",

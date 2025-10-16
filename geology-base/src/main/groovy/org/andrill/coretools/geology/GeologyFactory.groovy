@@ -29,7 +29,7 @@ class GeologyFactory implements Factory {
 	private static final String[] TYPES = [
 		Annotation.class, Interval.class, Occurrence.class, Unit.class, Image.class, Section.class,
 		BeddingInterval.class, GrainSizeInterval.class, TextureInterval.class, Feature.class, LithologyInterval.class, UnitInterval.class,
-		Caementa.class, Mortar.class, Matrix.class, Pores.class, Fractures.class
+		Caementa.class, Mortar.class, Matrix.class, Pores.class, Fractures.class, Discontinuity.class
 	].collect { it.simpleName } as String[]
 	
 	public GeologyFactory() { }
@@ -56,6 +56,7 @@ class GeologyFactory implements Factory {
 			case 'Matrix': return init(new Matrix(), data)
 			case 'Pores': return init(new Pores(), data)
 			case 'Fractures': return init(new Fractures(), data)
+			case 'Discontinuity': return init(new Discontinuity(), data)
 			default:			return null
 		}
 	}

@@ -42,7 +42,8 @@ private class ModelSchemeMetadata {
 		'mortar': 'Mortar',
 		'matrix': 'Matrix',
 		'pores': 'Pores',
-		'fractures': 'Fractures'		
+		'fractures': 'Fractures',
+		'discontinuity': 'Discontinuity',
 	]
 
 	ModelSchemeMetadata(String prop, String type) {

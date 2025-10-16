@@ -94,7 +94,7 @@ application(title: "Scheme Editor ${app.applicationProperties['app.version']} $s
 		label('ID:')
 		textField(id:'schemeId', constraints:'growx', action: updateSchemeAction)
 		label('Type:')
-		comboBox(id:'schemeType', items: ['lithology', 'texture', 'bedding', 'grainsize', 'features', 'symbol', 'caementa', 'mortar', 'matrix', 'pores', 'fractures'], editable: false, constraints: 'growx', action: updateSchemeTypeAction)
+		comboBox(id:'schemeType', items: ['lithology', 'texture', 'bedding', 'grainsize', 'features', 'symbol', 'caementa', 'mortar', 'matrix', 'pores', 'fractures', 'discontinuity'], editable: false, constraints: 'growx', action: updateSchemeTypeAction)
 	}
 	panel(layout:new MigLayout("fill, wrap, insets 5", '', '[][grow][]'), constraints:'grow, wrap', border:titledBorder("Scheme Entries")) {
 		label("Double-click a cell to edit text.")

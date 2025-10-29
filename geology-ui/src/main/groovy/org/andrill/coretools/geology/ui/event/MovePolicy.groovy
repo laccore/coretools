@@ -34,7 +34,7 @@ class MovePolicy extends GeologyPolicy {
 	Type getType() { Type.MOVE }
 		
 	Feedback getFeedback(SceneEvent e, Object target) {
-		if (e.clickCount == 0) {
+		if (e.button == SceneMouseEvent.Button.NO_BUTTON) {
 			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, null)
 		} else {
 			def r = track.getModelBounds(target)

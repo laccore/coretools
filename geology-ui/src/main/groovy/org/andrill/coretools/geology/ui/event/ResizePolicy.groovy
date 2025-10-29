@@ -34,7 +34,7 @@ class ResizePolicy extends GeologyPolicy {
 		
 	Feedback getFeedback(SceneEvent e, Object target) {
 		int handle = getHandle(e, target)
-		if (e.clickCount == 0) {
+		if (e.button == SceneMouseEvent.Button.NO_BUTTON) {
 			new DefaultFeedback(Feedback.RESIZE_TYPE, null, handle, null, null)
 		} else {
 			def r = track.getModelBounds(target)

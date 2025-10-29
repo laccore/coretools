@@ -5,15 +5,14 @@ import java.awt.geom.Rectangle2D
 
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.csdf.TextureInterval
-import org.andrill.coretools.geology.ui.event.CreatePolicy
-import org.andrill.coretools.geology.ui.event.ResizePolicy
+import org.andrill.coretools.geology.ui.event.*
+import org.andrill.coretools.geology.ui.*
+import org.andrill.coretools.graphics.GraphicsContext
+import org.andrill.coretools.graphics.fill.*
+import org.andrill.coretools.model.Model
 import org.andrill.coretools.scene.TrackParameter
 import org.andrill.coretools.scene.event.SceneEventHandler
 import org.andrill.coretools.scene.event.DefaultTrackEventHandler
-import org.andrill.coretools.geology.ui.*
-import org.andrill.coretools.model.Model
-import org.andrill.coretools.graphics.GraphicsContext
-import org.andrill.coretools.graphics.fill.*
 
 class TextureTrack extends AbstractFeatureTrack {
 	private static final String DEFAULT_TITLE = "Texture"
@@ -33,7 +32,7 @@ class TextureTrack extends AbstractFeatureTrack {
 	def getFooter() { getParameter("track-footer", DEFAULT_TITLE) }
 	def getWidth()  { return 96 }
 	protected SceneEventHandler createHandler() {
-		new DefaultTrackEventHandler(this, [new CreatePolicy(TextureInterval.class, [:]), new ResizePolicy()])
+		new DefaultTrackEventHandler(this, [new CreatePolicy(TextureInterval.class, [:], getSymbolSize()), new MovePolicy(), new ResizePolicy()])
 	}
 
 	@Override

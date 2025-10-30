@@ -53,20 +53,28 @@ class CreatePolicy extends GeologyPolicy {
 		}
 
 		int val1, val2
+		String topDepth = null, baseDepth = null
 		if (linked) {
 			def models = track.models
-			val1 = pts(models.size() > 0 ? track.mmax(models.last()) : track.scene.contentSize.minY / track.scene.scalingFactor)
+			final modelPhys = models.size() > 0 ? track.mmax(models.last()) : track.scene.contentSize.minY / track.scene.scalingFactor
+			val1 = pts(modelPhys)
 			val2 = e.y
+			topDepth = "${modelPhys} ${track.units}"
+			baseDepth = "${round(phys(e.y))} ${track.units}"
 		} else if (e.dragY == -1) {
 			val1 = val2 = e.y
+			baseDepth = "${round(phys(e.y))} ${track.units}"
 		} else {
 			val1 = e.dragY
 			val2 = e.y
+			topDepth = "${round(phys(Math.min(e.y, e.dragY)))} ${track.units}"
+			baseDepth = "${round(phys(Math.max(e.y, e.dragY)))} ${track.units}"
 		}
+
 		int w = (width == -1 ? track.bounds.width : width)
 		int h = (val1 == val2 ? width : Math.abs(val1 - val2))
 		def r = new Rectangle((int) track.bounds.x, Math.min(val1, val2), w, h)
-		new DefaultFeedback(Feedback.CREATE_TYPE, null, Cursor.CROSSHAIR_CURSOR, null, new RectangleFeedback(r))
+		new DefaultFeedback(Feedback.CREATE_TYPE, null, Cursor.CROSSHAIR_CURSOR, null, new CreateFeedback(r, topDepth, baseDepth))
 	}
 
 	Command getCommand(SceneEvent e, Object target) {

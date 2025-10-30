@@ -22,7 +22,9 @@ import org.andrill.coretools.model.edit.CompositeCommand;
 import org.andrill.coretools.model.edit.EditableProperty;
 import org.andrill.coretools.scene.event.*
 import org.andrill.coretools.scene.event.EventPolicy.Type
+import org.andrill.coretools.geology.models.GeologyModel
 import org.andrill.coretools.geology.models.Length
+
 
 /**
  * An event policy for moving geology-related models.
@@ -34,12 +36,16 @@ class MovePolicy extends GeologyPolicy {
 	Type getType() { Type.MOVE }
 		
 	Feedback getFeedback(SceneEvent e, Object target) {
-		if (e.clickCount == 0) {
+		if (e.button == SceneMouseEvent.Button.NO_BUTTON) {
 			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, null)
 		} else {
 			def r = track.getModelBounds(target)
 			r.setFrame(r.x, r.y + (e.y - e.dragY), r.width, r.height)
-			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, new RectangleFeedback(r))
+
+			GeologyModel gm = (GeologyModel)target
+			def dy = new Length(round(phys(e.y)) - round(phys(e.dragY)), track.units)
+			MoveFeedback mf = new MoveFeedback(r, gm.top.plus(dy).toString(), gm.base.plus(dy).toString())
+			new DefaultFeedback(Feedback.MOVE_TYPE, null, Cursor.MOVE_CURSOR, null, mf)
 		}
 	}
 

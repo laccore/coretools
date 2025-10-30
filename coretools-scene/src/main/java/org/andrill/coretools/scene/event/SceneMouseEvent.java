@@ -86,18 +86,14 @@ public class SceneMouseEvent extends SceneEvent {
 		x = event.getX();
 		y = event.getY();
 		clickCount = event.getClickCount();
-		switch (event.getButton()) {
-			case MouseEvent.BUTTON1:
-				button = Button.BUTTON1;
-				break;
-			case MouseEvent.BUTTON2:
-				button = Button.BUTTON2;
-				break;
-			case MouseEvent.BUTTON3:
-				button = Button.BUTTON3;
-				break;
-			default:
-				button = Button.NO_BUTTON;
+		if ((modifiers & SceneEvent.BUTTON1_DOWN_MASK) == SceneEvent.BUTTON1_DOWN_MASK) {
+			button = Button.BUTTON1;
+		} else if ((modifiers & SceneEvent.BUTTON2_DOWN_MASK) == SceneEvent.BUTTON2_DOWN_MASK) {
+			button = Button.BUTTON2;
+		} else if ((modifiers & SceneEvent.BUTTON3_DOWN_MASK) == SceneEvent.BUTTON3_DOWN_MASK) {
+			button = Button.BUTTON3;
+		} else {
+			button = Button.NO_BUTTON;
 		}
 	}
 

@@ -22,6 +22,7 @@ import org.andrill.coretools.model.edit.Command;
 import org.andrill.coretools.model.edit.EditableProperty;
 import org.andrill.coretools.scene.event.*
 import org.andrill.coretools.scene.event.EventPolicy.Type
+import org.andrill.coretools.scene.event.SceneMouseEvent
 
 /**
  * An event policy for resizing geology-related models.
@@ -34,7 +35,7 @@ class ResizePolicy extends GeologyPolicy {
 		
 	Feedback getFeedback(SceneEvent e, Object target) {
 		int handle = getHandle(e, target)
-		if (e.clickCount == 0) {
+		if (e.button == SceneMouseEvent.Button.NO_BUTTON) {
 			new DefaultFeedback(Feedback.RESIZE_TYPE, null, handle, null, null)
 		} else {
 			def r = track.getModelBounds(target)
@@ -52,7 +53,8 @@ class ResizePolicy extends GeologyPolicy {
 				return null
 			}
 
-			return new DefaultFeedback(Feedback.RESIZE_TYPE, null, handle, null, new RectangleFeedback(r))	
+			ResizeFeedback rf = new ResizeFeedback(r, "${round(phys(e.y))} ${track.units}", handle == Cursor.N_RESIZE_CURSOR)
+			return new DefaultFeedback(Feedback.RESIZE_TYPE, null, handle, null, rf)
 		}
 	}
 

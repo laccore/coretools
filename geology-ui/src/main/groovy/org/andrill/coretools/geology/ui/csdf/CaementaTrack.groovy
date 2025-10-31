@@ -20,7 +20,7 @@ import org.andrill.coretools.geology.ui.*
 import org.andrill.coretools.geology.models.*
 import org.andrill.coretools.geology.models.csdf.Caementa
 
-class CaementaTrack extends AbstractFeatureTrack implements FeedbackProvider {
+class CaementaTrack extends AbstractFeatureTrack {
 	private static final String DEFAULT_TITLE = "Caementa"
 	private static final PARAMETERS = [
 		"draw-repeating" : new TrackParameter("draw-repeating", "Tile symbols", "<html>If enabled, draw symbol repeatedly, filling entire interval.<br/>If disabled, draw single symbol with whiskers at interval boundaries.</html>", TrackParameter.Type.BOOLEAN, "false"),
@@ -37,20 +37,6 @@ class CaementaTrack extends AbstractFeatureTrack implements FeedbackProvider {
 	def getFilter() { return { it instanceof Caementa } }
 	List<Class> getCreatedClasses() { return [Caementa] }
 	protected SceneEventHandler createHandler() { 
-		new DefaultTrackEventHandler(this, [new CreatePolicy(Caementa.class, [:], -1, this), new ResizePolicy(), new MovePolicy()])
-	}
-
-	Feedback getFeedback(SceneEvent e, Object target) {
-		int val1, val2
-		if (e.dragY == -1) {
-			val1 = val2 = e.y
-		} else {
-			val1 = e.dragY
-			val2 = e.y
-		}
-		int w = getSymbolSize()
-		int h = (val1 == val2 ? getSymbolSize() : Math.abs(val1 - val2))
-		def r = new Rectangle((int) bounds.x, Math.min(val1, val2), w, h)
-		new DefaultFeedback(Feedback.CREATE_TYPE, null, Cursor.CROSSHAIR_CURSOR, null, new RectangleFeedback(r))
+		new DefaultTrackEventHandler(this, [new CreatePolicy(Caementa.class, [:], getSymbolSize()), new ResizePolicy(), new MovePolicy()])
 	}
 }

@@ -33,7 +33,7 @@
 	<key>LSEnvironment</key>
 	<dict>
 		<key>JAVA_HOME</key>
-		<string>Contents/Frameworks/:java_runtime/Contents/Home</string>
+		<string>Contents/JavaRuntime/:java_runtime/Contents/Home</string>
 	</dict>
 	<key>JavaX</key>
 	<dict>

@@ -140,7 +140,7 @@ task packageMac(dependsOn: ':packageCheckMac') {
 			// copy Java runtime into bundle
 			copy {
 				from '../../package/java_runtime/mac'
-				into 'dist/mac/PSICAT.app/Contents/Frameworks'
+				into 'dist/mac/PSICAT.app/Contents/JavaRuntime'
 				include "${javaRuntimeFile}/**"
 			}
 		} else {

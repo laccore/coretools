@@ -128,7 +128,7 @@ task packageMac(dependsOn: ':packageCheckMac') {
 			// copy Java runtime into bundle
 			copy {
 				from '../../package/java_runtime/mac'
-				into 'dist/mac/SchemeEditor.app/Contents/Frameworks'
+				into 'dist/mac/SchemeEditor.app/Contents/JavaRuntime'
 				include "${javaRuntimeFile}/**"
 			}
 		}

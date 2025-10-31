@@ -150,7 +150,7 @@ task packagePSICATWin() {
 	dependsOn ':tools:SchemeEditor:packageWin'
 
 	doLast {
-		def app = file("dist/win/PSICAT-${version}")
+		def app = file("dist/win/PSICAT-Win-${version}")
 		if (!app.exists()) {
 			println "${app.absolutePath} not found, creating."
 		}
@@ -177,12 +177,12 @@ task packagePSICATWin() {
 		}
 
 		exec { // zip up the package
-			workingDir "dist/win/PSICAT-${version}"
+			workingDir "dist/win/PSICAT-Win-${version}"
 			commandLine "zip", "-r", "PSICAT-Win-${version}.zip", "."
 		}
 
 		ant.move(
-			file:"dist/win/PSICAT-${version}/PSICAT-Win-${version}.zip",
+			file:"dist/win/PSICAT-Win-${version}/PSICAT-Win-${version}.zip",
 			toFile:"dist/win/PSICAT-Win-${version}.zip"
 		)
 	}

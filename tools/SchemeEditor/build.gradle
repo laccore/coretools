@@ -114,22 +114,26 @@ task packageMac(dependsOn: ':packageCheckMac') {
 			// make our app executable...needed?
 			ant.chmod(file:"dist/mac/SchemeEditor.app/Contents/MacOS/SchemeEditor", perm:"ugo+rx")
 
-			// codesign the app so Mac users are only pestered by the "Do you want SchemeEditor
-			// to allow incoming network connections" dialog once...otherwise it appears
-			// at every launch.
-			// exec {
-			// 	println "Code signing app package"
-			// 	workingDir 'dist/mac'
-			// 	commandLine 'codesign', '--force', '--deep', '--sign', '-', 'SchemeEditor.app'
-			// 	standardOutput = new ByteArrayOutputStream()
-			// 	println standardOutput.toString()
-			// }
-
 			// copy Java runtime into bundle
 			copy {
 				from '../../package/java_runtime/mac'
 				into 'dist/mac/SchemeEditor.app/Contents/JavaRuntime'
 				include "${javaRuntimeFile}/**"
+			}
+
+			// codesign the app so Mac users are only pestered by the "Do you want SchemeEditor
+			// to allow incoming network connections" dialog once...otherwise it appears
+			// at every launch.
+			exec {
+				println "Code signing app package"
+				workingDir 'dist/mac'
+				
+				// Signing with distribution cert allows launch of SchemeEditor through the Settings > Privacy & Security
+				// panel with the "Open Anyway" button. However, cannot notarize apps signed with this
+				// cert: a Developer Application ID cert is required.
+				commandLine 'codesign', '--force', '--options', 'runtime', '--timestamp', '--sign', "${macAppSigningCertificate}", 'SchemeEditor.app'
+				standardOutput = new ByteArrayOutputStream()
+				println standardOutput.toString()
 			}
 		}
 	}

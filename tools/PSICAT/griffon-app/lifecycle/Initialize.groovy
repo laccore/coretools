@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import java.awt.Color
 import java.awt.Font
 import java.util.prefs.Preferences
 import javax.swing.UIManager
@@ -45,3 +46,8 @@ Dialogs.currentSaveDir = getDirPref('psicat.lastSaveDir')
 
 // on Windows, JTextArea uses fixed-width font, unlike all other controls - force it to match
 UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"))
+
+// In recent versions of macOS (first reported in macOS 12 'Monterey'), selected tab draws
+// both its text and background in a bright, near-white color, making it very difficult to read.
+// This resolves that issue.
+UIManager.getDefaults().put("TabbedPane.foreground", Color.BLACK)

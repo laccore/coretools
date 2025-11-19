@@ -21,6 +21,8 @@ dependencies {
 	compile 'com.miglayout:miglayout:3.7'
 	compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
 	compile files('../../lib/itext-2.1.7-patched.jar')
+	compile files('../../lib/MRJToolkit.jar')
+	
 	// SchemeEditor pulls stock lithology/symbol imagery from these schemes
 	compile files('schemes/SE_lithologies.jar', 'schemes/SE_symbols.jar')
 	compile project(":coretools")

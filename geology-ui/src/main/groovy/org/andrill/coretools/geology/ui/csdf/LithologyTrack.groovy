@@ -183,7 +183,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 	}
 
 	Scale getGrainSize() {
-		String code = container?.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
+		String code = container?.project?.configuration?.grainSizeScale ?: Scale.CSDF_DEFAULT
 		return new Scale(code)
 	}
 

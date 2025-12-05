@@ -29,6 +29,12 @@ class Scale {
 					 "<0.125<Fine sand<0.250<Medium sand<0.5<Coarse sand<1<Very coarse sand" +
 					 "<2<Very fine gravel<4<Fine gravel<8<Medium gravel<16<Coarse gravel" +
 					 "<32<Very coarse gravel<64<Cobble<256<Boulder<1024"
+
+	// Based on CSD Facility Grain Size scheme, which uses relative sizes, not measurements.
+	static CSDF_DEFAULT = "0.2:0<Clay<1<Silty Clay<2<Sandy Clay<3<Silt<4<Sand, very fine" +
+						 "<5<Sand, fine<6<Sand, medium<7<Sand, coarse<8<Sand, very coarse" +
+						 "<9<Conglomerate, granule<10<Conglomerate, pebble" +
+						 "<11<Conglomerate, cobble<12<Conglomerate, boulder<13"
 	
 	def offset = 0.0
 	def values = []

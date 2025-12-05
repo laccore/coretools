@@ -113,6 +113,10 @@ class Dialogs {
 	static void showMessageDialog(title, message, parent = null) {
 		JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE)
 	}
+
+	static boolean showConfirmDialog(title, message, parent = null) {
+		JOptionPane.showOptionDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ["No", "Yes"] as String[], "No")
+	}
 	
 	// The type of objectToDisplay is - surprise! - Object. This is true of the 'message' arg in the
 	// showInput/CustomInput/MessageDialog() methods above as well. I renamed 'message' to 'objectToDisplay'

@@ -64,6 +64,7 @@ import org.andrill.coretools.graphics.driver.ImageCache
 import org.andrill.coretools.Platform
 
 import psicat.stratcol.StratColumnMetadataUtils
+import psicat.ui.GrainSizeDialog
 import psicat.util.*
 
 class PSICATController {
@@ -664,11 +665,13 @@ Working Dir: ${System.getProperty("user.dir")}
 			}
 		},
 		'grainSizeScale': { evt = null ->
-			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", getGrainSizeCode())
-			if (result) {
+			def gsdlg = new GrainSizeDialog(app.appFrames[0], "Grain Size Scale", getGrainSize())
+			gsdlg.setVisible(true)
+			if (gsdlg.okPressed) {
+				def grainSizeCode = gsdlg.getGrainSizeCode()
 				try {
-					def testScale = new Scale(result)
-					model.project.configuration.grainSizeScale = result
+					def testScale = new Scale(grainSizeCode)
+					model.project.configuration.grainSizeScale = grainSizeCode
 					model.project.saveConfiguration()
 				} catch (NumberFormatException e) {
 					Dialogs.showErrorDialog("Invalid Grain Size Scale", "Invalid grain size scale: ${e.message}", app.appFrames[0])

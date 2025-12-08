@@ -1,6 +1,7 @@
 
 package org.andrill.coretools.geology.ui.csdf
 
+import java.awt.Color
 import java.awt.Point
 import java.awt.geom.Rectangle2D
 
@@ -19,6 +20,7 @@ class SectionNameTrack extends GeologyTrack {
 	private static final String DEFAULT_TITLE = "Section"
 	private static final PARAMETERS = [
 		"omit-text" : new TrackParameter("omit-text", "Omit text", "<html>Comma-separated list of text to omit from section names. Results in larger, more concise ID components.<br>Example: for sections GLAD9-PET06-2A-1H-1, GLAD9-PET06-2A-1H-2, GLAD9-PET06-2A-2H-1...,<br>if 'GLAD9-PET06-' is omitted, drawn section names will be 2A-1H-1, 2A-1H-2, 2A-2H-1...", TrackParameter.Type.STRING, ""),
+		"draw-vertical" : new TrackParameter("draw-vertical", "Vertical", "Draw section name vertically instead of horizontally", TrackParameter.Type.BOOLEAN, "false"),
 		"track-header" : new TrackParameter("track-header", "Header text", "Text to display in track header.", TrackParameter.Type.STRING, DEFAULT_TITLE),
 		"track-footer" : new TrackParameter("track-footer", "Footer text", "Text to display in track footer. (Footer available only in exported diagrams.)", TrackParameter.Type.STRING, DEFAULT_TITLE),
 	]
@@ -45,7 +47,8 @@ class SectionNameTrack extends GeologyTrack {
             def bds = null
             while (true) {
 			    bds = graphics.getStringBounds(curFont, name)
-                if (bds.width >= bounds.width || bds.height >= r.height) {
+				boolean tooLarge = drawVertical() ? (bds.width >= r.height || bds.height >= r.width) : (bds.width >= r.width || bds.height >= r.height)
+                if (tooLarge) {
                     int fontSize = curFont.getSize()
                     if (fontSize - 1 < 1) {
                         break // can't get any smaller, give up
@@ -55,14 +58,24 @@ class SectionNameTrack extends GeologyTrack {
                     break
                 }
             }
-			def pt = new Point(xmid - (bds.width / 2).intValue(), ymid - (bds.height / 2).intValue())
-			graphics.drawString(pt, curFont, name)
+
+			if (drawVertical()) {
+				def pt = new Point(xmid - (bds.height / 2).intValue(), ymid + (bds.width / 2).intValue())
+				graphics.drawStringRotated(pt, curFont, name, -(java.lang.Math.PI / 2.0)) // 90 degrees CCW
+			} else {
+				def pt = new Point(xmid - (bds.width / 2).intValue(), ymid - (bds.height / 2).intValue())
+				graphics.drawString(pt, curFont, name)
+			}
 			graphics.setClip(oldClip) // restore old clipping region
 		}
 
 		def ytop = pts(m.top.to(units).value, bounds)
 		def ybase = pts(m.base.to(units).value, bounds)
 		graphics.drawRectangle(bounds.minX, ytop, bounds.maxX - bounds.minX, ybase - ytop)
+	}
+
+	private boolean drawVertical() {
+		return Boolean.parseBoolean(getParameter("draw-vertical", "false"))
 	}
 
 	private String omit(String sectionName) {

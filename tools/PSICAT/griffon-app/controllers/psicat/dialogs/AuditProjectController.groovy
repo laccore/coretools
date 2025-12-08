@@ -151,6 +151,15 @@ class AuditProjectController {
 	}
 	
 	void audit() {
+		int auditedModelCount = 0
+		[view.undefinedModels, view.undescribedModels, view.bogusIntervals, view.noSchemeEntry, view.missingSchemeEntry].each { modelTypePanel ->
+			auditedModelCount += modelTypePanel.getSelectedModels().size()
+		}
+		if (auditedModelCount == 0) {
+			Dialogs.showMessageDialog("No Selection", "Select at least one item to be audited.")
+			return
+		}
+
 		view.auditButton.enabled = false
 		view.progress.indeterminate = true
 		

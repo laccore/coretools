@@ -22,11 +22,14 @@ import org.andrill.coretools.model.DefaultProject
 import psicat.PSICATController
 
 
-try {
-	app.controllers.PSICAT.actions.versionCheckSilent()
-} catch (Exception e) {
-	JOptionPane.showMessageDialog(app.appFrames[0], "Update check failed: ${e.message}")
-}
+// Do not perform version check for ROMACONS special build of PSICAT since regular
+// PSICAT builds do not include ROMACONS-specific functionality.
+//
+// try {
+// 	app.controllers.PSICAT.actions.versionCheckSilent()
+// } catch (Exception e) {
+// 	JOptionPane.showMessageDialog(app.appFrames[0], "Update check failed: ${e.message}")
+// }
 
 // load or create unique user ID
 def prefs = Preferences.userNodeForPackage(PSICATController)

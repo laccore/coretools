@@ -575,8 +575,27 @@ Working Dir: ${System.getProperty("user.dir")}
 			}
 		},
 		'exportStratColumn': { evt = null ->
-			withMVC('ExportStrat', project:model.project) { mvc ->
-				mvc.controller.show()
+			def stratContainers = []
+			def pb = ProgressBarFactory.create("Collecting stratigraphic column sections...")
+			pb.setVisible(true)
+			pb.setLocationRelativeTo(app.appFrames[0])
+			doOutside {
+				model.project.containers.each { containerName ->
+					def c = model.project.openContainer(containerName)
+					if (c.countModels("Section") > 1) {
+						stratContainers.add(containerName)
+					}
+					model.project.closeContainer(c)
+				}
+				pb.setVisible(false)
+
+				if (stratContainers.size() > 0) {
+					withMVC('ExportStrat', project:model.project, stratColumnSections:stratContainers) { mvc ->
+						mvc.controller.show()
+					}
+				} else {
+					Dialogs.showMessageDialog("No Strat Columns", "The project contains no stratigraphic column sections.\nTo create one, use the File > Create New > Stratigraphic Column... menu item.")
+				}
 			}
 		},
 		'diagramOptions': { evt = null ->

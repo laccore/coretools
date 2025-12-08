@@ -20,6 +20,7 @@ import groovy.beans.Bindable
 @Bindable class SectionComboModel {
 	String labelText = "Section:"
 	def project
+	def sections = null // if non-null, list of section names to include
 	boolean allSections = false
 	boolean eachSection = true
 	boolean selectSections = true
@@ -27,5 +28,4 @@ import groovy.beans.Bindable
 	String eachSectionText = "Each Section"
 	String selectSectionsText = "Select Sections..."
 	def selectedSections = []
-	def sectionFilter = null
 }

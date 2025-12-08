@@ -23,6 +23,7 @@ class ExportStratModel {
 	String title = "Export Stratigraphic Column"
 	def project
 	def scene
+	def stratColumnSections
 	
 	@Bindable boolean standardFormat = true
 	@Bindable String start

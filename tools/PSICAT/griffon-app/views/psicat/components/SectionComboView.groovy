@@ -29,14 +29,8 @@ def items = []
 if (model.allSections) { items.add(model.allSectionsText) }
 if (model.eachSection) { items.add(model.eachSectionText) }
 if (model.selectSections) { items.add(model.selectSectionsText) }
-if (model.sectionFilter) {
-	def containersToAdd = []
-	model.project.containers.each { containerName ->
-		def c = model.project.openContainer(containerName)
-		if (model.sectionFilter(c)) { containersToAdd.add(containerName) }
-		model.project.closeContainer(c)
-	}
-	items.addAll(containersToAdd)
+if (model.sections) {
+	items.addAll(model.sections)
 } else {
 	items.addAll(model.project.containers)
 }

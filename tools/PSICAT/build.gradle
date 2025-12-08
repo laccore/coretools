@@ -60,6 +60,9 @@ task copyDependencies() {
 	}
 }
 
+// finger-friendly shorthand
+task copyDeps(dependsOn: 'copyDependencies') {}
+
 task packageWin(dependsOn: ':packageCheckWin') {
 	doLast {
 		def app = file('dist/win/PSICAT')

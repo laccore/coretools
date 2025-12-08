@@ -45,6 +45,9 @@ task copyDependencies() {
 	}
 }
 
+// finger-friendly shorthand
+task copyDeps(dependsOn: 'copyDependencies') {}
+
 // Prepare Windows build of SchemeEditor.
 // PSICAT and SchemeEditor are distributed as a single package. On
 // Windows, SchemeEditor uses the same JRE as PSICAT. SchemeEditor.exe

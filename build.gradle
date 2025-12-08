@@ -25,10 +25,14 @@ allprojects {
 		sourceCompatibility = JavaVersion.VERSION_1_6
 		targetCompatibility = JavaVersion.VERSION_1_6
 	}
-	version = '1.2.6'
+	version = '1.2.8'
 
 	// Java runtime dir, required for packaging
 	project.ext.javaRuntimeFile = 'jre8'
+
+	// Certificate with which to sign PSICAT and SchemeEditor app bundles for OSX/macOS distribution
+	// Set to reflect your certificate, or '-' to use ad-hoc signing.
+	project.ext.macAppSigningCertificate = null
 }
 
 // Griffon 0.2 requires compilation with Java 6
@@ -60,6 +64,10 @@ task packageCheckMac() {
 		}
 		if (javaRuntimeDir.listFiles().find { it.name.equals(javaRuntimeFile) } == null) {
 			throw new Error("Error: Missing Java runtime file '${javaRuntimeFile}' in ${javaRuntimeDir.absolutePath}")
+		}
+
+		if (macAppSigningCertificate == null) {
+			throw new Error("Error: project.ext.macAppSigningCertificate must be set to a valid certificate name, or '-' to use ad-hoc signing.")
 		}
 	}
 }
@@ -150,7 +158,7 @@ task packagePSICATWin() {
 	dependsOn ':tools:SchemeEditor:packageWin'
 
 	doLast {
-		def app = file("dist/win/PSICAT-${version}")
+		def app = file("dist/win/PSICAT-Win-${version}")
 		if (!app.exists()) {
 			println "${app.absolutePath} not found, creating."
 		}
@@ -177,12 +185,12 @@ task packagePSICATWin() {
 		}
 
 		exec { // zip up the package
-			workingDir "dist/win/PSICAT-${version}"
+			workingDir "dist/win/PSICAT-Win-${version}"
 			commandLine "zip", "-r", "PSICAT-Win-${version}.zip", "."
 		}
 
 		ant.move(
-			file:"dist/win/PSICAT-${version}/PSICAT-Win-${version}.zip",
+			file:"dist/win/PSICAT-Win-${version}/PSICAT-Win-${version}.zip",
 			toFile:"dist/win/PSICAT-Win-${version}.zip"
 		)
 	}

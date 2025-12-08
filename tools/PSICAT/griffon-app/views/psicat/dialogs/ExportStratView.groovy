@@ -27,12 +27,11 @@ actions {
 def section = buildMVCGroup('SectionCombo',
 							'exportStratSections',
 							project: model.project,
+							sections: model.stratColumnSections,
 							allSections:false,
 							eachSection:false,
 							selectSections:false,
-							sectionFilter: { container -> container.countModels("Section") > 1 }
 							).view.root
-final prefixToolTip = "Optional: prefix output files' names with specified text, e.g. 'my_[section_name].pdf'"
 
 panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	widget(id:'section', section, constraints: 'span, growx, wrap')
@@ -77,17 +76,9 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	checkBox(text: 'Draw Interval Outlines', selected: bind(source: model, sourceProperty:'renderIntervalOutlines', mutual:true), constraints: 'wrap')
 	separator(constraints: 'span, growx, wrap')
 	
-	label('Output Directory:')
+	label('Output File:')
 	textField(enabled:false, text: bind { model.filePath }, constraints:'width min(200px), growx')
 	button(action: browseAction, constraints:'wrap')
-	
-	label(text:'Filename Prefix:', toolTipText:prefixToolTip)
-	textField(text: bind(source:model, sourceProperty:'prefix', mutual:true), toolTipText:prefixToolTip, constraints:'growx, wrap')
-	
-	// label('Export Format:')
-	// comboBox(id:'format', editable: false, items: ['PDF', 'PNG', 'JPEG', 'BMP', 'SVG'], constraints: 'span, wrap')
-
-	// separator(constraints: 'span, growx, wrap')
 	
 	panel(layout:new MigLayout('','[grow][]',''), constraints:'span, growx') {
 		label(' ', id:'progressMessage', constraints:'wrap')

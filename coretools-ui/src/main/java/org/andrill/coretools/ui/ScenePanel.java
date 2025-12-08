@@ -434,7 +434,7 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 			height = (int) scene.getContentSize().getHeight();
 		}
 		SceneMouseEvent sme = mouseEvent(e);
-		setToolTipText((sme == null ? null : getToolTip(sme)));
+		// setToolTipText((sme == null ? null : getToolTip(sme)));
 		if (isEditable()) {
 			if ((handler != null) && (sme != null)) {
 				updateFeedback(handler.mouseMoved(sme));

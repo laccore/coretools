@@ -97,12 +97,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 	}
 
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds, ArrayList<GrainSizeInterval> grainSizeIntervals) {
-		def outline = []
-		if (Boolean.parseBoolean(getParameter("draw-grain-size-widths", "true"))) {
-			outline = getOutline(m, grainSizeIntervals)
-		} else {
-			outline = getOutline(m)
-		}
+		def outline = get_outline(m, grainSizeIntervals)
 		if (m?.scheme) {
 			graphics.setFill(getFill(m, graphics.fill))
 			graphics.fillPolygon(outline)
@@ -118,7 +113,8 @@ class LithologyTrack extends AbstractIntervalTrack {
 		graphics.lineColor = Color.red
 
 		// render our outline
-		graphics.drawPolygon(getOutline(model, grainSizeIntervals))
+		def outline = get_outline(model, grainSizeIntervals)
+		graphics.drawPolygon(outline)
 		
 		// render any handles
 		def r = getModelBounds(model)
@@ -134,9 +130,19 @@ class LithologyTrack extends AbstractIntervalTrack {
 		graphics.popState()
 	}
 
+	private get_outline(Model model, ArrayList<GrainSizeInterval> grainSizeIntervals) {
+		def outline = []
+		if (Boolean.parseBoolean(getParameter("draw-grain-size-widths", "true"))) {
+			outline = getGrainSizeOutline(model, grainSizeIntervals)
+		} else {
+			outline = getOutline(model)
+		}
+		return outline
+	}
+
 	// Vary lithology interval's widths according to parallel grain size intervals.
 	// Returns list of points for resulting polygon.
-	def getOutline(Model m, ArrayList<GrainSizeInterval> grainSizeIntervals) {
+	def getGrainSizeOutline(Model m, ArrayList<GrainSizeInterval> grainSizeIntervals) {
 		def outline = []
 		outline << pt(bounds.minX, pts(m.top.to(units).value, bounds))
 		outline << gs(0, m.top.to(units).value) // horz from edge to minimum default width
@@ -177,7 +183,7 @@ class LithologyTrack extends AbstractIntervalTrack {
 	}
 
 	Scale getGrainSize() {
-		String code = container?.project?.configuration?.grainSizeScale ?: Scale.DEFAULT
+		String code = container?.project?.configuration?.grainSizeScale ?: Scale.CSDF_DEFAULT
 		return new Scale(code)
 	}
 

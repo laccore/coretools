@@ -64,6 +64,7 @@ import org.andrill.coretools.graphics.driver.ImageCache
 import org.andrill.coretools.Platform
 
 import psicat.stratcol.StratColumnMetadataUtils
+import psicat.ui.GrainSizeDialog
 import psicat.util.*
 
 class PSICATController {
@@ -405,30 +406,37 @@ class PSICATController {
 			Platform.log("openSection $sections: Clearing Image Cache to force reload of images...")
 			ImageCache cache = Platform.getService(ImageCache.class);
 			cache.clear()
-			
-			// check to make sure the diagram isn't open already
-			def open = model.openDiagrams.find { it.model.id == id }
-			if (open) {
-				view.diagrams.selectedIndex = model.openDiagrams.indexOf(open)
-			} else {
-				def diagram = buildMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
-				if (diagram.controller.open()) {
-					model.openDiagrams << diagram
-					view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
-					view.diagrams.selectedIndex = model.openDiagrams.size() - 1
-					
-					// Force contentHeight to integer meters, then convert back to current units to compute scalingFactor.
-					// This ensures initial ImageTrack width is consistent regardless of current units. Resolves issue
-					// of ImageTrack using entire width of diagram when current unit is cm or in.  
-					def contentHeight = diagram.model.scene.contentSize.height
-					def intMeterHeight = Math.ceil(new Length(contentHeight, diagram.model.units).to('m').value)
-					def normalizedHeight = new Length(intMeterHeight, 'm').to(diagram.model.units).value
-					diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
-					
-					model.status = "Opened section '${diagram.model.name}'"
+
+			doOutside {
+				def pb = ProgressBarFactory.create("Opening section ${id}...")
+				pb.setVisible(true)
+				pb.setLocationRelativeTo(app.appFrames[0])
+
+				// check to make sure the diagram isn't open already
+				def open = model.openDiagrams.find { it.model.id == id }
+				if (open) {
+					view.diagrams.selectedIndex = model.openDiagrams.indexOf(open)
 				} else {
-					destroyMVCGroup(id)
+					def diagram = buildMVCGroup('Diagram', id, id: id, project: model.project, tabs: view.diagrams)
+					if (diagram.controller.open()) {
+						model.openDiagrams << diagram
+						view.diagrams.addTab(diagram.model.name, diagram.view.viewer)
+						view.diagrams.selectedIndex = model.openDiagrams.size() - 1
+						
+						// Force contentHeight to integer meters, then convert back to current units to compute scalingFactor.
+						// This ensures initial ImageTrack width is consistent regardless of current units. Resolves issue
+						// of ImageTrack using entire width of diagram when current unit is cm or in.  
+						def contentHeight = diagram.model.scene.contentSize.height
+						def intMeterHeight = Math.ceil(new Length(contentHeight, diagram.model.units).to('m').value)
+						def normalizedHeight = new Length(intMeterHeight, 'm').to(diagram.model.units).value
+						diagram.model.scene.scalingFactor = (view.diagrams.size.height / normalizedHeight) * 4
+						
+						model.status = "Opened section '${diagram.model.name}'"
+					} else {
+						destroyMVCGroup(id)
+					}
 				}
+				pb.setVisible(false)
 			}
 		},
 		'createStratColumn': { evt = null ->
@@ -567,8 +575,27 @@ Working Dir: ${System.getProperty("user.dir")}
 			}
 		},
 		'exportStratColumn': { evt = null ->
-			withMVC('ExportStrat', project:model.project) { mvc ->
-				mvc.controller.show()
+			def stratContainers = []
+			def pb = ProgressBarFactory.create("Collecting stratigraphic column sections...")
+			pb.setVisible(true)
+			pb.setLocationRelativeTo(app.appFrames[0])
+			doOutside {
+				model.project.containers.each { containerName ->
+					def c = model.project.openContainer(containerName)
+					if (c.countModels("Section") > 1) {
+						stratContainers.add(containerName)
+					}
+					model.project.closeContainer(c)
+				}
+				pb.setVisible(false)
+
+				if (stratContainers.size() > 0) {
+					withMVC('ExportStrat', project:model.project, stratColumnSections:stratContainers) { mvc ->
+						mvc.controller.show()
+					}
+				} else {
+					Dialogs.showMessageDialog("No Strat Columns", "The project contains no stratigraphic column sections.\nTo create one, use the File > Create New > Stratigraphic Column... menu item.")
+				}
 			}
 		},
 		'diagramOptions': { evt = null ->
@@ -664,11 +691,13 @@ Working Dir: ${System.getProperty("user.dir")}
 			}
 		},
 		'grainSizeScale': { evt = null ->
-			def result = JOptionPane.showInputDialog(app.appFrames[0], "Current grain size scale:", getGrainSizeCode())
-			if (result) {
+			def gsdlg = new GrainSizeDialog(app.appFrames[0], "Grain Size Scale", getGrainSize())
+			gsdlg.setVisible(true)
+			if (gsdlg.okPressed) {
+				def grainSizeCode = gsdlg.getGrainSizeCode()
 				try {
-					def testScale = new Scale(result)
-					model.project.configuration.grainSizeScale = result
+					def testScale = new Scale(grainSizeCode)
+					model.project.configuration.grainSizeScale = grainSizeCode
 					model.project.saveConfiguration()
 				} catch (NumberFormatException e) {
 					Dialogs.showErrorDialog("Invalid Grain Size Scale", "Invalid grain size scale: ${e.message}", app.appFrames[0])

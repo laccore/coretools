@@ -34,7 +34,6 @@ class ExportStratModel {
 	@Bindable boolean renderColumnBorders = true
 	@Bindable boolean renderIntervalOutlines = true
 	@Bindable String units = "m"
-	@Bindable String filePath = Dialogs.currentSaveDir.absolutePath
-	@Bindable String prefix = ''
+	@Bindable String filePath = ''
 	@Bindable String diagramColumns
 }

@@ -55,11 +55,15 @@ class ExportStratController {
 
     def actions = [
 	    'browse': {
-			def file = Dialogs.showSaveDirectoryDialog("Select Export Directory", null, view.root)
+			def file = Dialogs.showSaveDialog("Select Output File", null, '.pdf', view.root)
     		if (file) { model.filePath = file.absolutePath }
     	},
 		'export': {
-			export()
+			if (!model.filePath || model.filePath.length() == 0) {
+				Dialogs.showErrorDialog("No Output File", "No Output File selected. Click the '...' button next to the Output File text field.")
+			} else {
+				export()
+			}
 		},
 		'diagramOptions': {
 			final msg = "<html>Changes will be reflected only in exported stratigraphic columns.<br>Live diagram editing and exported diagrams will not be affected.</html>"
@@ -131,9 +135,6 @@ class ExportStratController {
 					paper = new Paper("Custom", paperWidth, paperHeight, 36) // margin=36 i.e. 1/2" at 72dpi
 				}
 
-				// build file name
-				def name = (model.prefix ?: "${model.prefix}") + "${containerName}.pdf"
-				
 				// render
 				def format = 'PDF'
 				// switch (view.format.selectedItem) {	
@@ -155,7 +156,7 @@ class ExportStratController {
 				}
 
 				RenderUtils."render${format}"(scene, paper, start, end, pageSize, model.renderHeader, model.renderFooter,
-					sectionName, new File(model.filePath, name))
+					sectionName, new File(model.filePath))
 
 				view.progress.indeterminate = false
 				view.progressMessage.text = "Export successful."

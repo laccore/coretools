@@ -18,7 +18,7 @@ On Linux systems, PSICAT can be built and run from source code using the "For De
 
 These [video tutorials](https://www.youtube.com/playlist?list=PLLHxfH9IrTIMit13zSZs91_IJBMfNEUYi) describe basic and more advanced features of PSICAT. **Please note:** As of version 1.2.0, PSICAT has changed sigificantly. Most notably, several new column types and corresponding schemes have been added. Much of the video tutorial content remains relevant, but portions may be out of date. New video tutorials will be produced when PSICAT 1.2.* features are refined and become more settled. You can always [contact the CSD Facility](https://cse.umn.edu/csd/about-us) if you need support using PSICAT.
 
-If you're having trouble running PSICAT on a Mac, check [this troubleshooting page](https://github.com/laccore/coretools/wiki/Running-PSICAT-on-a-Mac-(macOS-or-OSX)).
+If you're having trouble running PSICAT on a Mac, check [this troubleshooting page](https://github.com/laccore/coretools/wiki/Using-PSICAT-on-a-Mac-(macOS-or-OSX)).
 
 If you're still having trouble, think you've found a bug, or have other questions/comments, please use the [feedback form](https://docs.google.com/forms/d/e/1FAIpQLSdKJB-ayDo4btwBa-By4Cd4cL5_MxcE7vcu90K_CfYx03HwuA/viewform) and we'll respond as soon as possible.
 

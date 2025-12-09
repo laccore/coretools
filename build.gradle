@@ -22,8 +22,8 @@ allprojects {
 	}
 
 	java {
-		sourceCompatibility = JavaVersion.VERSION_1_6
-		targetCompatibility = JavaVersion.VERSION_1_6
+		sourceCompatibility = JavaVersion.VERSION_1_8
+		targetCompatibility = JavaVersion.VERSION_1_8
 	}
 	version = '1.2.8'
 
@@ -35,8 +35,9 @@ allprojects {
 	project.ext.macAppSigningCertificate = null
 }
 
-// Griffon 0.2 requires compilation with Java 6
-final javaHome = '/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
+// With a handful of minor changes to ancient Griffon 0.2 scripts, it works
+// properly under Java 8! See README.md for details.
+final javaHome = '/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home'
 def javaExecutablesPath = new File(javaHome, 'bin')
 def javaExecutables = [:].withDefault { execName ->
 	def executable = new File(javaExecutablesPath, execName)

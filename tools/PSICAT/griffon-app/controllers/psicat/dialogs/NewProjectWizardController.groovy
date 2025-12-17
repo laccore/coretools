@@ -18,6 +18,8 @@ package psicat.dialogs
 import org.andrill.coretools.model.DefaultProject
 import org.andrill.coretools.model.Project
 
+import org.andrill.coretools.geology.ui.Scale
+
 import java.io.File;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -135,6 +137,7 @@ the existence of a folder named 'resources' alongside the PSICAT application."""
 			project.origin = 'top'
 			project.units = model.units
 			project.fontSize = '11' // default to medium font size - no GUI for now
+			project.configuration.grainSizeScale = Scale.CSDF_DEFAULT
 			project.saveConfiguration()
 			return project	
 		} else {

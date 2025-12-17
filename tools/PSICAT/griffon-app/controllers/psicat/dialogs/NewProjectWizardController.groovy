@@ -28,10 +28,12 @@ class NewProjectWizardController {
     def model
     def view
 
-    void mvcGroupInit(Map args) {
-		// gather default lithology scheme options
-		model.lithologySchemes = getDefaultSchemes('lithology')
-	}
+	def DEFAULT_SCHEME_SEARCH_PATHS = [
+		"resources", // app-relative path to PSICAT application's resources subfolder
+		"/Applications/PSICAT-Mac-${app.applicationProperties['app.version']}/resources" // macOS workaround for App Translocation
+	]
+
+    void mvcGroupInit(Map args) {}
 
     def actions = [
 	    'browse': { evt = null ->
@@ -44,20 +46,63 @@ class NewProjectWizardController {
     ]
 
     def show() {
-    	if (Dialogs.showCustomDialog("Create New Project", view.root, app.appFrames[0])) {
-			def defLith = view.lithologyScheme.getSelectedItem()?.toString()
-			if (defLith) {
-				model.defaultSchemePaths.add(model.lithologySchemes[defLith])
-			}
+		// search for default scheme directory
+		getDefaultSchemeFolder()
 
-			// assume a single default file exists for each non-lithology scheme type
-			['bedding', 'features', 'grainsize', 'texture'].each { schemeType ->
-				def schemes = getDefaultSchemes(schemeType)
-				if (schemes.size() > 0) {
-					def iterator = schemes.keySet().iterator()
-					while (iterator.hasNext()) {
-						model.defaultSchemePaths.add(schemes[iterator.next()])
-						break
+		final String appVersion = app.applicationProperties['app.version']
+		final String osName = System.getProperty('os.name')
+		// println "Detected Operating System: $osName"
+
+		if (!model.defaultSchemeFolderPath) {
+			model.useCustomSchemes = true
+			view.defaultSchemesRadio.enabled = false
+			if (osName.toLowerCase().contains('mac')) {
+				final String msg =
+				"""Due to macOS App Translocation, the PSICAT resources folder could not be found.
+Default schemes will not be available.
+
+This issue can be resolved in two ways:
+- Move the PSICAT-Mac-$appVersion folder to Applications and restart PSICAT. (Recommended)
+This will resolve the issue for all future projects created with PSICAT $appVersion.
+
+- After project creation, navigate to the 'resources' folder included with the PSICAT app
+to add default schemes to your project.
+This is a one-time solution that must be used for every new project."""
+
+				Dialogs.showMessageDialog("Default Schemes Unavailable", msg)
+			} else {
+				final String msg =
+				"""The PSICAT resources folder could not be found.
+Default schemes will not be available.
+
+This indicates a corrupted PSICAT $appVersion installation. Reinstall and confirm
+the existence of a folder named 'resources' alongside the PSICAT application."""
+
+				Dialogs.showMessageDialog("Default Schemes Unavailable", msg)
+			}
+		} else {
+			model.lithologySchemes = getDefaultSchemes('lithology', model.defaultSchemeFolderPath)
+			model.lithologySchemes.keySet().each { lithName ->
+				view.lithologyScheme.addItem(lithName as String)
+			}
+		}
+
+    	if (Dialogs.showCustomDialog("Create New Project", view.root, app.appFrames[0])) {
+			if (!model.useCustomSchemes) {
+				def defLith = view.lithologyScheme.getSelectedItem()?.toString()
+				if (defLith) {
+					model.defaultSchemePaths.add(model.lithologySchemes[defLith])
+				}
+
+				// assume a single default file exists for each non-lithology scheme type
+				['bedding', 'features', 'grainsize', 'texture'].each { schemeType ->
+					def schemes = getDefaultSchemes(schemeType, model.defaultSchemeFolderPath)
+					if (schemes.size() > 0) {
+						def iterator = schemes.keySet().iterator()
+						while (iterator.hasNext()) {
+							model.defaultSchemePaths.add(schemes[iterator.next()])
+							break
+						}
 					}
 				}
 			}
@@ -65,7 +110,24 @@ class NewProjectWizardController {
     		return createProject()
     	}
     }
-	
+
+	private getDefaultSchemeFolder() {
+		for (String path : DEFAULT_SCHEME_SEARCH_PATHS) {
+			if (findSchemeFiles(new File(path)).size() > 0) {
+				model.defaultSchemeFolderPath = path
+				break
+			} 
+		}
+	}
+
+	private findSchemeFiles(File searchPath) {
+		def schemes = []
+		if (searchPath.exists() && searchPath.isDirectory()) {
+			schemes = searchPath.listFiles().findAll { it.name.endsWith('.jar') }
+		}
+		return schemes
+	}
+
 	private def createProject() {
 		if (model.file) {
 			Project project = new DefaultProject(model.file)
@@ -80,23 +142,20 @@ class NewProjectWizardController {
 		}
 	}
 	
-	private def getDefaultSchemes(type) {
+	private def getDefaultSchemes(String type, String searchPath) {
 		def schemes = [:]
-		def schemeSearchPaths = ["resources", "/Library/Application Support/PSICAT/Default Schemes"]
-		schemeSearchPaths.each {
-			File path = new File(it)
-			if (path.exists() && path.isDirectory()) {
-				path.listFiles().each { f ->
-					if (f.name.endsWith(".jar")) {
-						def schemeInfo = getSchemeInfo(f)
-						if (schemeInfo && schemeInfo.type == type) {
-							schemes[schemeInfo.name] = f.absolutePath
-						}
+		File path = new File(searchPath)
+		if (path.exists() && path.isDirectory()) {
+			path.listFiles().each { f ->
+				if (f.name.endsWith(".jar")) {
+					def schemeInfo = getSchemeInfo(f)
+					if (schemeInfo && schemeInfo.type == type) {
+						schemes[schemeInfo.name] = f.absolutePath
 					}
 				}
 			}
 		}
-		println "found $schemes schemes of type $type"
+		// println "found $schemes schemes of type $type"
 		return schemes
 	}
 	

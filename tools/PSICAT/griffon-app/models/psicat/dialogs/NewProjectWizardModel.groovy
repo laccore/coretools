@@ -26,6 +26,7 @@ import psicat.util.Dialogs
 	String units = 'cm'
 	boolean importSections = false
 	boolean useCustomSchemes = false
+	String defaultSchemeFolderPath = null
 	Map lithologySchemes = [:]
 	List defaultSchemePaths = []
 

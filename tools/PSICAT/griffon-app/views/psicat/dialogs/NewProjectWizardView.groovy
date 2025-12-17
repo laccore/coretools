@@ -47,7 +47,7 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	// schemes
 	label('Schemes:')
 	buttonGroup().with {
-		add radioButton(text: 'Default', selected: bind { !model.useCustomSchemes }, constraints:'split')
+		add radioButton(id: 'defaultSchemesRadio', text: 'Default', selected: bind { !model.useCustomSchemes }, constraints:'split')
 		add radioButton(text: 'Custom', selected: bind(source: model, sourceProperty: 'useCustomSchemes', mutual:true), constraints:'wrap')
 	}
 	

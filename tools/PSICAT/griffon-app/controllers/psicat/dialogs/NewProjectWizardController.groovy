@@ -63,13 +63,16 @@ class NewProjectWizardController {
 				"""Due to macOS App Translocation, the PSICAT resources folder could not be found.
 Default schemes will not be available.
 
-This issue can be resolved in two ways:
-- Move the PSICAT-Mac-$appVersion folder to Applications and restart PSICAT. (Recommended)
-This will resolve the issue for all future projects created with PSICAT $appVersion.
+To resolve this issue (recommended):
+1. Quit PSICAT.
+2. Move the PSICAT-Mac-$appVersion folder to Applications.
+3. Restart PSICAT.
 
-- After project creation, navigate to the 'resources' folder included with the PSICAT app
-to add default schemes to your project.
-This is a one-time solution that must be used for every new project."""
+To add default schemes to the project manually:
+After project creation, in the Edit Project Schemes dialog, navigate to the 'resources'
+folder included with the PSICAT app. Add default schemes to your project.
+This will be required whenever a new project is created.
+"""
 
 				Dialogs.showMessageDialog("Default Schemes Unavailable", msg)
 			} else {

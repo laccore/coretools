@@ -44,12 +44,6 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 					inputVerifier: CustomVerifier.NUMBER, constraints: 'wrap')
 		radioButton(text: 'Parse base from filename', selected: bind(source: model, sourceProperty:'parseBase', mutual:true), buttonGroup: group, constraints: 'wrap')
 	}
-	separator(constraints: 'growx, wrap')
-
-	// group
-	label('Group:', constraints: 'split')
-	textField(columns:4, text: bind(source: model, sourceProperty:'group', mutual:true), constraints: 'growx')
-	label("(Optional, e.g. 'split')", constraints: 'wrap')
 }
 
 panel(id: 'tablePanel', layout: new MigLayout('fill')) {

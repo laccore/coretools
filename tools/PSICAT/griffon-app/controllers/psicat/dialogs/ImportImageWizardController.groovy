@@ -80,15 +80,7 @@ class ImportImageWizardController {
 				throw new RuntimeException('No images found')
 			}
 
-			// pop up table for the user to confirm
-			def columns = ["File", "Name", "Top", "Base", "Group"]
-			view.table.model = new EventTableModel(images, [
-                    getColumnCount:	{ columns.size() },  
-                    getColumnName:	{ index -> columns[index] },  
-                    getColumnValue: { object, index -> object."${columns[index].toLowerCase()}" },
-                    isEditable:		{ object, index -> index != 0 },
-                    setColumnValue: { object, value, index -> object."${columns[index].toLowerCase()}" = value; return object }
-                ] as WritableTableFormat)
+			view.table.model = new EventTableModel(images, new ImportImageTableFormat())
 			if (Dialogs.showCustomDialog("Imported Images", view.tablePanel, app.appFrames[0])) {
 				return model.addToSection ? createImages(images, view.section.selectedItem) : createSections(images)
 			}
@@ -191,4 +183,27 @@ class ImportImageWizardController {
     	model.group = image.group
     	container.add(model)
     }
+}
+
+class ImportImageTableFormat implements WritableTableFormat {
+	ImportImageTableFormat() {}
+
+	// pop up table for the user to confirm
+	final columns = ["File", "Name", "Length (m)", "Top (m)", "Base (m)"]
+	int getColumnCount() { return columns.size() }
+	String getColumnName(int index) { columns[index] }
+	Object getColumnValue(Object object, int index) {
+		final propName = getPropName(columns[index])
+		if (index <= 1) {
+			return object."$propName"
+		} else if (index == 2) {  // Length
+			return formatDouble(object.base - object.top)
+		} else { // Top, Base
+			return formatDouble(object."$propName")
+		}
+	}
+	boolean isEditable(Object object, int index) { return false }
+	Object setColumnValue(Object object, Object value, int index) { return object }
+	private getPropName(String columnName) { return columnName.replace(" (m)", "").toLowerCase() }
+	private formatDouble(double val) { new BigDecimal(val).setScale(3, BigDecimal.ROUND_HALF_UP).stripTrailingZeros() }
 }

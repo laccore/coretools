@@ -144,7 +144,7 @@ class GeoUtils {
 					continue
 				}
 				if (cmp == 0) {
-					logger.info.("  base of $mod is at min range $min, culling")
+					logger.info("  base of $mod is at min range $min, culling")
 					continue
 				}
 				if (mod.top.compareTo(min) == -1 && mod.base.compareTo(min) == 1) {

@@ -125,7 +125,7 @@ class Dialogs {
 	// According to https://docs.oracle.com/javase/8/docs/api/javax/swing/JOptionPane.html,
 	// String, Component, Icon are all handled as expected by underlying f'n JOptionPane.showOptionDialog().
 	// Object and Object[] use the result of toString().
-	static boolean showCustomDialog(title, objectToDisplay, parent = null, showAppIcon=true) {
+	static boolean showCustomDialog(title, objectToDisplay, parent = null, showAppIcon=false) {
 		def icon = showAppIcon ? JOptionPane.QUESTION_MESSAGE : JOptionPane.PLAIN_MESSAGE
 		JOptionPane.showOptionDialog(parent, objectToDisplay, title, JOptionPane.OK_CANCEL_OPTION, icon, null, null, null) == JOptionPane.OK_OPTION
 	}

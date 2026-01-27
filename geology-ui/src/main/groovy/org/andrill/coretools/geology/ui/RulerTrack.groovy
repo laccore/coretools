@@ -31,8 +31,8 @@ import org.andrill.coretools.scene.TrackParameter
  */
 class RulerTrack extends GeologyTrack {
 	private static final PARAMETERS = [
-		"label-step" : new TrackParameter("label-step", "Label step", "In pixels. Frequency of labeled hashes.", TrackParameter.Type.INTEGER, "40"),
-		"hash-step" : new TrackParameter("hash-step", "Hash step", "In pixels. Frequency of unlabeled hashes.", TrackParameter.Type.INTEGER, "10"),
+		"label-step" : new TrackParameter("label-step", "Label step", "<html>Minimum number of pixels between labeled hashes.<br/>Exact spacing varies with zoom level.</html>", TrackParameter.Type.INTEGER, "40"),
+		"hash-step" : new TrackParameter("hash-step", "Hash step", "<html>Minimum number of pixels between hashes, labeled and unlabeled.<br/>Exact spacing varies with zoom level.</html>", TrackParameter.Type.INTEGER, "10"),
 		"draw-left-hash" : new TrackParameter("draw-left-hash", "Draw left hashes", "Draw hashes from the left edge of the ruler.", TrackParameter.Type.BOOLEAN, "true"),
 		"draw-right-hash" : new TrackParameter("draw-right-hash", "Draw right hashes", "Draw hashes from the right edge of the ruler.", TrackParameter.Type.BOOLEAN, "true"),
 		"scale-labels" : new TrackParameter("scale-labels", "Scale labels", "Resize labels to fill available space. Typically used in strat column export.", TrackParameter.Type.BOOLEAN, "false"),

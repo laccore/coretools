@@ -235,8 +235,12 @@ public class PropertiesPanel extends JPanel implements Scene.SelectionListener, 
 	 * {@inheritDoc}
 	 */
 	public void modelUpdated(final Model model) {
-		if ((selection.getFirstObject() == model) && !fromWidget) {
-			buildUI();
+		if (selection.getFirstObject() == model) {
+			if (!fromWidget) {
+				buildUI();
+			} else { // sync selected model's top/base in title on widget edit
+				label.setText(selection.getFirstObject().toString());
+			}
 		}
 		fromWidget = false;
 	}

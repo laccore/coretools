@@ -75,7 +75,6 @@ class LegendTrack extends GeologyTrack {
 					final schemeProp = model."$propName"
 					if (schemeProp && !entryMap.containsKey(schemeProp.toString())) {
 						def entry = getSchemeEntry(schemeProp.scheme, schemeProp.code)
-						println "${schemeProp.code}: ${entry.getName()}"
 						if (entry && entry.scheme) {
 							entryTypes.add(entry.scheme.type)
 							entryMap[schemeProp.toString()] = entry
@@ -125,7 +124,7 @@ class LegendTrack extends GeologyTrack {
 	}
 
 	private void renderEntries(GraphicsContext graphics, LinkedHashMap<String, List<SchemeEntry>> entries) {
-		final int COLS = 1 // number of columns in which to draw legend entries
+		final int COLS = Integer.parseInt(getParameter("columns", "1")) // number of columns in which to draw legend entries
 		final int availableWidth = ((this.bounds.width - (MARGIN*2)) / COLS).intValue()
 		int col = 0
 		int x = bounds.x + MARGIN

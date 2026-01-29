@@ -619,6 +619,25 @@ Working Dir: ${System.getProperty("user.dir")}
 						if (model.project.scenes) {
 							FileWriter writer = new FileWriter(new File(model.project.scenes[0].toURI()))
 							SceneUtils.toXML(mvc.model.scene, writer)
+
+							// Update the scenes of non-active open diagrams by closing and reopening
+							def openDiagrams = model.openDiagrams.collect { it }
+							openDiagrams.each { d ->
+								if (d.model.id != activeDiagramId) {
+									closeDiagram(d)
+									app.controllers['PSICAT'].actions.openSection(null, d.model.id)
+								}
+							}
+							
+							// restore last active diagram
+							if (activeDiagramId) {
+								for (int i = 0; i < view.diagrams.getTabCount(); i++) {
+									if (view.diagrams.getTitleAt(i).equals(activeDiagramId)) {
+										view.diagrams.setSelectedIndex(i)
+										break
+									}
+								}
+							}
 						} else {
 							println "Project has no diagrams, can't save"
 						}

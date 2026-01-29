@@ -40,16 +40,8 @@ class DiagramOptionsController {
 		app.controllers['PSICAT'].withMVC('TrackOptions', track: view.trackList.selectedValue) { mvc ->
 			if (mvc.controller.show(view.root)) {
 				def paramValues = mvc.controller.getParameterValues()
-
-				 // redraw all open diagrams
-				app.models['PSICAT'].openDiagrams.each { diagram ->
-					setTrackParams(diagram.model.scene, mvc.model.track.class, paramValues)
-					diagram.model.scene.invalidate()
-				}
-
-				// update project scene
 				setTrackParams(model.scene, mvc.model.track.class, paramValues)
-
+				model.scene.invalidate()
 				model.sceneDirty = true
 			}
 		}

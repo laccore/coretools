@@ -2,6 +2,7 @@ package org.andrill.coretools.geology.ui.csdf
 
 import java.awt.Color
 import java.awt.geom.Rectangle2D
+import java.awt.geom.AffineTransform
 
 import org.andrill.coretools.geology.models.Length
 import org.andrill.coretools.geology.models.csdf.TextureInterval
@@ -55,14 +56,20 @@ class TextureTrack extends AbstractFeatureTrack {
 	void renderModel(Model m, GraphicsContext graphics, Rectangle2D bounds) {
 		def r = getModelBounds(m)
 		if (Boolean.parseBoolean(getParameter("draw-repeating", PARAMETERS["draw-repeating"].defaultValue))) {
-			def outline = [pt(r.x, r.y), pt(r.x+r.width, r.y), pt(r.x+r.width, r.y+r.height), pt(r.x, r.y+r.height)]
+			graphics.pushTransform(AffineTransform.getTranslateInstance(r.x, r.y))
+			def outline = [pt(0, 0), pt(r.width, 0), pt(r.width, r.height), pt(0, r.height)]
 			if (m?.scheme) {
 				graphics.setFill(getFill(m))
 				graphics.fillPolygon(outline)
-			}
-			if (getDrawOutline()) {
+				if (getDrawOutline()) {
+					graphics.drawPolygon(outline)
+				}
+			} else {
+				graphics.drawLine(0, 0, r.width, r.height)
+				graphics.drawLine(0, r.height, r.width, 0)
 				graphics.drawPolygon(outline)
-			}	
+			}
+			graphics.popTransform()
 		} else {
 			final ss = getSymbolSize()
 

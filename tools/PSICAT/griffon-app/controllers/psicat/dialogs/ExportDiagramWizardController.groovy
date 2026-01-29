@@ -79,7 +79,7 @@ class ExportDiagramWizardController {
 			// figure out the extents
 			def start = model.exportAll ? scene.contentSize.minY / scene.scalingFactor : model.start as Double
 			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
-			def pageSize = model.pageSize ? model.pageSize as Double : Math.max(end - start, view.units.selectedItem.equals("cm") ? 100 : 1)
+			def pageSize = model.pageSize ? model.pageSize as Double : end - start
 
 			// println "scene.contentSize.maxY = ${scene.contentSize.maxY} start: $start, end: $end, end-start: ${end - start} pageSize: $pageSize"
 

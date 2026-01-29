@@ -47,12 +47,10 @@ contents.selectionProvider = { scene, e ->
 	if (o && o instanceof Feature && e.isAltDown() && !scene.selection.isEmpty()) {
 		def existing = scene.selection.firstObject
 		def props = [:]
-		println "Cloning Feature $o"
 		def m = o.class.newInstance(top:o.top, base:o.base, scheme:o.scheme)
 		scene.commandStack.execute(new CreateCommand(m, existing.container))
 		return null
 	} else {
-		println "Selected object $o"
 		return (o == null) ? Selection.EMPTY : new Selection(o)
 	}
 } as SelectionProvider

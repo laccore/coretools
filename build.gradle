@@ -25,7 +25,7 @@ allprojects {
 		sourceCompatibility = JavaVersion.VERSION_1_8
 		targetCompatibility = JavaVersion.VERSION_1_8
 	}
-	version = '1.2.8'
+	version = '1.2.9'
 
 	// Java runtime dir, required for packaging
 	project.ext.javaRuntimeFile = 'jre8'

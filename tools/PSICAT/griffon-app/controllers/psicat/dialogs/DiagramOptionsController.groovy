@@ -57,6 +57,7 @@ class DiagramOptionsController {
 		"Lithology (CSD Facility)" : "org.andrill.coretools.geology.ui.csdf.LithologyTrack",
 		"Lithology (Andrill)" : "org.andrill.coretools.geology.ui.IntervalTrack",
 		"Section Name" : "org.andrill.coretools.geology.ui.csdf.SectionNameTrack",
+		"Structure": "org.andrill.coretools.geology.ui.csdf.StructureTrack",
 		"Symbol (Andrill)" : "org.andrill.coretools.geology.ui.OccurrenceTrack",
 		"Ruler" : "org.andrill.coretools.geology.ui.RulerTrack",
 		"Texture" : "org.andrill.coretools.geology.ui.csdf.TextureTrack",

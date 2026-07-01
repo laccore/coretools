@@ -272,6 +272,7 @@ class GeoUtils {
 		return model instanceof Interval ||
 			model instanceof BeddingInterval ||
 			model instanceof GrainSizeInterval ||
+			model instanceof StructureInterval ||
 			model instanceof LithologyInterval ||
 			model instanceof UnitInterval
 	}

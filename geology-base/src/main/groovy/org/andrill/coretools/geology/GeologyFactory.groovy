@@ -28,7 +28,8 @@ import org.andrill.coretools.model.ModelManager.Factory
 class GeologyFactory implements Factory {
 	private static final String[] TYPES = [
 		Annotation.class, Interval.class, Occurrence.class, Unit.class, Image.class, Section.class,
-		BeddingInterval.class, GrainSizeInterval.class, TextureInterval.class, Feature.class, LithologyInterval.class, UnitInterval.class
+		BeddingInterval.class, GrainSizeInterval.class, TextureInterval.class, Feature.class,
+		StructureInterval.class, LithologyInterval.class, UnitInterval.class
 	].collect { it.simpleName } as String[]
 	
 	public GeologyFactory() { }
@@ -47,6 +48,7 @@ class GeologyFactory implements Factory {
 			case 'BeddingInterval': return init(new BeddingInterval(), data)
 			case 'TextureInterval': return init(new TextureInterval(), data)
 			case 'GrainSizeInterval': return init(new GrainSizeInterval(), data)
+			case 'StructureInterval': return init(new StructureInterval(), data)
 			case 'Feature': return init(new Feature(), data)
 			case 'LithologyInterval': return init(new LithologyInterval(), data)
 			case 'UnitInterval': return init(new UnitInterval(), data)

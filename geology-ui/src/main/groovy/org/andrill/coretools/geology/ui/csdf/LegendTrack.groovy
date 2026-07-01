@@ -90,7 +90,8 @@ class LegendTrack extends GeologyTrack {
 			"texture" : "Texture",
 			"bedding" : "Bedding",
 			"features" : "Features",
-			"symbol" : "Symbol"
+			"symbol" : "Symbol",
+			"structure": "Structure"
 		]
 
 		LinkedHashMap<String, List<SchemeEntry>> entries = [:]

@@ -31,6 +31,7 @@ class TrackElementRenderer implements ListCellRenderer {
 		"org.andrill.coretools.geology.ui.csdf.SectionNameTrack" : "Section Name",
 		"org.andrill.coretools.geology.ui.OccurrenceTrack" : "Symbol (Andrill)",
 		"org.andrill.coretools.geology.ui.RulerTrack" : "Ruler",
+		"org.andrill.coretools.geology.ui.csdf.StructureTrack": "Structure",
 		"org.andrill.coretools.geology.ui.csdf.TextureTrack" : "Texture",
 		"org.andrill.coretools.geology.ui.csdf.UnitTrack" : "Unit (CSD Facility)",
 		"org.andrill.coretools.geology.ui.UnitTrack" : "Unit (Andrill)" 

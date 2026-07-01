@@ -49,7 +49,7 @@ class SchemeEditorController implements ListSelectionListener, ListEventListener
     private SchemeHelper helper
     static File currentOpenDir = new File(System.getProperty("user.home"))
 	static File currentSaveDir = new File(System.getProperty("user.home"))
-	final tileImageTypes = ['lithology', 'bedding', 'texture', 'grainsize']
+	final tileImageTypes = ['lithology', 'bedding', 'texture', 'grainsize', 'structure']
 	def imageChooserOpened = false
 
     void mvcGroupInit(Map args) {

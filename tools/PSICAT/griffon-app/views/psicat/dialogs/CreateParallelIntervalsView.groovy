@@ -48,7 +48,7 @@ if (model.lastSelectedModels) { // restore last-selected models if any
     modelListPanel.selectModels(model.lastSelectedModels, true)
 }
 
-dialog(id:'createParallelIntervalsDialog', title:'Create Parallel Intervals', owner:app.appFrames[0], pack:true, modal:true, resizable:false) {
+dialog(id:'createParallelIntervalsDialog', title:'Create Parallel Intervals', owner:app.appFrames[0], pack:true, modal:false, alwaysOnTop:true, resizable:false) {
 	panel(id:'root', layout: new MigLayout("fill, wrap, insets 5", "", "[][]15[]")) {
         label("Fill to bottom depth (cm):", constraints:'split 2')
         textField(id:'depth', constraints:'wmin 100, grow')
@@ -61,3 +61,5 @@ dialog(id:'createParallelIntervalsDialog', title:'Create Parallel Intervals', ow
 }
 
 createParallelIntervalsDialog.getRootPane().setDefaultButton(createButton)
+createParallelIntervalsDialog.setLocationRelativeTo(app.appFrames[0])
+createParallelIntervalsDialog.show()

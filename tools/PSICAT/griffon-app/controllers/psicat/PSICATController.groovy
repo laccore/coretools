@@ -517,10 +517,13 @@ class PSICATController {
 			}
 		},
 		'createIntervals': { evt = null ->
-			def diagram = model.activeDiagram.model
-			def modelClasses = diagram.scene.getCreatedClasses()
-			withMVC('CreateParallelIntervals', diagram:diagram, modelClasses:modelClasses) { mvc ->
-				mvc.controller.show()
+			if (app.views.CreateParallelIntervals == null) {
+				def diagram = model.activeDiagram.model
+				def modelClasses = diagram.scene.getCreatedClasses()
+				createMVCGroup('CreateParallelIntervals', modelClasses:modelClasses)
+			} else if (app.views.CreateParallelIntervals.createParallelIntervalsDialog.isVisible() == false) {
+				app.views.CreateParallelIntervals.createParallelIntervalsDialog.visible = true
+				app.views.CreateParallelIntervals.depth.requestFocus()
 			}
 		},
 		'undo':		{ evt = null -> model.diagramState.commandStack.undo() },

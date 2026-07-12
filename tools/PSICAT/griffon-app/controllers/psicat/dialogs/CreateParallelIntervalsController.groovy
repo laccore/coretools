@@ -29,6 +29,12 @@ class CreateParallelIntervalsController {
     ]
 
     def create() {
+        def activeDiagramModel = app.models.PSICAT.activeDiagram?.model
+        if (activeDiagramModel == null) {
+            Dialogs.showErrorDialog("No Active Diagram", "There is no active diagram to edit.")
+            return
+        }
+
         Length depth = null
         try {
             depth = new Length(Double.parseDouble(view.depth.text), "cm")
@@ -47,7 +53,7 @@ class CreateParallelIntervalsController {
         def maxes = [:]
         selectedModels.each { String modelType ->
             def max = new Length("0 cm")
-            def typeMax = GeoUtils.getMaxBase(model.diagram.scene.models.findAll { it.modelType.equals(modelType) } )
+            def typeMax = GeoUtils.getMaxBase(activeDiagramModel.scene.models.findAll { it.modelType.equals(modelType) } )
             maxes[modelType] = typeMax ?: max
         }
 
@@ -81,15 +87,17 @@ class CreateParallelIntervalsController {
         def createCommands = []
         view.modelListPanel.selectedClasses.eachWithIndex { c, index ->
             def modelTypeTopDepth = maxes[selectedModels[index]]
-            def m = c.newInstance(top:modelTypeTopDepth, base:depth)
-            // populate intervals with random entry, useful for faking out data quickly
-            // def schemeRef = DebugUtils.randomSchemeEntry(c.constraints.scheme.widgetProperties.schemeType)
-            // def m = c.newInstance(top:modelTypeTopDepth, base:depth, scheme:schemeRef)
-            createCommands << new CreateCommand(m, model.diagram.scene.models)
+            if (modelTypeTopDepth.compareTo(depth) < 0) {
+                def m = c.newInstance(top:modelTypeTopDepth, base:depth)
+                // populate intervals with random entry, useful for faking out data quickly
+                // def schemeRef = DebugUtils.randomSchemeEntry(c.constraints.scheme.widgetProperties.schemeType)
+                // def m = c.newInstance(top:modelTypeTopDepth, base:depth, scheme:schemeRef)
+                createCommands << new CreateCommand(m, activeDiagramModel.scene.models)
+            }
         }
 
         def command = new CompositeCommand("Create Parallel Intervals", createCommands as Command[])
-        model.diagram.commandStack.execute(command)
+        activeDiagramModel.commandStack.execute(command)
 
         model.lastSelectedModels = view.modelListPanel.selectedModels // retain last-selected models
     }

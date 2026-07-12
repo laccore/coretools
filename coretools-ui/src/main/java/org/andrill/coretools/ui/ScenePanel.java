@@ -29,6 +29,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -58,7 +60,7 @@ import org.andrill.coretools.scene.event.SceneMouseEvent;
  * 
  * @author Josh Reed (jareed@andrill.org)
  */
-public class ScenePanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener,
+public class ScenePanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener,
         Scene.ChangeListener, Scene.SelectionListener, ModelContainer.Listener, AdjustmentListener, Scrollable {
 	/**
 	 * Defines the the two possible rendering orientations for scenes.
@@ -155,7 +157,24 @@ public class ScenePanel extends JPanel implements MouseListener, MouseMotionList
 		setScene(scene);
 		addMouseListener(this);
 		addMouseMotionListener(this);
+		addMouseWheelListener(this);
 		addKeyListener(this);
+	}
+
+    @Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		if (e.isControlDown()) {
+			int notches = e.getWheelRotation();
+			if (notches < 0) {
+				scene.setScalingFactor(scene.getScalingFactor() * 1.2); // zoom in
+			} else {
+				scene.setScalingFactor(scene.getScalingFactor() * 0.8); // zoom out
+			}
+		} else { // redispatch to parent to scroll the scene
+			if (getParent() != null) {
+				getParent().dispatchEvent(SwingUtilities.convertMouseEvent(this, e, getParent()));
+			}
+		}
 	}
 
 	public void adjustmentValueChanged(final AdjustmentEvent e) {

@@ -66,7 +66,7 @@ class CreateStratColumnController {
                     GeoUtils.setLogger(logger)
                 }
 
-                def containers = model.stratMetadata.getContainers(model.project, view.modelListPanel.getSelectedModels())
+                def containers = model.stratMetadata.getContainers(model.project, view.modelListPanel.getSelectedModels(), model.excludeNoneScheme)
 
                 if (createLogFile) {
                     logger.removeAllAppenders()

@@ -118,7 +118,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 		this.sectionMapping = sectionMapping
 	}
 
-	def getContainers(project, includeModels=[]) {
+	def getContainers(project, includeModels, excludeNoneScheme) {
 		def containers = [:]
 		this.metadata.eachWithIndex { secMap, idx ->
 			logger.info("### Metadata Interval ${idx+1}: project sections ${secMap['sections'].collect{ it['projSec'] }} ###")
@@ -126,7 +126,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			logger.info("End depth: ${secMap['endMcd']} m")
 			logger.info("Start section: ${secMap['startSec']} at section depth ${secMap['startSecDepth']} cm")
 			logger.info("End section: ${secMap['endSec']} at section depth ${secMap['endSecDepth']} cm")
-			def sectionModels = gatherModels(project, secMap, includeModels)
+			def sectionModels = gatherModels(project, secMap, includeModels, excludeNoneScheme)
 
 			// offset all models by secMap.startMcd and throw them in a container
 			def top = secMap.startMcd
@@ -145,7 +145,7 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 
 	// return a list of models within secMap.startSecDepth and secMap.endSecDepth, trimmed
 	// to fit start/endSecDepth and downscaled to fit the secMap.startMcd to secMap.endMcd interval
-	private gatherModels(project, secMap, includeModels) {
+	private gatherModels(project, secMap, includeModels, excludeNoneScheme) {
 		def sectionModels = [:]
 		Length secTop = new Length(secMap.startSecDepth, 'cm')
 		Length secBase = new Length(secMap.endSecDepth, 'cm')
@@ -159,6 +159,9 @@ class SpliceIntervalMetadata implements StratColumnMetadata {
 			logger.info("   Gathering components in section ${section['projSec']} range ${secTop} - ${secBase}...")
 
 			def models = GeoUtils.getModels(project, sectionName).findAll { includeModels.contains(it.modelType) }
+			if (excludeNoneScheme) {
+				models = GeoUtils.removeNoneSchemeModels(models)
+			}
 			def trimmedModels = GeoUtils.trimModels(project, models, trimMin, trimMax)
 
 			if (trimmedModels.size() > 0) {

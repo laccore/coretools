@@ -78,7 +78,7 @@ class SectionMetadata implements StratColumnMetadata {
 		this.metadata = metadata.sort { it.top }
 	}
 
-	def getContainers(project, includeModels=[]) {
+	def getContainers(project, includeModels, excludeNoneScheme) {
 		def containers = [:]
 		this.metadata.each {
 			def section = it['section']
@@ -93,6 +93,9 @@ class SectionMetadata implements StratColumnMetadata {
 
 				// gather all requested models from the container
 				def models = GeoUtils.getModels(project, section).findAll { includeModels.contains(it.modelType) }
+				if (excludeNoneScheme) {
+					models = GeoUtils.removeNoneSchemeModels(models)
+				}
 				models.each { it.setSourceSection(section) }
 
 				GeoUtils.zeroBase(models)

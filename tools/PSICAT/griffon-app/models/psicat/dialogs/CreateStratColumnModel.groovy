@@ -10,4 +10,5 @@ class CreateStratColumnModel {
    HashMap<String,String> modelsAndHelpText = null
    @Bindable String stratColumnName = ''
    @Bindable String logFilePath = NULL_LOG_FILE
+   @Bindable boolean excludeNoneScheme = false
 }

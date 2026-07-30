@@ -1,13 +1,16 @@
 package psicat.dialogs
 
+import java.awt.Font
 import java.awt.LayoutManager
 import javax.swing.*
 import java.awt.event.ActionListener
 
+import psicat.ui.DefaultModelListPanel
+import psicat.util.FontUtils
+
 import net.miginfocom.swing.MigLayout
 import org.andrill.coretools.misc.util.StringUtils
 
-import psicat.ui.DefaultModelListPanel
 
 // model list with optional help text for specified model types
 class StratModelListPanel extends DefaultModelListPanel {
@@ -21,7 +24,7 @@ class StratModelListPanel extends DefaultModelListPanel {
             String helpText = modelsAndHelpText[modelType]
             if (helpText) {
                 JLabel ht = new JLabel("$helpText")
-                ht.font = ht.font.deriveFont((float)(ht.font.size - 2.0f))
+                ht.font = FontUtils.getHelpTextFont()
                 this.add(ht)
             }
 		}
@@ -45,6 +48,9 @@ dialog(id:'createStratColumnDialog', title:'Create Strat Column Options', owner:
         textField(id:'stratColumnName', text:model.stratColumnName, constraints:'grow')
 
         widget(id:'modelListPanel', modelListPanel, border:titledBorder('Components to include'), constraints:'grow')
+
+		checkBox(id:'excludeNoneScheme', text:"Exclude components with no defined scheme ('None')", selected:bind(source:model, sourceProperty:'excludeNoneScheme', mutual:true))
+		label('Removes visual "noise" of drawn empty intervals; particularly useful in large strat columns.', font:FontUtils.getHelpTextFont(), constraints:'gapbottom 15')
 
         checkBox(id:'logCheckbox', action:logSelected, selected:false)
 

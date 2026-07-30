@@ -276,4 +276,16 @@ class GeoUtils {
 			model instanceof LithologyInterval ||
 			model instanceof UnitInterval
 	}
+
+	static boolean modelHasScheme(GeologyModel model) {
+		return model.constraints.keySet().contains('scheme') && model.hasProperty('scheme') && model.scheme != null
+	}
+
+	// Remove models with no defined scheme ('None' selection for scheme in the UI), but only for
+	// models that have a scheme constraint. For instance, UnitInterval has no scheme constraint and
+	// thus instances of UnitInterval should not be removed.
+	static def removeNoneSchemeModels(models) {
+		def filteredModels = models.findAll{ modelHasScheme(it) }
+		return filteredModels
+	}
 }

@@ -81,6 +81,17 @@ class ExportDiagramWizardController {
 			def end = model.exportAll ? scene.contentSize.maxY / scene.scalingFactor : model.end as Double
 			def pageSize = model.pageSize ? model.pageSize as Double : end - start
 
+			// model.pageSize is initially null, but if it's edited and then cleared, it becomes
+			// the empty string (''), thus the compound test here.
+			if (model.minPageSize != null && model.exportAll && (model.pageSize == null || model.pageSize.equals(''))) {
+				// enforce minimum page size by overriding pageSize
+				final minPageSize = model.minPageSize as Double
+				if (pageSize < minPageSize) {
+					println "Overriding page size $pageSize with minimum $minPageSize"
+					pageSize = minPageSize
+				}
+			}
+
 			// println "scene.contentSize.maxY = ${scene.contentSize.maxY} start: $start, end: $end, end-start: ${end - start} pageSize: $pageSize"
 
 			Paper paper = null

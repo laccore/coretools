@@ -44,11 +44,19 @@ panel(id:'root', layout: new MigLayout('fill'), border: etchedBorder()) {
 	label("-")
 	textField(columns:4, enabled: bind { !model.exportAll }, text: bind(source: model, sourceProperty:'end', mutual:true), inputVerifier: CustomVerifier.NUMBER)
 	label(text: bind(source:model, sourceProperty:'units'), constraints:'wrap')
-	label('Per page:')
+	
+	label('Per Page:')
 	textField(columns:4, text: bind(source: model, sourceProperty:'pageSize', mutual:true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split')
+	label(text: bind(source:model, sourceProperty:'units'), constraints:'wrap, gapbottom 15')
+	
+	label('Minimum Page Size:')
+	textField(columns:4, text: bind(source:model, sourceProperty:'minPageSize', mutual:true), inputVerifier: CustomVerifier.NUMBER, constraints: 'split')
 	label(text: bind(source:model, sourceProperty:'units'), constraints:'wrap')
-	separator(constraints: 'span, growx, wrap')
 
+	final msg = "<html>To avoid squeezing/stretching section images, the Image column's width varies with image size.<br>Short section images result in a very wide Image column that crowds out other columns.<br>Setting a minimum page size e.g. 50cm mitigates this behavior.<br>Note: This value <b>is ignored</b> if Range or Per Page is set.</html>"
+	label(text: msg, font: FontUtils.getHelpTextFont(), constraints: 'span 2, wrap')
+
+	separator(constraints: 'span, growx, wrap')
 
 	label('Page Format:', constraints: 'span 1 2')
 	buttonGroup().with {

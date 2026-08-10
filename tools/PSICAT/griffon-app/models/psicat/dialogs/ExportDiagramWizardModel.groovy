@@ -31,6 +31,7 @@ class ExportDiagramWizardModel {
 	@Bindable String start
 	@Bindable String end
 	@Bindable String pageSize
+	@Bindable String minPageSize
 	@Bindable boolean renderHeader = true
 	@Bindable boolean renderFooter = false
 	@Bindable boolean renderColumnBorders = true

@@ -137,6 +137,13 @@ task packageMac(dependsOn: ':packageCheckMac') {
 				include "${javaRuntimeFile}/**"
 			}
 
+			// copy Java launcher stub into bundle
+			copy {
+				from new File(macJavaLauncherStubsDir, macJavaLauncherStub)
+				into 'dist/mac/PSICAT.app/Contents/MacOS'
+				rename "${macJavaLauncherStub}", 'PSICAT'
+			}
+
 			// codesign the app so Mac users are only pestered by the "Do you want PSICAT
 			// to allow incoming network connections" dialog once...otherwise it appears
 			// at every launch.

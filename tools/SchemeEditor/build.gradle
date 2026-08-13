@@ -126,6 +126,13 @@ task packageMac(dependsOn: ':packageCheckMac') {
 				include "${javaRuntimeFile}/**"
 			}
 
+			// copy Java launcher stub into bundle
+			copy {
+				from new File(macJavaLauncherStubsDir, macJavaLauncherStub)
+				into 'dist/mac/SchemeEditor.app/Contents/MacOS'
+				rename "${macJavaLauncherStub}", 'SchemeEditor'
+			}
+
 			// codesign the app so Mac users are only pestered by the "Do you want SchemeEditor
 			// to allow incoming network connections" dialog once...otherwise it appears
 			// at every launch.

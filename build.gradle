@@ -30,6 +30,13 @@ allprojects {
 	// Java runtime dir, required for packaging
 	project.ext.javaRuntimeFile = 'jre8'
 
+	// Mac-only: Java launcher stub (universalJavaApplicationStub). Set to one of
+	//   'launcher_stub_arm64'
+	//   'launcher_stub_x86_64'
+	// for your target architecture. Both are provided in package/mac_java_launcher_stubs.
+	project.ext.macJavaLauncherStub = null
+	project.ext.macJavaLauncherStubsDir = file("${project.rootDir}/package/mac_java_launcher_stubs")
+
 	// Certificate with which to sign PSICAT and SchemeEditor app bundles for OSX/macOS distribution
 	// Set to reflect your certificate, or '-' to use ad-hoc signing.
 	project.ext.macAppSigningCertificate = null
@@ -65,6 +72,14 @@ task packageCheckMac() {
 		}
 		if (javaRuntimeDir.listFiles().find { it.name.equals(javaRuntimeFile) } == null) {
 			throw new Error("Error: Missing Java runtime file '${javaRuntimeFile}' in ${javaRuntimeDir.absolutePath}")
+		}
+
+		println "Checking for Mac Java launcher stubs dir and valid launcher file..."
+		if (macJavaLauncherStub == null) {
+			throw new Error("Error: Mac Java launcher stub filename must be defined")
+		}
+		if (macJavaLauncherStubsDir.listFiles().find { it.name.equals(macJavaLauncherStub) } == null) {
+			throw new Error("Error: Mac Java launcher stub file '${macJavaLauncherStub}' not found in ${macJavaLauncherStubsDir.absolutePath}")
 		}
 
 		if (macAppSigningCertificate == null) {

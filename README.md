@@ -104,7 +104,9 @@ In `build.gradle`, set the `project.ext.javaRuntimeFile` var to your Java 8 runt
 
 We typically update the verbose Temurin 8 runtime root dir name to `'jre8'`. For those building both Mac and Windows applications, we recommend using the same runtime root directory name for both platforms. Otherwise, the name will need to be updated when building for a different platform.
 
-Update the `project.ext.macAppSigningCertificate` with your App Distribution cert's full name, or `-` for ad-hoc signing.
+Update the `project.ext.macJavaLauncherStub` var with `'launcher_stub_x86_64'` or `'launcher_stub_arm64'`, depending on your target architecture. These stub files are from the [universalJavaApplicationStub](https://github.com/tofi86/universalJavaApplicationStub) project, and are provided in `package/mac/mac_java_launcher_stubs`.
+
+Update the `project.ext.macAppSigningCertificate` var with your App Distribution cert's full name, or `-` for ad-hoc signing.
 
 Create a distribution-ready package comprising PSICAT, SchemeEditor, and CSD Facility default Lithology, Grain Size, Bedding, Texture, and Feature schemes:  
 `./gradlew packagePSICATMac`

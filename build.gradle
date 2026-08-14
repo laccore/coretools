@@ -42,22 +42,6 @@ allprojects {
 	project.ext.macAppSigningCertificate = null
 }
 
-// With a handful of minor changes to ancient Griffon 0.2 scripts, it works
-// properly under Java 8! See README.md for details.
-final javaHome = '/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home'
-def javaExecutablesPath = new File(javaHome, 'bin')
-def javaExecutables = [:].withDefault { execName ->
-	def executable = new File(javaExecutablesPath, execName)
-	assert executable.exists(): "There is no ${execName} executable in ${javaExecutablesPath}"
-	executable
-}
-tasks.withType(AbstractCompile) {
-	options.with {
-		fork = true
-		forkOptions.javaHome = file(javaHome)
-	}
-}
-
 
 task packageCheckMac() {
 	doLast {
